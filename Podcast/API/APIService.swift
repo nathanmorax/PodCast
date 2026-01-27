@@ -20,23 +20,30 @@ class APIService {
         
         guard let url = URL(string: secureFeedUrl) else { return }
        
-       DispatchQueue.global(qos: .background).async {
-          let parser = FeedParser(URL: url)
-         
-          parser?.parseAsync(result: { (result) in
-              print("Successfully parse feed:")
-              
-              if let err = result.error {
-                  print("Failed to parse XML feed:", err)
-                  return
-              }
-              
-              guard let feed = result.rssFeed else { return }
-              
-              let episodes = feed.toEpisodes()
-              completionHandler(episodes)
-          })
-       }
+        //MARK: - Pasar esta funcion a Async Await
+        
+        Task {
+            do {
+                let feed = try await Feed(url: url)
+                
+                print("Successfully parse feed:")
+                
+                switch feed {
+                case .rss(let rssFeed):
+                    let episodes = rssFeed.toEpisodes()
+                    await MainActor.run {
+                        completionHandler(episodes)
+                    }
+                case .atom(_):
+                    print("Feed tipo Atom no soportado actualmente")
+                case .json(_):
+                    print("Feed tipo JSON no soportado actualmente")
+                }
+                
+            } catch {
+                print("Failed to parse XML feed:", error)
+            }
+        }
     }
     
     func fetchPodcast(searchText: String, completionHandler: @escaping ([Podcast]) -> ()) {
