@@ -9,7 +9,7 @@ import UIKit
 import Alamofire
 
 class EpisodeCell: UITableViewCell {
-
+    
     @IBOutlet weak var imageEpisodeView: UIImageView!
     @IBOutlet weak var pubDateLabel: UILabel!
     @IBOutlet weak var titleLabel: UILabel!
