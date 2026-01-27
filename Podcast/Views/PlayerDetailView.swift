@@ -64,7 +64,7 @@ class PlayerDetailView: UIView {
    
    override func awakeFromNib() {
       super.awakeFromNib()
-      addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleDismiss)))
+      //addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleDismiss)))
       observerPlayerCurrentTime()
       
       let time = CMTimeMake(value: 1, timescale: 3)
@@ -116,10 +116,10 @@ class PlayerDetailView: UIView {
    // MARK: - IBActions
 
    @IBAction func handleDismiss(_ sender: Any) {
-      //self.removeFromSuperview()
-      print("Dismisss")
-      let mainTabController = UIApplication.shared.keyWindow?.rootViewController as? MainTabController
-      mainTabController?.minimizePlayerDetail()
+//      //self.removeFromSuperview()
+//      print("Dismisss")
+//      let mainTabController = UIApplication.shared.keyWindow?.rootViewController as? MainTabController
+//      mainTabController?.minimizePlayerDetail()
    }
    @IBAction func handleCurrentTimeSliderChange(_ sender: Any) {
       
