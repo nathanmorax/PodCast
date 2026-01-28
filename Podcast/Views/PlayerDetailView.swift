@@ -11,6 +11,7 @@ import AVKit
 class PlayerDetailView: UIView {
     
     @IBOutlet weak var titleEpisodeLabel: UILabel!
+    @IBOutlet weak var miniTitleLabel: UILabel!
     @IBOutlet weak var authorLabel: UILabel!
     @IBOutlet weak var currentTimeLabel: UILabel!
     @IBOutlet weak var durationLabel: UILabel!
@@ -25,6 +26,7 @@ class PlayerDetailView: UIView {
     @IBOutlet weak var maximizedStackView: UIStackView!
     @IBOutlet weak var miniPlayerView: UIView!
     
+    @IBOutlet weak var miniEpisodeImageView: UIImageView!
     @IBOutlet weak var episodeImageView: UIImageView! {
         didSet {
             episodeImageView.layer.cornerRadius =  5
@@ -33,23 +35,26 @@ class PlayerDetailView: UIView {
         }
     }
     
-    var episode: Episode? {
-        didSet {
-            titleEpisodeLabel.text = episode?.title
-            authorLabel.text = episode?.author
-            
-            playEpisode()
-            
-            guard let url = URL(string: episode?.imageUrl ?? "") else { return }
-            episodeImageView.sd_setImage(with: url)
-        }
-    }
     
     let player: AVPlayer = {
         let avPlayer = AVPlayer()
         avPlayer.automaticallyWaitsToMinimizeStalling = false
         return avPlayer
     }()
+    
+    var episode: Episode? {
+        didSet {
+            titleEpisodeLabel.text = episode?.title
+            miniTitleLabel.text = episode?.title
+            authorLabel.text = episode?.author
+            
+            playEpisode()
+            
+            guard let url = URL(string: episode?.imageUrl ?? "") else { return }
+            episodeImageView.sd_setImage(with: url)
+            miniEpisodeImageView.sd_setImage(with: url)
+        }
+    }
     
     fileprivate func observerPlayerCurrentTime() {
         let interval = CMTimeMake(value: 1, timescale: 2)
@@ -58,7 +63,6 @@ class PlayerDetailView: UIView {
             
             let duration = self?.player.currentItem?.duration
             self?.durationLabel.text = duration?.toDisplayString()
-            
             self?.updateCurrentTimeSlider()
             
         }
@@ -96,11 +100,13 @@ class PlayerDetailView: UIView {
         player.replaceCurrentItem(with: playerItem)
         player.play()
     }
+    
     fileprivate func enlargeEpisodeImageView() {
         UIView.animate(withDuration: 0.75, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 1, options: .curveEaseOut, animations: {
             self.episodeImageView.transform = .identity
         })
     }
+    
     fileprivate let shrunkenTransform = CGAffineTransform(scaleX: 0.7, y: 0.7)
     
     fileprivate func shrinkEpisodeImageView() {
@@ -108,6 +114,7 @@ class PlayerDetailView: UIView {
             self.episodeImageView.transform = self.shrunkenTransform
         })
     }
+    
     fileprivate func seekToCurrentTime(delta: Int64) {
         
         let fifteenSeconds = CMTimeMake(value: delta, timescale: 1)
@@ -118,10 +125,9 @@ class PlayerDetailView: UIView {
     // MARK: - IBActions
     
     @IBAction func handleDismiss(_ sender: Any) {
-        //      //self.removeFromSuperview()
-              print("Dismisss")
-              let mainTabController = UIApplication.shared.keyWindow?.rootViewController as? MainTabController
-              mainTabController?.minimizePlayerDetails()
+        print("Dismisss")
+        let mainTabController = UIApplication.shared.keyWindow?.rootViewController as? MainTabController
+        mainTabController?.minimizePlayerDetails()
     }
     @IBAction func handleCurrentTimeSliderChange(_ sender: Any) {
         
@@ -147,12 +153,28 @@ class PlayerDetailView: UIView {
         if player.timeControlStatus == .paused {
             player.play()
             playPauseButton.setImage(UIImage(systemName: "pause.fill"), for: .normal)
-            
+            miniPlayPauseButton.setImage(UIImage(systemName: "pause.fill"), for: .normal)
             enlargeEpisodeImageView()
         } else {
             player.pause()
             playPauseButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
+            miniPlayPauseButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
+
             shrinkEpisodeImageView()
+        }
+    }
+    
+    @IBOutlet weak var miniPlayPauseButton: UIButton! {
+        
+        didSet {
+            miniPlayPauseButton.addTarget(self, action: #selector(handlePlayPause), for: .touchUpInside)
+        }
+    }
+    
+    @IBOutlet weak var miniFastForwardButton: UIButton! {
+        
+        didSet {
+            miniFastForwardButton.addTarget(self, action: #selector(handleFastForward(_:)), for: .touchUpInside)
         }
     }
     
