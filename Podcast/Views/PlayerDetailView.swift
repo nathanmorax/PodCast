@@ -70,7 +70,7 @@ class PlayerDetailView: UIView {
     
     override func awakeFromNib() {
         super.awakeFromNib()
-        addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleDismiss)))
+        addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleTapMaximize)))
         observerPlayerCurrentTime()
         
         let time = CMTimeMake(value: 1, timescale: 3)
@@ -81,6 +81,12 @@ class PlayerDetailView: UIView {
             
         }
     }
+    
+    @objc func handleTapMaximize() {
+        let mainTabBarController = UIApplication.shared.keyWindow?.rootViewController as? MainTabController
+        mainTabBarController?.maximizePlayerDetails(episode: nil)
+    }
+    
     static func initFromNib() -> PlayerDetailView {
         return Bundle.main.loadNibNamed("PlayerDetailView", owner: self, options: nil)?.first as! PlayerDetailView
     }
@@ -125,10 +131,10 @@ class PlayerDetailView: UIView {
     // MARK: - IBActions
     
     @IBAction func handleDismiss(_ sender: Any) {
-        print("Dismisss")
         let mainTabController = UIApplication.shared.keyWindow?.rootViewController as? MainTabController
         mainTabController?.minimizePlayerDetails()
     }
+    
     @IBAction func handleCurrentTimeSliderChange(_ sender: Any) {
         
         let percentage = currentTimeSlider.value

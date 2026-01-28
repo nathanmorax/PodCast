@@ -78,7 +78,7 @@ class MainTabController: UITabBarController {
             
             self.playerDetailView.maximizedStackView.alpha = 1
             self.playerDetailView.miniPlayerView.alpha = 0
-            self.playerDetailView.backgroundColor = .systemBackground
+            self.playerDetailView.backgroundColor = .black
         })
     }
     
