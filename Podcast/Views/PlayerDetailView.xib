@@ -16,6 +16,53 @@
             <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
             <subviews>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rxc-oY-ncJ">
+                    <rect key="frame" x="0.0" y="0.0" width="375" height="54"/>
+                    <subviews>
+                        <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="nxd-Ds-hL5">
+                            <rect key="frame" x="8" y="8" width="359" height="38"/>
+                            <subviews>
+                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="appicon" translatesAutoresizingMaskIntoConstraints="NO" id="bEJ-nH-RcV">
+                                    <rect key="frame" x="0.0" y="0.0" width="48" height="38"/>
+                                    <constraints>
+                                        <constraint firstAttribute="width" constant="48" id="hd8-gD-ekF"/>
+                                    </constraints>
+                                </imageView>
+                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Episode Title" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1nV-i0-ZyU">
+                                    <rect key="frame" x="56" y="0.0" width="191" height="38"/>
+                                    <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                    <nil key="textColor"/>
+                                    <nil key="highlightedColor"/>
+                                </label>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Wow-ma-x31">
+                                    <rect key="frame" x="255" y="0.0" width="48" height="38"/>
+                                    <constraints>
+                                        <constraint firstAttribute="width" constant="48" id="Cq1-se-Bmp"/>
+                                    </constraints>
+                                    <color key="tintColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                    <state key="normal" title="Button" image="pause"/>
+                                </button>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Lb4-Rm-z3W">
+                                    <rect key="frame" x="311" y="0.0" width="48" height="38"/>
+                                    <constraints>
+                                        <constraint firstAttribute="width" constant="48" id="PCX-48-Yol"/>
+                                    </constraints>
+                                    <color key="tintColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                    <state key="normal" image="fastforward15"/>
+                                </button>
+                            </subviews>
+                        </stackView>
+                    </subviews>
+                    <viewLayoutGuide key="safeArea" id="4SU-xp-0iL"/>
+                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    <constraints>
+                        <constraint firstItem="nxd-Ds-hL5" firstAttribute="leading" secondItem="rxc-oY-ncJ" secondAttribute="leading" constant="8" id="0uG-YJ-K2v"/>
+                        <constraint firstAttribute="height" constant="54" id="6QV-Vb-esg"/>
+                        <constraint firstItem="nxd-Ds-hL5" firstAttribute="top" secondItem="rxc-oY-ncJ" secondAttribute="top" constant="8" id="PLM-ci-QhA"/>
+                        <constraint firstAttribute="trailing" secondItem="nxd-Ds-hL5" secondAttribute="trailing" constant="8" id="e05-AJ-gVl"/>
+                        <constraint firstAttribute="bottom" secondItem="nxd-Ds-hL5" secondAttribute="bottom" constant="8" id="wSg-8w-6xr"/>
+                    </constraints>
+                </view>
                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="gea-5e-xPZ">
                     <rect key="frame" x="24" y="20" width="327" height="623"/>
                     <subviews>
@@ -158,9 +205,12 @@
                 </stackView>
             </subviews>
             <viewLayoutGuide key="safeArea" id="T9M-6B-wJj"/>
-            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
             <constraints>
                 <constraint firstItem="gea-5e-xPZ" firstAttribute="top" secondItem="T9M-6B-wJj" secondAttribute="top" id="2kH-ZT-NXK"/>
+                <constraint firstItem="T9M-6B-wJj" firstAttribute="top" secondItem="rxc-oY-ncJ" secondAttribute="top" constant="20" id="3Sy-id-bND"/>
+                <constraint firstItem="rxc-oY-ncJ" firstAttribute="leading" secondItem="T9M-6B-wJj" secondAttribute="leading" id="MLF-aX-4hU"/>
+                <constraint firstItem="T9M-6B-wJj" firstAttribute="trailing" secondItem="rxc-oY-ncJ" secondAttribute="trailing" id="YqR-UU-zQI"/>
                 <constraint firstItem="T9M-6B-wJj" firstAttribute="bottom" secondItem="gea-5e-xPZ" secondAttribute="bottom" constant="24" id="dFZ-us-mVc"/>
                 <constraint firstItem="gea-5e-xPZ" firstAttribute="leading" secondItem="T9M-6B-wJj" secondAttribute="leading" constant="24" id="pbi-Lc-6on"/>
                 <constraint firstItem="T9M-6B-wJj" firstAttribute="trailing" secondItem="gea-5e-xPZ" secondAttribute="trailing" constant="24" id="yci-aI-nut"/>
@@ -171,6 +221,8 @@
                 <outlet property="currentTimeSlider" destination="XEc-H3-hda" id="Ivt-x5-FJ5"/>
                 <outlet property="durationLabel" destination="Vjx-vL-Pyz" id="tIh-dE-O2q"/>
                 <outlet property="episodeImageView" destination="4kX-6d-puD" id="Ao6-0a-QJg"/>
+                <outlet property="maximizedStackView" destination="gea-5e-xPZ" id="vJO-Ec-It1"/>
+                <outlet property="miniPlayerView" destination="rxc-oY-ncJ" id="PwI-dB-Gjp"/>
                 <outlet property="playPauseButton" destination="Kxb-V5-fMI" id="uZo-1r-p64"/>
                 <outlet property="titleEpisodeLabel" destination="rpG-hD-XqQ" id="CL3-ip-ADf"/>
             </connections>
@@ -179,19 +231,18 @@
     </objects>
     <resources>
         <image name="appicon" width="60" height="60"/>
+        <image name="fastforward15" width="45.5" height="45.5"/>
         <image name="gobackward.15" catalog="system" width="119" height="128"/>
         <image name="goforward.15" catalog="system" width="119" height="128"/>
         <image name="max_volume" width="32.5" height="32.5"/>
         <image name="muted_volume" width="32.5" height="32.5"/>
+        <image name="pause" width="57" height="57"/>
         <image name="play.fill" catalog="system" width="120" height="128"/>
-        <systemColor name="systemBackgroundColor">
-            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-        </systemColor>
         <systemColor name="systemGray3Color">
-            <color red="0.78039215689999997" green="0.78039215689999997" blue="0.80000000000000004" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.7803921568627451" green="0.7803921568627451" blue="0.80000000000000004" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="systemPurpleColor">
-            <color red="0.68627450980000004" green="0.32156862749999998" blue="0.87058823529999996" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.79607843137254897" green="0.18823529411764706" blue="0.8784313725490196" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>

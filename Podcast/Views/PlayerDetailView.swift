@@ -22,6 +22,8 @@ class PlayerDetailView: UIView {
             
         }
     }
+    @IBOutlet weak var maximizedStackView: UIStackView!
+    @IBOutlet weak var miniPlayerView: UIView!
     
     @IBOutlet weak var episodeImageView: UIImageView! {
         didSet {
@@ -64,7 +66,7 @@ class PlayerDetailView: UIView {
     
     override func awakeFromNib() {
         super.awakeFromNib()
-        //addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleDismiss)))
+        addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleDismiss)))
         observerPlayerCurrentTime()
         
         let time = CMTimeMake(value: 1, timescale: 3)
@@ -117,9 +119,9 @@ class PlayerDetailView: UIView {
     
     @IBAction func handleDismiss(_ sender: Any) {
         //      //self.removeFromSuperview()
-        //      print("Dismisss")
-        //      let mainTabController = UIApplication.shared.keyWindow?.rootViewController as? MainTabController
-        //      mainTabController?.minimizePlayerDetail()
+              print("Dismisss")
+              let mainTabController = UIApplication.shared.keyWindow?.rootViewController as? MainTabController
+              mainTabController?.minimizePlayerDetails()
     }
     @IBAction func handleCurrentTimeSliderChange(_ sender: Any) {
         
