@@ -70,6 +70,7 @@ class EpisodesController: UITableViewController {
         cell.episode = episode
         /*cell.textLabel?.numberOfLines = 0
          cell.textLabel?.text = episode.title + "\n" + episode.pubDate.description*/
+        cell.selectionStyle = .none
         return cell
     }
     

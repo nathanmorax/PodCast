@@ -23,29 +23,32 @@
                             <rect key="frame" x="8" y="8" width="359" height="38"/>
                             <subviews>
                                 <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="appicon" translatesAutoresizingMaskIntoConstraints="NO" id="bEJ-nH-RcV">
-                                    <rect key="frame" x="0.0" y="0.0" width="48" height="38"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="38" height="38"/>
                                     <constraints>
-                                        <constraint firstAttribute="width" constant="48" id="hd8-gD-ekF"/>
+                                        <constraint firstAttribute="height" constant="38" id="b8e-qF-Tan"/>
+                                        <constraint firstAttribute="width" constant="38" id="hd8-gD-ekF"/>
                                     </constraints>
                                 </imageView>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Episode Title" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1nV-i0-ZyU">
-                                    <rect key="frame" x="56" y="0.0" width="191" height="38"/>
+                                    <rect key="frame" x="46" y="0.0" width="225" height="38"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="15"/>
                                     <nil key="textColor"/>
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Wow-ma-x31">
-                                    <rect key="frame" x="255" y="0.0" width="48" height="38"/>
+                                    <rect key="frame" x="279" y="0.0" width="36" height="38"/>
                                     <constraints>
-                                        <constraint firstAttribute="width" constant="48" id="Cq1-se-Bmp"/>
+                                        <constraint firstAttribute="width" constant="36" id="Cq1-se-Bmp"/>
+                                        <constraint firstAttribute="height" constant="36" id="Dhj-Sj-CSy"/>
                                     </constraints>
                                     <color key="tintColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                     <state key="normal" title="Button" image="pause"/>
                                 </button>
                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Lb4-Rm-z3W">
-                                    <rect key="frame" x="311" y="0.0" width="48" height="38"/>
+                                    <rect key="frame" x="323" y="0.0" width="36" height="38"/>
                                     <constraints>
-                                        <constraint firstAttribute="width" constant="48" id="PCX-48-Yol"/>
+                                        <constraint firstAttribute="width" constant="36" id="PCX-48-Yol"/>
+                                        <constraint firstAttribute="height" constant="36" id="ql5-NK-917"/>
                                     </constraints>
                                     <color key="tintColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                     <state key="normal" image="fastforward15"/>

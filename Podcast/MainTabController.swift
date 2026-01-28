@@ -46,6 +46,7 @@ class MainTabController: UITabBarController {
             self.playerDetailView.maximizedStackView.alpha = 0
             self.playerDetailView.miniPlayerView.alpha = 1
             self.playerDetailView.miniPlayerView.isHidden = false
+            self.playerDetailView.backgroundColor = .clear
         })
     }
     
@@ -99,7 +100,7 @@ class MainTabController: UITabBarController {
         
         maximizedTopAnchorConstraint = playerDetailView.topAnchor.constraint(equalTo: view.topAnchor)
         
-        minimizedTopAnchorConstraint = playerDetailView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -miniPlayerHeight - 55)
+        minimizedTopAnchorConstraint = playerDetailView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -miniPlayerHeight - 35)
         
         playerDetailView.transform = CGAffineTransform(translationX: 0, y: view.frame.height)
     }

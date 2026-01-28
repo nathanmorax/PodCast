@@ -54,7 +54,7 @@ class PodcastSearchController: UITableViewController, UISearchBarDelegate {
         let podcast = podcasts[indexPath.row]
         
         cell.podcast = podcast
-        
+        cell.selectionStyle = .none
         /*cell.textLabel?.text = "\(data.trackName ?? "")\n\(data.artistName ?? "")"
          cell.textLabel?.numberOfLines = -1*/
         return cell
