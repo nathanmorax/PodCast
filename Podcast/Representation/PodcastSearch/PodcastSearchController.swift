@@ -10,18 +10,36 @@ import Alamofire
 
 class PodcastSearchController: UITableViewController, UISearchBarDelegate {
     let cellId = "cellId"
-    var podcasts = [Podcast]()
-    
     let searchController = UISearchController(searchResultsController: nil)
+    
+    private lazy var viewModel: PodcastSearchViewModel = {
+        let remote = PodcastRemoteDataService()
+        let repository = PodcastRepositoryImpl(remoteDataSource: remote)
+        return PodcastSearchViewModel(repository: repository)
+    }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         setupSearchBar()
         setupTableView()
+        setupBindings()
         searchBar(searchController.searchBar, textDidChange: "")
         
     }
+    
+    private func setupBindings() {
+        
+        viewModel.onDataUpdated = { [weak self] in
+            self?.tableView.reloadData()
+        }
+        
+        viewModel.onError = { error in
+            print(error)
+        }
+        
+    }
+    
     fileprivate func setupSearchBar() {
         self.definesPresentationContext = true
         navigationItem.searchController = searchController
@@ -32,37 +50,31 @@ class PodcastSearchController: UITableViewController, UISearchBarDelegate {
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         
-        APIService.shared.fetchPodcast(searchText: searchText) { (podcast) in
-            self.podcasts = podcast
-            self.tableView.reloadData()
-        }
+        viewModel.seacrhPodcast(searchPodcast: searchText)
     }
     
     fileprivate func setupTableView() {
-        //tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellId)
         let nib = UINib(nibName: "PodcastCell", bundle: nil)
         tableView.register(nib, forCellReuseIdentifier: cellId)
         
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return podcasts.count
+        return viewModel.podcasts.count
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! PodcastCell
-        let podcast = podcasts[indexPath.row]
+        let podcast = viewModel.podcasts[indexPath.row]
         
         cell.podcast = podcast
         cell.selectionStyle = .none
-        /*cell.textLabel?.text = "\(data.trackName ?? "")\n\(data.artistName ?? "")"
-         cell.textLabel?.numberOfLines = -1*/
         return cell
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let episodesController = EpisodesController()
-        let podcast = self.podcasts[indexPath.row]
+        let podcast = self.viewModel.podcasts[indexPath.row]
         episodesController.podcast = podcast
         print("name:", podcast.feedUrl)
         navigationController?.pushViewController(episodesController, animated: true)

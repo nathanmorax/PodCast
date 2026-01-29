@@ -10,32 +10,42 @@ import FeedKit
 
 class EpisodesController: UITableViewController {
     fileprivate let cellId = "cellId"
-    var episodes = [Episode]()
     var podcast: Podcast? {
         didSet {
             navigationItem.title = podcast?.trackName
-            fetchEpisodes()
+            loadEpisodes()
             
         }
     }
     
+    private lazy var viewModel: PodcastSearchViewModel = {
+        let remote = PodcastRemoteDataService()
+        let repository = PodcastRepositoryImpl(remoteDataSource: remote)
+        return PodcastSearchViewModel(repository: repository)
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setupTableView()
+        self.setupBindings()
         
     }
-    // MARK: - FetchEpisodes Parse RSS
-    fileprivate func fetchEpisodes() {
-        print("Looking for episodes at feed url:", podcast?.feedUrl ?? "")
+    
+    private func setupBindings() {
         
-        guard let feedUrl = podcast?.feedUrl else { return }
-        
-        APIService.shared.fetchEpisodes(feedUrl: feedUrl) { (episodes) in
-            self.episodes = episodes
-            DispatchQueue.main.async {
-                self.tableView.reloadData()
-            }
+        viewModel.onDataUpdated = { [weak self] in
+            self?.tableView.reloadData()
         }
+
+        viewModel.onError = { error in
+            print("Episodes error:", error)
+        }
+    }
+    // MARK: - FetchEpisodes Parse RSS
+    fileprivate func loadEpisodes() {
+        
+        guard let feedUrl =  podcast?.feedUrl else { return }
+        viewModel.loadEpisodes(feedURL: feedUrl)
     }
     // MARK: - SetupWork
     fileprivate func setupTableView() {
@@ -47,7 +57,7 @@ class EpisodesController: UITableViewController {
     // MARK: - UITableView
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let episode = self.episodes[indexPath.row]
+        let episode = self.viewModel.episodes[indexPath.row]
         let mainTabBarController = UIApplication.shared.keyWindow?.rootViewController as? MainTabController
         mainTabBarController?.maximizePlayerDetails(episode: episode)
         /*let window = UIApplication.shared.keyWindow
@@ -61,12 +71,12 @@ class EpisodesController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return episodes.count
+        return viewModel.episodes.count
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! EpisodeCell
-        let episode = episodes[indexPath.row]
+        let episode = viewModel.episodes[indexPath.row]
         cell.episode = episode
         /*cell.textLabel?.numberOfLines = 0
          cell.textLabel?.text = episode.title + "\n" + episode.pubDate.description*/
