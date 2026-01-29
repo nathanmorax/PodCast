@@ -11,7 +11,6 @@ import AVKit
 class PlayerDetailView: UIView {
     
     @IBOutlet weak var titleEpisodeLabel: UILabel!
-    @IBOutlet weak var miniTitleLabel: UILabel!
     @IBOutlet weak var authorLabel: UILabel!
     @IBOutlet weak var currentTimeLabel: UILabel!
     @IBOutlet weak var durationLabel: UILabel!
@@ -25,84 +24,129 @@ class PlayerDetailView: UIView {
     }
     @IBOutlet weak var maximizedStackView: UIStackView!
     @IBOutlet weak var miniPlayerView: UIView!
-    
+    @IBOutlet weak var miniTitleLabel: UILabel!
     @IBOutlet weak var miniEpisodeImageView: UIImageView!
+    
     @IBOutlet weak var episodeImageView: UIImageView! {
         didSet {
-            episodeImageView.layer.cornerRadius =  5
+            episodeImageView.layer.cornerRadius =  16
             episodeImageView.clipsToBounds = true
             episodeImageView.transform = shrunkenTransform
         }
     }
     
-    private let viewModel = AVPlayerViewModel()
-    
     var episode: Episode? {
         didSet {
-            bindEpisode()
+            titleEpisodeLabel.text = episode?.title
+            miniTitleLabel.text = episode?.title
+            authorLabel.text = episode?.author
+            
+            playEpisode()
+            
+            guard let url = URL(string: episode?.imageUrl ?? "") else { return }
+            episodeImageView.sd_setImage(with: url)
+            miniEpisodeImageView.sd_setImage(with: url)
+        }
+    }
+    
+    let player: AVPlayer = {
+        let avPlayer = AVPlayer()
+        avPlayer.automaticallyWaitsToMinimizeStalling = false
+        return avPlayer
+    }()
+    
+    fileprivate func observerPlayerCurrentTime() {
+        let interval = CMTimeMake(value: 1, timescale: 2)
+        player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self](time) in
+            self?.currentTimeLabel.text = time.toDisplayString()
+            
+            let duration = self?.player.currentItem?.duration
+            self?.durationLabel.text = duration?.toDisplayString()
+            
+            self?.updateCurrentTimeSlider()
+            
         }
     }
     
     override func awakeFromNib() {
         super.awakeFromNib()
         addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleTapMaximize)))
-        setupBindings()
+        configureAudioSession()
 
-    }
-    
-    func bindEpisode() {
+        observerPlayerCurrentTime()
+        setupMiniPlayerGlass()
         
-        guard let episode else { return }
         
-        titleEpisodeLabel.text = episode.title
-        miniTitleLabel.text = episode.title
-        authorLabel.text = episode.author
+        miniEpisodeImageView.layer.cornerRadius = 4
+        miniEpisodeImageView.clipsToBounds = true
         
-        if let url = URL(string: episode.imageUrl ?? "") {
-            episodeImageView.sd_setImage(with: url)
-            miniEpisodeImageView.sd_setImage(with: url)
-        }
         
-        viewModel.playEpisode(episode)
+
         
-    }
-    
-    private func setupBindings() {
-        viewModel.onTimeUpdate = { [weak self] current, duration, percentage in
-            self?.currentTimeLabel.text = current
-            self?.durationLabel.text = duration
-            self?.currentTimeSlider.value = percentage
-        }
-        
-        viewModel.onPlayStateChange = { [weak self] isPlaying in
-            let image = UIImage(
-                systemName: isPlaying ? "pause.fill" : "play.fill"
-            )
-            self?.playPauseButton.setImage(image, for: .normal)
-            self?.miniPlayPauseButton.setImage(image, for: .normal)
+        let time = CMTimeMake(value: 1, timescale: 3)
+        let times = [NSValue(time: time)]
+        player.addBoundaryTimeObserver(forTimes: times, queue: .main) { [weak self] in
+            print("Episode started playing")
+            self?.enlargeEpisodeImageView()
             
-            isPlaying
-            ? self?.enlargeEpisodeImageView()
-            : self?.shrinkEpisodeImageView()
         }
     }
-    
+    static func initFromNib() -> PlayerDetailView {
+        return Bundle.main.loadNibNamed("PlayerDetailView", owner: self, options: nil)?.first as! PlayerDetailView
+    }
     
     @objc func handleTapMaximize() {
         let mainTabBarController = UIApplication.shared.keyWindow?.rootViewController as? MainTabController
         mainTabBarController?.maximizePlayerDetails(episode: nil)
     }
     
-    static func initFromNib() -> PlayerDetailView {
-        return Bundle.main.loadNibNamed("PlayerDetailView", owner: self, options: nil)?.first as! PlayerDetailView
+    private func configureAudioSession() {
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback, mode: .default)
+            try session.setActive(true)
+        } catch {
+            print("Audio session error:", error)
+        }
     }
+
+    
+    fileprivate func updateCurrentTimeSlider() {
+        let currentTimeSeconds = CMTimeGetSeconds(player.currentTime())
+        let durationSeconds = CMTimeGetSeconds(player.currentItem?.duration ?? CMTime(value: 1, timescale: 1))
+        let percentage = currentTimeSeconds / durationSeconds
+        
+        self.currentTimeSlider.value = Float(percentage)
+        
+    }
+    
+    fileprivate func playEpisode() {
+        guard let url = URL(string: episode?.streamUrl ?? "") else { return }
+        let playerItem = AVPlayerItem(url: url)
+        player.replaceCurrentItem(with: playerItem)
+        player.play()
+    }
+    
+    
+    private func setupMiniPlayerGlass() {
+        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        let blurView = UIVisualEffectView(effect: blurEffect)
+
+        blurView.frame = miniPlayerView.bounds
+        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+
+        blurView.layer.cornerRadius = 18
+        blurView.clipsToBounds = true
+
+        miniPlayerView.insertSubview(blurView, at: 0)
+    }
+
     
     fileprivate func enlargeEpisodeImageView() {
         UIView.animate(withDuration: 0.75, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 1, options: .curveEaseOut, animations: {
             self.episodeImageView.transform = .identity
         })
     }
-    
     fileprivate let shrunkenTransform = CGAffineTransform(scaleX: 0.7, y: 0.7)
     
     fileprivate func shrinkEpisodeImageView() {
@@ -110,44 +154,68 @@ class PlayerDetailView: UIView {
             self.episodeImageView.transform = self.shrunkenTransform
         })
     }
-    
+    fileprivate func seekToCurrentTime(delta: Int64) {
+        
+        let fifteenSeconds = CMTimeMake(value: delta, timescale: 1)
+        let seekTime = CMTimeAdd(player.currentTime(), fifteenSeconds)
+        player.seek(to: seekTime)
+        
+    }
     // MARK: - IBActions
     
     @IBAction func handleDismiss(_ sender: Any) {
-        let mainTabController = UIApplication.shared.keyWindow?.rootViewController as? MainTabController
-        mainTabController?.minimizePlayerDetails()
+        //      //self.removeFromSuperview()
+              print("Dismisss")
+              let mainTabController = UIApplication.shared.keyWindow?.rootViewController as? MainTabController
+              mainTabController?.minimizePlayerDetails()
     }
-    
     @IBAction func handleCurrentTimeSliderChange(_ sender: Any) {
         
-        viewModel.seek(to: (sender as AnyObject).value)
+        let percentage = currentTimeSlider.value
+        guard let duration = player.currentItem?.duration else { return }
+        let durationInSeconds = CMTimeGetSeconds(duration)
+        let seekTimeInSeconds = Float64(percentage) * durationInSeconds
+        let seekTime = CMTimeMakeWithSeconds(seekTimeInSeconds, preferredTimescale: Int32(NSEC_PER_SEC))
+        player.seek(to: seekTime)
         
-    }
-    
-    @IBAction func handleRewind(_ sender: Any) {
-        viewModel.seekBackward()
-    }
-    @IBAction func handleFastForward(_ sender: Any) {
-        viewModel.seekForward()
-    }
-    @IBAction func handleVolumeChange(_ sender: UISlider) {
-        viewModel.setVolume(sender.value)
-    }
-    @objc func handlePlayPause() {
-        viewModel.togglePlayPause()
-    }
-    //
-    @IBOutlet weak var miniPlayPauseButton: UIButton! {
-        
-        didSet {
-            miniPlayPauseButton.addTarget(self, action: #selector(handlePlayPause), for: .touchUpInside)
-        }
     }
     
     @IBOutlet weak var miniFastForwardButton: UIButton! {
-        
         didSet {
+            miniFastForwardButton.imageEdgeInsets = .init(top: 8, left: 8, bottom: 8, right: 8)
             miniFastForwardButton.addTarget(self, action: #selector(handleFastForward(_:)), for: .touchUpInside)
+        }
+    }
+    
+    @IBOutlet weak var miniPlayPauseButton: UIButton! {
+        didSet {
+            miniPlayPauseButton.addTarget(self, action: #selector(handlePlayPause), for: .touchUpInside)
+            miniPlayPauseButton.imageEdgeInsets = .init(top: 8, left: 8, bottom: 8, right: 8)
+        }
+    }
+    
+    
+    @IBAction func handleRewind(_ sender: Any) {
+        seekToCurrentTime(delta: -15)
+    }
+    @IBAction func handleFastForward(_ sender: Any) {
+        seekToCurrentTime(delta: 15)
+    }
+    
+    @IBAction func handleVolumeChange(_ sender: UISlider) {
+        player.volume = sender.value
+    }
+    @objc func handlePlayPause() {
+        if player.timeControlStatus == .paused {
+            player.play()
+            playPauseButton.setImage(UIImage(systemName: "pause.fill"), for: .normal)
+            miniPlayPauseButton.setImage(UIImage(systemName: "pause.fill"), for: .normal)
+            enlargeEpisodeImageView()
+        } else {
+            player.pause()
+            playPauseButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
+            miniPlayPauseButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
+            shrinkEpisodeImageView()
         }
     }
     

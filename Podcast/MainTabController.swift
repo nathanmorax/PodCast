@@ -108,18 +108,40 @@ class MainTabController: UITabBarController {
     
     func setupViewControllers() {
         viewControllers = [
-            createNavigationController(for: PodcastSearchController(), title: "Search", image: #imageLiteral(resourceName: "search")),
-            createNavigationController(for: ViewController(), title: "Favorites", image: #imageLiteral(resourceName: "favorites")),
-            createNavigationController(for: ViewController(), title: "Downloads", image: #imageLiteral(resourceName: "downloads"))
+            createNavigationController(
+                for: PodcastSearchController(),
+                title: "Search",
+                image: UIImage(systemName: "magnifyingglass")
+            ),
+            createNavigationController(
+                for: ViewController(),
+                title: "Favorites",
+                image: UIImage(systemName: "heart")
+            ),
+            createNavigationController(
+                for: ViewController(),
+                title: "Downloads",
+                image: UIImage(systemName: "arrow.down.circle")
+            ),
+            createNavigationController(
+                for: ViewController(),
+                title: "Movies",
+                image: UIImage(systemName: "film")
+            )
         ]
     }
-    
-    fileprivate func createNavigationController(for rootViewController: UIViewController, title: String, image: UIImage) -> UIViewController {
-        
+
+    fileprivate func createNavigationController(
+        for rootViewController: UIViewController,
+        title: String,
+        image: UIImage?
+    ) -> UIViewController {
+
         let navController = UINavigationController(rootViewController: rootViewController)
         rootViewController.navigationItem.title = title
         navController.tabBarItem.title = title
         navController.tabBarItem.image = image
         return navController
     }
+
 }
