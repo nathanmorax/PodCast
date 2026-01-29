@@ -36,6 +36,7 @@
 		BA4D2F3A2F2ADFB0008A036F /* PodcastSearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA4D2F392F2ADFB0008A036F /* PodcastSearchViewModel.swift */; };
 		BA4D2F5C2F2AE059008A036F /* PodcastRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA4D2F3C2F2ADFF5008A036F /* PodcastRepository.swift */; };
 		BA4D2F5E2F2AE0D4008A036F /* PodcastRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA4D2F5D2F2AE0D1008A036F /* PodcastRepositoryImpl.swift */; };
+		BA4D2F642F2AE4E6008A036F /* AVPlayerDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA4D2F632F2AE4E1008A036F /* AVPlayerDataSource.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -66,6 +67,7 @@
 		BA4D2F392F2ADFB0008A036F /* PodcastSearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastSearchViewModel.swift; sourceTree = "<group>"; };
 		BA4D2F3C2F2ADFF5008A036F /* PodcastRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastRepository.swift; sourceTree = "<group>"; };
 		BA4D2F5D2F2AE0D1008A036F /* PodcastRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastRepositoryImpl.swift; sourceTree = "<group>"; };
+		BA4D2F632F2AE4E1008A036F /* AVPlayerDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVPlayerDataSource.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,13 +86,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		0B60942E2AFC829900D9A0DC /* Controllers */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Controllers;
-			sourceTree = "<group>";
-		};
 		0B6094312AFC83B300D9A0DC /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -103,6 +98,7 @@
 		0B6B1F1D2B06A68A00FB0EFE /* DataSource */ = {
 			isa = PBXGroup;
 			children = (
+				BA4D2F632F2AE4E1008A036F /* AVPlayerDataSource.swift */,
 				0B6B1F1E2B06A69C00FB0EFE /* PodcastRemoteDataService.swift */,
 			);
 			path = DataSource;
@@ -144,7 +140,6 @@
 				0B6B1F202B06AC7600FB0EFE /* Representation */,
 				0B6B1F1D2B06A68A00FB0EFE /* DataSource */,
 				0B6094312AFC83B300D9A0DC /* Models */,
-				0B60942E2AFC829900D9A0DC /* Controllers */,
 				0BCC344E2AFB195C005A3E38 /* AppDelegate.swift */,
 				0BCC34502AFB195C005A3E38 /* SceneDelegate.swift */,
 				0BCC34522AFB195C005A3E38 /* ViewController.swift */,
@@ -307,6 +302,7 @@
 				0B6B1F242B06B15100FB0EFE /* PodcastCell.swift in Sources */,
 				7C9D91FF2B0708AD00E5AABC /* EpisodeCell.swift in Sources */,
 				7C9D91FC2B07075D00E5AABC /* Episode.swift in Sources */,
+				BA4D2F642F2AE4E6008A036F /* AVPlayerDataSource.swift in Sources */,
 				BA4D2F3A2F2ADFB0008A036F /* PodcastSearchViewModel.swift in Sources */,
 				0BCC34532AFB195C005A3E38 /* ViewController.swift in Sources */,
 				7C9D92032B07412900E5AABC /* String.swift in Sources */,

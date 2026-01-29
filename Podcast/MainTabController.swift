@@ -123,8 +123,3 @@ class MainTabController: UITabBarController {
         return navController
     }
 }
-
-//https://github.com/nmdias/FeedKit.git 10.3.0
-//https://github.com/SDWebImage/SDWebImage 5.21.5
-//https://github.com/Alamofire/Alamofire 5.11.0
-
