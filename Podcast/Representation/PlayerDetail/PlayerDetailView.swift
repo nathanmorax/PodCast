@@ -72,7 +72,7 @@ class PlayerDetailView: UIView {
         super.awakeFromNib()
         addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleTapMaximize)))
         configureAudioSession()
-
+        
         observerPlayerCurrentTime()
         setupMiniPlayerGlass()
         
@@ -81,7 +81,7 @@ class PlayerDetailView: UIView {
         miniEpisodeImageView.clipsToBounds = true
         
         
-
+        
         
         let time = CMTimeMake(value: 1, timescale: 3)
         let times = [NSValue(time: time)]
@@ -109,7 +109,7 @@ class PlayerDetailView: UIView {
             print("Audio session error:", error)
         }
     }
-
+    
     
     fileprivate func updateCurrentTimeSlider() {
         let currentTimeSeconds = CMTimeGetSeconds(player.currentTime())
@@ -131,16 +131,16 @@ class PlayerDetailView: UIView {
     private func setupMiniPlayerGlass() {
         let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
         let blurView = UIVisualEffectView(effect: blurEffect)
-
+        
         blurView.frame = miniPlayerView.bounds
         blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-
+        
         blurView.layer.cornerRadius = 18
         blurView.clipsToBounds = true
-
+        
         miniPlayerView.insertSubview(blurView, at: 0)
     }
-
+    
     
     fileprivate func enlargeEpisodeImageView() {
         UIView.animate(withDuration: 0.75, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 1, options: .curveEaseOut, animations: {
@@ -165,9 +165,9 @@ class PlayerDetailView: UIView {
     
     @IBAction func handleDismiss(_ sender: Any) {
         //      //self.removeFromSuperview()
-              print("Dismisss")
-              let mainTabController = UIApplication.shared.keyWindow?.rootViewController as? MainTabController
-              mainTabController?.minimizePlayerDetails()
+        print("Dismisss")
+        let mainTabController = UIApplication.shared.keyWindow?.rootViewController as? MainTabController
+        mainTabController?.minimizePlayerDetails()
     }
     @IBAction func handleCurrentTimeSliderChange(_ sender: Any) {
         

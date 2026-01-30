@@ -46,20 +46,17 @@ class PodcastRemoteDataService: PodcastRemoteDataSource {
         }
     }
     
-    func fetchEpisodes(feedURL: String, completion: @escaping (Result<[Episode], any Error>) -> Void) {
+    func fetchEpisodes(feedURL: String, completion: @escaping (Result<[Episode], Error>) -> Void) {
         let secureFeedUrl = feedURL.contains("https")
             ? feedURL
             : feedURL.replacingOccurrences(of: "http", with: "https")
 
         guard let url = URL(string: secureFeedUrl) else { return }
-        
-        //MARK: - Pasar esta funcion a Async Await
-        
-        Task {
+
+        // Ejecutar en background
+        Task.detached(priority: .background) {
             do {
                 let feed = try await Feed(url: url)
-                
-                print("Successfully parse feed:")
                 
                 switch feed {
                 case .rss(let rssFeed):
@@ -68,15 +65,22 @@ class PodcastRemoteDataService: PodcastRemoteDataSource {
                         completion(.success(episodes))
                     }
                 case .atom(_):
-                    print("Feed tipo Atom no soportado actualmente")
+                    await MainActor.run {
+                        completion(.success([]))
+                    }
                 case .json(_):
-                    print("Feed tipo JSON no soportado actualmente")
+                    await MainActor.run {
+                        completion(.success([]))
+                    }
                 }
-                
             } catch {
-                print("Failed to parse XML feed:", error)
+                await MainActor.run {
+                    completion(.failure(error))
+                }
             }
         }
+
     }
+
     
 }
