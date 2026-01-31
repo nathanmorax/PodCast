@@ -28,8 +28,6 @@ class MainTabController: UITabBarController {
         
         playerDetailView.miniPlayerView.isHidden = true
 
-        
-
     }
     // MARK: - Setup functions
     
@@ -47,22 +45,20 @@ class MainTabController: UITabBarController {
             self.playerDetailView.miniPlayerView.alpha = 1
             self.playerDetailView.miniPlayerView.isHidden = false
             self.playerDetailView.backgroundColor = .clear
+
         })
     }
     
     func maximizePlayerDetails(episode: Episode?) {
-        // Si está oculto, mostrarlo primero
         let isHidden = playerDetailView.transform != .identity
-        
+
         if isHidden {
-            // Activar constraints de mini player
             heightConstraint.isActive = true
             minimizedTopAnchorConstraint.isActive = true
             playerDetailView.transform = .identity
             view.layoutIfNeeded()
         }
         
-        // Ahora maximizar
         minimizedTopAnchorConstraint.isActive = false
         heightConstraint.isActive = false
         
@@ -79,6 +75,8 @@ class MainTabController: UITabBarController {
             self.playerDetailView.maximizedStackView.alpha = 1
             self.playerDetailView.miniPlayerView.alpha = 0
             self.playerDetailView.backgroundColor = .black
+            self.tabBar.frame.origin.y = self.view.frame.height
+
         })
     }
     
@@ -100,7 +98,7 @@ class MainTabController: UITabBarController {
         
         maximizedTopAnchorConstraint = playerDetailView.topAnchor.constraint(equalTo: view.topAnchor)
         
-        minimizedTopAnchorConstraint = playerDetailView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -miniPlayerHeight - 35)
+        minimizedTopAnchorConstraint = playerDetailView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -miniPlayerHeight - 55)
         
         playerDetailView.transform = CGAffineTransform(translationX: 0, y: view.frame.height)
     }
@@ -143,5 +141,4 @@ class MainTabController: UITabBarController {
         navController.tabBarItem.image = image
         return navController
     }
-
 }
