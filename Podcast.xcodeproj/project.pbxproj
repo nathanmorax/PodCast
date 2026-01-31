@@ -38,6 +38,7 @@
 		BA4D2F5E2F2AE0D4008A036F /* PodcastRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA4D2F5D2F2AE0D1008A036F /* PodcastRepositoryImpl.swift */; };
 		BA4D2F642F2AE4E6008A036F /* AVPlayerDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA4D2F632F2AE4E1008A036F /* AVPlayerDataSource.swift */; };
 		BAF855312F2D709800D6DA90 /* PlayerDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAF855302F2D708C00D6DA90 /* PlayerDetailViewModel.swift */; };
+		BAF855342F2D8C8000D6DA90 /* FavoritesPodcastController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAF855332F2D8C6C00D6DA90 /* FavoritesPodcastController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -70,6 +71,7 @@
 		BA4D2F5D2F2AE0D1008A036F /* PodcastRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastRepositoryImpl.swift; sourceTree = "<group>"; };
 		BA4D2F632F2AE4E1008A036F /* AVPlayerDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVPlayerDataSource.swift; sourceTree = "<group>"; };
 		BAF855302F2D708C00D6DA90 /* PlayerDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerDetailViewModel.swift; sourceTree = "<group>"; };
+		BAF855332F2D8C6C00D6DA90 /* FavoritesPodcastController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesPodcastController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,6 +111,7 @@
 		0B6B1F202B06AC7600FB0EFE /* Representation */ = {
 			isa = PBXGroup;
 			children = (
+				BAF855322F2D8AD700D6DA90 /* Favorites */,
 				BA4D2F622F2AE2A9008A036F /* PlayerDetail */,
 				BA4D2F612F2AE287008A036F /* Episodes */,
 				BA4D2F5F2F2AE24B008A036F /* PodcastSearch */,
@@ -211,6 +214,14 @@
 			path = PlayerDetail;
 			sourceTree = "<group>";
 		};
+		BAF855322F2D8AD700D6DA90 /* Favorites */ = {
+			isa = PBXGroup;
+			children = (
+				BAF855332F2D8C6C00D6DA90 /* FavoritesPodcastController.swift */,
+			);
+			path = Favorites;
+			sourceTree = "<group>";
+		};
 		CEC8FBBADD40A644A927A4B4 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -300,6 +311,7 @@
 			files = (
 				7C9D92052B07422900E5AABC /* RSSFeed.swift in Sources */,
 				0B6094302AFC82B700D9A0DC /* PodcastSearchController.swift in Sources */,
+				BAF855342F2D8C8000D6DA90 /* FavoritesPodcastController.swift in Sources */,
 				7C3C21D32B07E89300FDBA4A /* PlayerDetailView.swift in Sources */,
 				0B6B1F1F2B06A69C00FB0EFE /* PodcastRemoteDataService.swift in Sources */,
 				0B6B1F242B06B15100FB0EFE /* PodcastCell.swift in Sources */,
