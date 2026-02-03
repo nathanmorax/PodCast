@@ -10,17 +10,19 @@ import FeedKit
 import SDWebImage
 import UIImageColors
 
-private enum Section: Int, CaseIterable {
-    case header
-    case episodes
-}
-
-
-class EpisodesController: UITableViewController {
+class EpisodesController: UIViewController {
     fileprivate let cellId = "cellId"
+    
+    private let tableView = UITableView()
+    private let headerView = EpisodeHeaderView()
+    private let statusBarBackgroundView = UIView()
+
+    
+    private let headerHeight: CGFloat = 320
+
     var podcast: Podcast? {
         didSet {
-            //navigationItem.title = podcast?.trackName
+            headerView.configure(with: podcast)
             loadEpisodes()
         }
     }
@@ -34,9 +36,37 @@ class EpisodesController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setupTableView()
+        self.setupLayout()
         self.setupBindings()
         
+        edgesForExtendedLayout = [.top]
+        extendedLayoutIncludesOpaqueBars = true
+
+        
     }
+
+    private func setupLayout() {
+
+        view.backgroundColor = .systemBackground
+        
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.contentInsetAdjustmentBehavior = .never
+        
+        tableView.delegate = self
+        tableView.dataSource = self
+
+
+        view.addSubview(tableView)
+
+        NSLayoutConstraint.activate([
+
+            tableView.topAnchor.constraint(equalTo: view.topAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+    }
+
     
     private func setupBindings() {
         
@@ -55,141 +85,119 @@ class EpisodesController: UITableViewController {
         viewModel.loadEpisodes(feedURL: feedUrl)
     }
     // MARK: - SetupWork
-    fileprivate func setupTableView() {
-        tableView.register(EpisodeHeaderCell.self, forCellReuseIdentifier: EpisodeHeaderCell.headerPodcastCellId)
+    
+    private func setupTableView() {
         let nib = UINib(nibName: "EpisodeCell", bundle: nil)
         tableView.register(nib, forCellReuseIdentifier: cellId)
-        tableView.tableFooterView = UIView()
-    }
-    // MARK: - UITableView
-    
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        Section.allCases.count
-    }
-    
-    
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard isEpisodeSection(indexPath) else { return }
-        navigateToEpisode(at: indexPath)
-    }
-    
-    
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        guard let section = Section(rawValue: section) else { return 0 }
+
+        let header = EpisodeHeaderView(
+            frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 280)
+        )
+
+        header.configure(with: podcast)
+        tableView.tableHeaderView = header
         
-        switch section {
-        case .header:
-            return 1
-        case .episodes:
-            return viewModel.episodes.count
+        
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard let header = tableView.tableHeaderView else { return }
+
+        let offsetY = scrollView.contentOffset.y
+
+        if offsetY < 0 {
+            header.frame = CGRect(
+                x: 0,
+                y: offsetY,
+                width: tableView.bounds.width,
+                height: headerHeight - offsetY
+            )
+        } else {
+            // comportamiento normal
+            header.frame = CGRect(
+                x: 0,
+                y: 0,
+                width: tableView.bounds.width,
+                height: headerHeight
+            )
         }
+
+        tableView.tableHeaderView = header
     }
-    
-    
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
-        guard let section = Section(rawValue: indexPath.section) else {
-            return UITableViewCell()
-        }
-        
-        switch section {
-        case .header:
-            return headerCell(tableView, at: indexPath)
-            
-        case .episodes:
-            return episodeCell(tableView, at: indexPath)
-        }
+
+
+
+}
+
+extension EpisodesController: UITableViewDataSource, UITableViewDelegate {
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        viewModel.episodes.count
     }
-    
-    
-    
-    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        Section(rawValue: indexPath.section) == .header ? 250 : 180
-    }
-    
-    
-    private func headerCell(_ tableView: UITableView, at indexPath: IndexPath) -> UITableViewCell {
-        
-        guard let cell = tableView.dequeueReusableCell(
-            withIdentifier: EpisodeHeaderCell.headerPodcastCellId,
-            for: indexPath
-        ) as? EpisodeHeaderCell else {
-            return UITableViewCell()
-        }
-        
-        cell.configure(with: podcast)
-        return cell
-    }
-    
-    private func episodeCell(_ tableView: UITableView, at indexPath: IndexPath) -> UITableViewCell {
-        
+
+    func tableView(
+        _ tableView: UITableView,
+        cellForRowAt indexPath: IndexPath
+    ) -> UITableViewCell {
+
         guard let cell = tableView.dequeueReusableCell(
             withIdentifier: cellId,
             for: indexPath
         ) as? EpisodeCell else {
             return UITableViewCell()
         }
-        
+
         cell.episode = viewModel.episodes[indexPath.row]
         return cell
     }
-    
-    private func isEpisodeSection(_ indexPath: IndexPath) -> Bool {
-        Section(rawValue: indexPath.section) == .episodes
-    }
-    
-    private func navigateToEpisode(at indexPath: IndexPath) {
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let episode = viewModel.episodes[indexPath.row]
-        
+
         (UIApplication.shared.keyWindow?.rootViewController as? MainTabController)?
             .maximizePlayerDetails(episode: episode)
     }
-    
-    
 }
 
 
-class EpisodeHeaderCell: UITableViewCell {
-    
-    static let headerPodcastCellId = "HeaderPodcastCellId"
-    
+class EpisodeHeaderView: UIView {
+
     let headerImageView = UIImageView(image: UIImage(named: "appicon"))
     let titlePodcastLabel = UILabel()
     let artistNameLabel = UILabel()
     let descriptionLabel = UILabel()
-    
+
     private let containerView = UIView()
     private var currentImageURL: String?
 
-    
     var podcast: Podcast?
-    
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        configure()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        configureView()
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    private func configure() {
 
-        selectionStyle = .none
+    private func configureView() {
+
         backgroundColor = .clear
 
-        containerView.layer.cornerRadius = 16
-        containerView.clipsToBounds = true
+        containerView.translatesAutoresizingMaskIntoConstraints = false
 
         headerImageView.contentMode = .scaleAspectFit
+        headerImageView.layer.cornerRadius = 8
+        headerImageView.clipsToBounds = true
 
         titlePodcastLabel.font = .systemFont(ofSize: 16, weight: .semibold)
+
         artistNameLabel.font = .systemFont(ofSize: 14)
         artistNameLabel.textColor = .lightGray
 
         descriptionLabel.numberOfLines = 3
-        descriptionLabel.text =
-        "A string is a series of characters, such as Swift..."
+        descriptionLabel.text = "A string is a series of characters, such as Swift..."
 
         let stackView = UIStackView(arrangedSubviews: [
             headerImageView,
@@ -199,28 +207,25 @@ class EpisodeHeaderCell: UITableViewCell {
         ])
 
         stackView.axis = .vertical
-        stackView.spacing = 8
+        stackView.spacing = 12
         stackView.translatesAutoresizingMaskIntoConstraints = false
 
-        contentView.addSubview(containerView)
+        addSubview(containerView)
         containerView.addSubview(stackView)
 
-        containerView.translatesAutoresizingMaskIntoConstraints = false
-
         NSLayoutConstraint.activate([
-            containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
+            containerView.topAnchor.constraint(equalTo: topAnchor),
+            containerView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            containerView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            containerView.bottomAnchor.constraint(equalTo: bottomAnchor),
 
-            stackView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 16),
+            stackView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 80),
             stackView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
             stackView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
-            stackView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -16)
+            stackView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -16),
         ])
     }
 
-    
     func configure(with podcast: Podcast?) {
 
         titlePodcastLabel.text = podcast?.trackName
@@ -247,17 +252,13 @@ class EpisodeHeaderCell: UITableViewCell {
             }
         }
     }
-    
-    override func prepareForReuse() {
-        super.prepareForReuse()
 
+    func reset() {
         headerImageView.image = nil
         containerView.backgroundColor = .secondarySystemBackground
         titlePodcastLabel.textColor = .label
         artistNameLabel.textColor = .secondaryLabel
         currentImageURL = nil
     }
-
-
 }
 
