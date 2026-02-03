@@ -39,6 +39,7 @@
 		BA4D2F642F2AE4E6008A036F /* AVPlayerDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA4D2F632F2AE4E1008A036F /* AVPlayerDataSource.swift */; };
 		BAF855312F2D709800D6DA90 /* PlayerDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAF855302F2D708C00D6DA90 /* PlayerDetailViewModel.swift */; };
 		BAF855342F2D8C8000D6DA90 /* FavoritesPodcastController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAF855332F2D8C6C00D6DA90 /* FavoritesPodcastController.swift */; };
+		BAF855372F312E8800D6DA90 /* UIImageColors in Frameworks */ = {isa = PBXBuildFile; productRef = BAF855362F312E8800D6DA90 /* UIImageColors */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -79,6 +80,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BAF855372F312E8800D6DA90 /* UIImageColors in Frameworks */,
 				BA1FD1772F283CE100EBD902 /* Alamofire in Frameworks */,
 				BA1FD16D2F283A5700EBD902 /* FeedKit in Frameworks */,
 				BA1FD16A2F283A2700EBD902 /* SDWebImageMapKit in Frameworks */,
@@ -278,6 +280,7 @@
 				BA1FD1662F283A2700EBD902 /* XCRemoteSwiftPackageReference "SDWebImage" */,
 				BA1FD16B2F283A5700EBD902 /* XCRemoteSwiftPackageReference "FeedKit" */,
 				BA1FD1752F283CE100EBD902 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				BAF855352F312E8800D6DA90 /* XCRemoteSwiftPackageReference "UIImageColors" */,
 			);
 			productRefGroup = 0BCC344C2AFB195C005A3E38 /* Products */;
 			projectDirPath = "";
@@ -577,6 +580,14 @@
 				version = 5.6.4;
 			};
 		};
+		BAF855352F312E8800D6DA90 /* XCRemoteSwiftPackageReference "UIImageColors" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jathu/UIImageColors";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.2.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -604,6 +615,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = BA1FD1752F283CE100EBD902 /* XCRemoteSwiftPackageReference "Alamofire" */;
 			productName = Alamofire;
+		};
+		BAF855362F312E8800D6DA90 /* UIImageColors */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BAF855352F312E8800D6DA90 /* XCRemoteSwiftPackageReference "UIImageColors" */;
+			productName = UIImageColors;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
