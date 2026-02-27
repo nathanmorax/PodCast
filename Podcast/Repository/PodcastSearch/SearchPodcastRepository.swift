@@ -5,7 +5,7 @@
 //  Created by Jesus Mora on 28/01/26.
 //
 
-protocol PodcastRepository {
+protocol SearchPodcastRepository {
     func searchPodcasts(
         searchPodcast: String,
         completion: @escaping (Result<[Podcast], Error>) -> Void

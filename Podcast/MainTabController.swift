@@ -107,7 +107,7 @@ class MainTabController: UITabBarController {
     func setupViewControllers() {
         viewControllers = [
             createNavigationController(
-                for: PodcastSearchController(),
+                for: PodcastSearchContainerController(),
                 title: "Search",
                 image: UIImage(systemName: "magnifyingglass")
             ),
