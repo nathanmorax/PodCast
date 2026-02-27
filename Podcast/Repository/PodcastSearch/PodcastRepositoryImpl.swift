@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class PodcastRepositoryImpl: PodcastRepository {
+final class PodcastRepositoryImpl: SearchPodcastRepository {
     
     private let remoteDataSource: PodcastRemoteDataSource
 

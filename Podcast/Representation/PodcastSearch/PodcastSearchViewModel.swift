@@ -8,16 +8,16 @@ import UIKit
 
 class PodcastSearchViewModel {
     
-    private let repository: PodcastRepository
+    private let repository: SearchPodcastRepository
     
     private(set) var podcasts: [Podcast] = []
     private(set) var episodes: [Episode] = []
 
     
     var onDataUpdated: (() -> Void)?
-       var onError: ((String) -> Void)?
+    var onError: ((String) -> Void)?
     
-    init(repository: PodcastRepository) {
+    init(repository: SearchPodcastRepository) {
         self.repository = repository
     }
     
@@ -37,7 +37,7 @@ class PodcastSearchViewModel {
         }
     }
     
-    func seacrhPodcast(searchPodcast: String) {
+    func searchPodcast(searchPodcast: String) {
         repository.searchPodcasts(searchPodcast: searchPodcast) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {

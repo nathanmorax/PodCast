@@ -107,7 +107,7 @@ class MainTabController: UITabBarController {
     func setupViewControllers() {
         viewControllers = [
             createNavigationController(
-                for: PodcastSearchController(),
+                for: PodcastSearchContainerController(),
                 title: "Search",
                 image: UIImage(systemName: "magnifyingglass")
             ),
@@ -117,7 +117,7 @@ class MainTabController: UITabBarController {
                 image: UIImage(systemName: "heart")
             ),
             createNavigationController(
-                for: ViewController(),
+                for: PodcastGenreController(),
                 title: "Downloads",
                 image: UIImage(systemName: "arrow.down.circle")
             ),
