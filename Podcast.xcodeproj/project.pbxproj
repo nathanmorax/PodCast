@@ -38,6 +38,8 @@
 		BA4D2F5E2F2AE0D4008A036F /* PodcastRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA4D2F5D2F2AE0D1008A036F /* PodcastRepositoryImpl.swift */; };
 		BA4D2F642F2AE4E6008A036F /* AVPlayerDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA4D2F632F2AE4E1008A036F /* AVPlayerDataSource.swift */; };
 		BAF855312F2D709800D6DA90 /* PlayerDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAF855302F2D708C00D6DA90 /* PlayerDetailViewModel.swift */; };
+		BAF855342F2D8C8000D6DA90 /* FavoritesPodcastController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAF855332F2D8C6C00D6DA90 /* FavoritesPodcastController.swift */; };
+		BAF855372F312E8800D6DA90 /* UIImageColors in Frameworks */ = {isa = PBXBuildFile; productRef = BAF855362F312E8800D6DA90 /* UIImageColors */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -70,6 +72,7 @@
 		BA4D2F5D2F2AE0D1008A036F /* PodcastRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastRepositoryImpl.swift; sourceTree = "<group>"; };
 		BA4D2F632F2AE4E1008A036F /* AVPlayerDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVPlayerDataSource.swift; sourceTree = "<group>"; };
 		BAF855302F2D708C00D6DA90 /* PlayerDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerDetailViewModel.swift; sourceTree = "<group>"; };
+		BAF855332F2D8C6C00D6DA90 /* FavoritesPodcastController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesPodcastController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -81,6 +84,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BAF855372F312E8800D6DA90 /* UIImageColors in Frameworks */,
 				BA1FD1772F283CE100EBD902 /* Alamofire in Frameworks */,
 				BA1FD16D2F283A5700EBD902 /* FeedKit in Frameworks */,
 				BA1FD16A2F283A2700EBD902 /* SDWebImageMapKit in Frameworks */,
@@ -113,6 +117,7 @@
 		0B6B1F202B06AC7600FB0EFE /* Representation */ = {
 			isa = PBXGroup;
 			children = (
+				BAF855322F2D8AD700D6DA90 /* Favorites */,
 				943FC3DD2F4F7A69004C84A0 /* PodcastGenre */,
 				BA4D2F622F2AE2A9008A036F /* PlayerDetail */,
 				BA4D2F612F2AE287008A036F /* Episodes */,
@@ -232,6 +237,14 @@
 			path = PlayerDetail;
 			sourceTree = "<group>";
 		};
+		BAF855322F2D8AD700D6DA90 /* Favorites */ = {
+			isa = PBXGroup;
+			children = (
+				BAF855332F2D8C6C00D6DA90 /* FavoritesPodcastController.swift */,
+			);
+			path = Favorites;
+			sourceTree = "<group>";
+		};
 		CEC8FBBADD40A644A927A4B4 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -291,6 +304,7 @@
 				BA1FD1662F283A2700EBD902 /* XCRemoteSwiftPackageReference "SDWebImage" */,
 				BA1FD16B2F283A5700EBD902 /* XCRemoteSwiftPackageReference "FeedKit" */,
 				BA1FD1752F283CE100EBD902 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				BAF855352F312E8800D6DA90 /* XCRemoteSwiftPackageReference "UIImageColors" */,
 			);
 			productRefGroup = 0BCC344C2AFB195C005A3E38 /* Products */;
 			projectDirPath = "";
@@ -323,6 +337,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				7C9D92052B07422900E5AABC /* RSSFeed.swift in Sources */,
+
+
+				0B6094302AFC82B700D9A0DC /* PodcastSearchController.swift in Sources */,
+				BAF855342F2D8C8000D6DA90 /* FavoritesPodcastController.swift in Sources */,
 				0B6094302AFC82B700D9A0DC /* PodcastSearchContainerController.swift in Sources */,
 				7C3C21D32B07E89300FDBA4A /* PlayerDetailView.swift in Sources */,
 				0B6B1F1F2B06A69C00FB0EFE /* PodcastRemoteDataService.swift in Sources */,
@@ -589,6 +607,14 @@
 				version = 5.6.4;
 			};
 		};
+		BAF855352F312E8800D6DA90 /* XCRemoteSwiftPackageReference "UIImageColors" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jathu/UIImageColors";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.2.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -616,6 +642,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = BA1FD1752F283CE100EBD902 /* XCRemoteSwiftPackageReference "Alamofire" */;
 			productName = Alamofire;
+		};
+		BAF855362F312E8800D6DA90 /* UIImageColors */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BAF855352F312E8800D6DA90 /* XCRemoteSwiftPackageReference "UIImageColors" */;
+			productName = UIImageColors;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

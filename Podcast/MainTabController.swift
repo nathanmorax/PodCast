@@ -112,12 +112,12 @@ class MainTabController: UITabBarController {
                 image: UIImage(systemName: "magnifyingglass")
             ),
             createNavigationController(
-                for: ViewController(),
+                for: FavoritesPodcastController(),
                 title: "Favorites",
                 image: UIImage(systemName: "heart")
             ),
             createNavigationController(
-                for: PodcastGenreController(),
+                for: FavoritesPodcastController(),
                 title: "Downloads",
                 image: UIImage(systemName: "arrow.down.circle")
             ),
