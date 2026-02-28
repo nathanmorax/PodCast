@@ -95,7 +95,7 @@ extension PodcastSearchContainerController: UISearchBarDelegate {
             showGenres()
         } else {
             showResults()
-            viewModel.searchPodcast(searchPodcast: searchText)
+            viewModel.searchText.send(searchText)
         }
     }
     
