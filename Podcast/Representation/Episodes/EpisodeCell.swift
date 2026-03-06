@@ -8,7 +8,7 @@
 import UIKit
 import Alamofire
 
-class EpisodeCell: UITableViewCell {
+class EpisodeCell: UICollectionViewCell {
     
     @IBOutlet weak var imageEpisodeView: UIImageView!
     @IBOutlet weak var pubDateLabel: UILabel!
@@ -28,6 +28,12 @@ class EpisodeCell: UITableViewCell {
     
     override func awakeFromNib() {
         super.awakeFromNib()
-        // Initialization code
+        self.configure()
+    }
+    
+    private func configure() {
+        
+        imageEpisodeView.layer.cornerRadius = 8
+        imageEpisodeView.layer.masksToBounds = true
     }
 }
