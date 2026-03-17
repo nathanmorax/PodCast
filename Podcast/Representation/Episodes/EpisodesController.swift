@@ -89,20 +89,18 @@ class EpisodesController: UIViewController {
         
         edgesForExtendedLayout = [.top]
         extendedLayoutIncludesOpaqueBars = true
-        
-        
     }
     
     private func setupLayout() {
-            view.backgroundColor = .systemBackground
-            view.addSubview(collectionView)
-            NSLayoutConstraint.activate([
-                collectionView.topAnchor.constraint(equalTo: view.topAnchor),
-                collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-                collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-                collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-            ])
-        }
+        view.backgroundColor = .systemBackground
+        view.addSubview(collectionView)
+        NSLayoutConstraint.activate([
+            collectionView.topAnchor.constraint(equalTo: view.topAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+    }
     
     
     private func setupBindings() {
@@ -199,25 +197,23 @@ final class EpisodeHeaderView: UICollectionReusableView {
     
     private let backgroundImageView: UIImageView = {
         let iv = UIImageView()
-        iv.contentMode = .scaleAspectFill
+        iv.contentMode = .scaleToFill
         iv.clipsToBounds = true
         iv.translatesAutoresizingMaskIntoConstraints = false
         return iv
     }()
     
     private let blurView: UIVisualEffectView = {
-        let blur = UIBlurEffect(style: .systemUltraThinMaterial)
+        let blur = UIBlurEffect(style: .systemUltraThinMaterialDark)
         let view = UIVisualEffectView(effect: blur)
-        view.alpha = 0.2
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
     private let headerImageView: UIImageView = {
         let iv = UIImageView()
-        iv.contentMode = .scaleAspectFit
+        iv.contentMode = .scaleAspectFill
         iv.layer.cornerRadius = 8
-//        iv.clipsToBounds = true
         iv.layer.masksToBounds = true
         iv.translatesAutoresizingMaskIntoConstraints = false
         return iv
@@ -226,6 +222,7 @@ final class EpisodeHeaderView: UICollectionReusableView {
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 16, weight: .semibold)
+        label.textColor = .white
         label.numberOfLines = 2
         return label
     }()
@@ -234,6 +231,7 @@ final class EpisodeHeaderView: UICollectionReusableView {
         let label = UILabel()
         label.font = .systemFont(ofSize: 14)
         label.textColor = .secondaryLabel
+        label.textColor = UIColor.white.withAlphaComponent(0.4)
         return label
     }()
     
@@ -245,12 +243,40 @@ final class EpisodeHeaderView: UICollectionReusableView {
         return label
     }()
     
-    private lazy var contentStack: UIStackView = {
+    private let genreLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 13)
+        label.numberOfLines = 3
+        label.textColor = .secondaryLabel
+        return label
+    }()
+    
+    private let trackCountLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 13)
+        label.numberOfLines = 3
+        label.textColor = .secondaryLabel
+        return label
+    }()
+    
+    private lazy var contentStackV: UIStackView = {
         let stack = UIStackView(arrangedSubviews: [
             headerImageView, titleLabel, artistLabel, descriptionLabel
         ])
-        stack.axis    = .vertical
-        stack.spacing = 12
+        stack.axis      = .vertical
+        stack.spacing   = 12
+        stack.alignment = .center
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        return stack
+    }()
+    
+    private lazy var contentStackH: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [
+            trackCountLabel, genreLabel
+        ])
+        stack.axis      = .horizontal
+        stack.spacing   = 12
+        stack.alignment = .center
         stack.translatesAutoresizingMaskIntoConstraints = false
         return stack
     }()
@@ -272,28 +298,33 @@ final class EpisodeHeaderView: UICollectionReusableView {
     
     private func setupView() {
         clipsToBounds = true
-        
+
         addSubview(backgroundImageView)
         addSubview(blurView)
-        addSubview(contentStack)
-        
+        blurView.contentView.addSubview(contentStackV)
+        blurView.contentView.addSubview(contentStackH)
+
         NSLayoutConstraint.activate([
             backgroundImageView.topAnchor.constraint(equalTo: topAnchor),
             backgroundImageView.leadingAnchor.constraint(equalTo: leadingAnchor),
             backgroundImageView.trailingAnchor.constraint(equalTo: trailingAnchor),
             backgroundImageView.bottomAnchor.constraint(equalTo: bottomAnchor),
-            
+
             blurView.topAnchor.constraint(equalTo: topAnchor),
             blurView.leadingAnchor.constraint(equalTo: leadingAnchor),
             blurView.trailingAnchor.constraint(equalTo: trailingAnchor),
             blurView.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            contentStackV.leadingAnchor.constraint(equalTo: blurView.contentView.leadingAnchor, constant: 16),
+            contentStackV.trailingAnchor.constraint(equalTo: blurView.contentView.trailingAnchor, constant: -16),
+            contentStackV.bottomAnchor.constraint(equalTo: contentStackH.bottomAnchor, constant: -16),
             
-            contentStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            contentStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            contentStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
-            
-            headerImageView.heightAnchor.constraint(equalToConstant: 120),
-            headerImageView.widthAnchor.constraint(equalToConstant: 120),
+            contentStackH.leadingAnchor.constraint(equalTo: blurView.contentView.leadingAnchor, constant: 12),
+            contentStackH.trailingAnchor.constraint(equalTo: blurView.contentView.trailingAnchor, constant: -12),
+            contentStackH.bottomAnchor.constraint(equalTo: blurView.contentView.bottomAnchor, constant: -16),
+
+            headerImageView.heightAnchor.constraint(equalToConstant: 130),
+            headerImageView.widthAnchor.constraint(equalToConstant: 130),
         ])
     }
     
@@ -302,23 +333,41 @@ final class EpisodeHeaderView: UICollectionReusableView {
     func configure(with podcast: Podcast?) {
         titleLabel.text  = podcast?.trackName
         artistLabel.text = podcast?.artistName
-        
+        trackCountLabel.text = podcast?.trackCount.map { "\($0) episodes" }
+        genreLabel.text = podcast?.primaryGenreName
+
         guard let urlString = podcast?.artworkUrl600,
               let url = URL(string: urlString) else { return }
-        
+
         currentImageURL = urlString
-        
-//        headerImageView.sd_setImage(with: url)
-        headerImageView.sd_setImage(with: url) { [weak self] image, _, _, _ in
-            guard let self,
-                  let image,
-                  self.currentImageURL == urlString else { return }
-            
-            image.getColors { [weak self] colors in
-                guard let self, let colors else { return }
-                self.backgroundImageView.backgroundColor = colors.background
-                self.titleLabel.textColor  = colors.primary
-                self.artistLabel.textColor = colors.secondary
+        headerImageView.sd_setImage(with: url)
+
+        backgroundImageView.sd_setImage(with: url) { [weak self] image, _, _, _ in
+            guard let self, let image, self.currentImageURL == urlString else { return }
+            self.adaptTextColors(to: image)
+        }
+    }
+    
+    // MARK: - Color Adaptation
+
+    private func adaptTextColors(to image: UIImage) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            let brightness = image.averageBrightness()
+            let isDark = brightness < 0.5
+
+            let primary   = isDark ? UIColor.white : UIColor.black
+            let secondary = isDark
+                ? UIColor.white.withAlphaComponent(0.6)
+                : UIColor.black.withAlphaComponent(0.5)
+
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                UIView.animate(withDuration: 0.2) {
+                    self.titleLabel.textColor       = primary
+                    self.artistLabel.textColor      = secondary
+                    self.trackCountLabel.textColor  = secondary
+                    self.genreLabel.textColor       = secondary
+                }
             }
         }
     }
@@ -327,8 +376,44 @@ final class EpisodeHeaderView: UICollectionReusableView {
         super.prepareForReuse()
         headerImageView.image     = nil
         backgroundImageView.image = nil
+        backgroundImageView.backgroundColor = nil
         titleLabel.textColor      = .label
         artistLabel.textColor     = .secondaryLabel
         currentImageURL           = nil
+    }
+}
+
+extension UIImage {
+    func averageBrightness() -> CGFloat {
+        guard let cgImage = self.cgImage else { return 0.5 }
+
+        let width  = 40
+        let height = 40
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+
+        var pixels = [UInt8](repeating: 0, count: width * height * 4)
+        guard let context = CGContext(
+            data: &pixels,
+            width: width, height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: width * 4,
+            space: colorSpace,
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ) else { return 0.5 }
+
+        context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
+
+        var totalBrightness: CGFloat = 0
+        let pixelCount = width * height
+
+        for i in 0..<pixelCount {
+            let offset = i * 4
+            let r = CGFloat(pixels[offset])     / 255
+            let g = CGFloat(pixels[offset + 1]) / 255
+            let b = CGFloat(pixels[offset + 2]) / 255
+            totalBrightness += 0.299 * r + 0.587 * g + 0.114 * b
+        }
+
+        return totalBrightness / CGFloat(pixelCount)
     }
 }

@@ -53,7 +53,7 @@ class PodcastSearchViewModel {
                 case .success(let episodes):
                     self?.episodes = episodes
                     self?.onDataUpdated?()
-//                    print(episodes)
+                    print(episodes)
                 case .failure(let error):
                     print(error)
                 }
@@ -70,7 +70,7 @@ class PodcastSearchViewModel {
                 case .success(let podcasts):
                     self?.podcasts = podcasts
                     self?.onDataUpdated?()
-//                    print(podcasts)
+                    print(podcasts)
                 case .failure(let error):
                     print(error)
                 }

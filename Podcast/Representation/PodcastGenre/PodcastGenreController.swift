@@ -27,7 +27,6 @@ class PodcastGenreController: UIViewController {
         self.loadData()
         
         viewModel.loadGenre()
-                
     }
     
     func loadData() {
