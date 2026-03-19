@@ -21,8 +21,4 @@ struct Podcast: Codable {
     let trackCount: Int?
     let feedUrl: String?
 }
-extension Podcast: Equatable {
-    static func == (lhs: Podcast, rhs: Podcast) -> Bool {
-        return lhs.trackId == rhs.trackId
-    }
-}
+

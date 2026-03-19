@@ -16,28 +16,27 @@ class FavoritesPodcastCell: UICollectionViewCell {
     let artistNameLabel = UILabel()
     
     
-    
     override init(frame: CGRect) {
         super.init(frame: frame)
-        configure()
+        self.configure()
     }
-    
+
     required init(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func configure() {
-        
-        titlePodcastLabel.text = "Title Podcast"
-        titlePodcastLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
-        
-        artistNameLabel.text = "Artist Name"
-        artistNameLabel.font = UIFont.systemFont(ofSize: 14)
-        artistNameLabel.textColor = .lightGray
+    private func configure() {
         
         let stackView = UIStackView(arrangedSubviews: [
             imageView ,titlePodcastLabel, artistNameLabel
         ])
+        
+        titlePodcastLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        
+        artistNameLabel.font = UIFont.systemFont(ofSize: 14)
+        artistNameLabel.textColor = .lightGray
+        
+        imageView.cornerRadius
         
         stackView.axis = .vertical
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -51,5 +50,17 @@ class FavoritesPodcastCell: UICollectionViewCell {
             stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
         ])
         
+//        contentView.layer.cornerRadius = 12
+//        contentView.layer.masksToBounds = true
+    }
+    
+    func configureData(with podcast: Podcast) {
+        
+        titlePodcastLabel.text = podcast.trackName
+        
+        artistNameLabel.text = podcast.artistName
+        
+        imageView.sd_setImage(with: URL(string: podcast.artworkUrl600 ?? ""), completed: nil)
+
     }
 }

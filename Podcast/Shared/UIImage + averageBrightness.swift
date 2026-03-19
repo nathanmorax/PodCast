@@ -40,3 +40,11 @@ extension UIImage {
         return totalBrightness / CGFloat(pixelCount)
     }
 }
+
+extension UIView {
+    
+    var cornerRadius: Void {
+        layer.cornerRadius = 8
+        clipsToBounds = true
+    }
+}

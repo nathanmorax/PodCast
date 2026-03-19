@@ -33,7 +33,6 @@ class EpisodeCell: UICollectionViewCell {
     
     private func configure() {
         
-        imageEpisodeView.layer.cornerRadius = 8
-        imageEpisodeView.layer.masksToBounds = true
+        imageEpisodeView.cornerRadius
     }
 }

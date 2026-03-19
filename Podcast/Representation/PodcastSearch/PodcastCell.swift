@@ -24,4 +24,10 @@ class PodcastCell: UITableViewCell {
             
         }
     }
+    
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        
+        podcastImageView.cornerRadius
+    }
 }

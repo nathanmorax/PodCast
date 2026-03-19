@@ -26,8 +26,7 @@ final class EpisodeHeaderView: UICollectionReusableView {
     private let headerImageView: UIImageView = {
         let iv = UIImageView()
         iv.contentMode = .scaleAspectFill
-        iv.layer.cornerRadius = 8
-        iv.layer.masksToBounds = true
+        iv.cornerRadius
         iv.translatesAutoresizingMaskIntoConstraints = false
         return iv
     }()

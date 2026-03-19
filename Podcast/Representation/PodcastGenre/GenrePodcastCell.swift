@@ -25,8 +25,7 @@ class GenrePodcastCell: UICollectionViewCell {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        contentView.layer.cornerRadius = 12
-        contentView.layer.masksToBounds = true
+        contentView.cornerRadius
         contentView.backgroundColor = .lightGray
     }
     

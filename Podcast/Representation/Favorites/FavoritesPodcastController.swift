@@ -12,16 +12,31 @@ import UIKit
 
 class FavoritesPodcastController: UIViewController {
     
-    
+    private var podcast: [Podcast] = []
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
         return cv
     }()
     
+    private let viewModel = EpisodesViewModel(
+        repository: PodcastRepositoryImpl(
+            remoteDataSource: PodcastRemoteDataService()
+        )
+    )
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.configureCollection()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        loadPodcastfavorites()
+    }
+    
+    func loadPodcastfavorites() {
+        podcast = viewModel.fecthFavorites()
+        collectionView.reloadData()
     }
     
     func configureCollection() {
@@ -50,12 +65,16 @@ class FavoritesPodcastController: UIViewController {
 
 extension FavoritesPodcastController: UICollectionViewDataSource, UICollectionViewDelegate ,  UICollectionViewDelegateFlowLayout{
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 8
+        return podcast.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FavoritesPodcastCell.favoritesPodcastCellId, for: indexPath)
-        cell.backgroundColor = .red
+        
+        if let cell = cell as? FavoritesPodcastCell {
+            let podcast = self.podcast[indexPath.row]
+            cell.configureData(with: podcast)
+        }
         return cell
     }
     

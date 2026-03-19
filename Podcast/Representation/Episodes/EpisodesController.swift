@@ -44,10 +44,10 @@ class EpisodesController: UIViewController {
         return cv
     }()
     
-    private lazy var viewModell: viewModel = {
+    private lazy var viewModel: EpisodesViewModel = {
         let remote = PodcastRemoteDataService()
         let repository = PodcastRepositoryImpl(remoteDataSource: remote)
-        return viewModel(repository: repository)
+        return EpisodesViewModel(repository: repository)
     }()
     
     override func viewDidLoad() {
@@ -94,18 +94,18 @@ class EpisodesController: UIViewController {
     
     private func setupBindings() {
         
-        viewModell.onDataUpdated = { [weak self] in
+        viewModel.onDataUpdated = { [weak self] in
             self?.collectionView.reloadData()
         }
         
-        viewModell.onError = { error in
+        viewModel.onError = { error in
             print("Episodes error:", error)
         }
     }
     fileprivate func loadEpisodes() {
         
         guard let feedUrl =  podcast?.feedUrl else { return }
-        viewModell.loadEpisodes(feedURL: feedUrl)
+        viewModel.loadEpisodes(feedURL: feedUrl)
     }
     // MARK: - SetupWork
     
@@ -126,7 +126,7 @@ class EpisodesController: UIViewController {
         
         guard let podcast = podcast else { return }
         
-        viewModell.toggleFavorite(podcast: podcast)
+        viewModel.toggleFavorite(podcast: podcast)
         updateFavoriteButton()
         print("✅ Saved with manager")
         
@@ -134,7 +134,7 @@ class EpisodesController: UIViewController {
     }
     
     @objc fileprivate func handleFecthPodcast() {
-        let favorites = viewModell.fecthFavorites()
+        let favorites = viewModel.fecthFavorites()
         print("📦 Favorites:", favorites.map({ podcat in
             podcat.artistName
         }))
@@ -145,7 +145,7 @@ class EpisodesController: UIViewController {
         
         guard let podcast = podcast else { return }
         
-        let isFavorite = viewModell.isFavorite(podcast)
+        let isFavorite = viewModel.isFavorite(podcast)
         let imageName = isFavorite ? "heart.fill" : "heart"
         
         navigationItem.rightBarButtonItem?.image = UIImage(systemName: imageName)
@@ -159,7 +159,7 @@ class EpisodesController: UIViewController {
 extension EpisodesController: UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        viewModell.episodes.count
+        viewModel.episodes.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -168,7 +168,7 @@ extension EpisodesController: UICollectionViewDataSource {
             for: indexPath
         ) as? EpisodeCell else { return UICollectionViewCell() }
         
-        cell.episode = viewModell.episodes[indexPath.row]
+        cell.episode = viewModel.episodes[indexPath.row]
         return cell
     }
     
@@ -191,7 +191,7 @@ extension EpisodesController: UICollectionViewDataSource {
 extension EpisodesController: UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let episode = viewModell.episodes[indexPath.row]
+        let episode = viewModel.episodes[indexPath.row]
         (UIApplication.shared.keyWindow?.rootViewController as? MainTabController)?
             .maximizePlayerDetails(episode: episode)
     }
@@ -213,52 +213,5 @@ extension EpisodesController: UICollectionViewDelegateFlowLayout {
         referenceSizeForHeaderInSection section: Int
     ) -> CGSize {
         CGSize(width: collectionView.bounds.width, height: Layout.headerHeight)
-    }
-}
-
-
-class viewModel {
-    
-    private let repository: SearchPodcastRepository
-    private let favoritesManager: FavoritesPodcastManager
-    
-    private(set) var episodes: [Episode] = []
-    private(set) var favorites: [Podcast] = []
-    
-    var onDataUpdated: (() -> Void)?
-    var onError: ((Error) -> Void)?
-    
-    // MARK: - Init
-    init(repository: SearchPodcastRepository,
-         favoritesManager: FavoritesPodcastManager = FavoritesPodcastManager(userDefaults: .standard)) {
-        self.repository = repository
-        self.favoritesManager = favoritesManager
-    }
-    
-    // MARK: - Episodes
-    func loadEpisodes(feedURL: String) {
-        repository.fetchEpisodes(feedURL: feedURL) { [weak self] result in
-            switch result {
-            case .success(let episodes):
-                self?.episodes = episodes
-                self?.onDataUpdated?()
-            case .failure(let error):
-                self?.onError?(error)
-            }
-        }
-    }
-    
-    func toggleFavorite(podcast: Podcast) {
-        favoritesManager.toggleFavorite(podcast)
-        favorites = favoritesManager.fetchFavoritePodcasts()
-        onDataUpdated?()
-    }
-    
-    func fecthFavorites() -> [Podcast] {
-        favoritesManager.fetchFavoritePodcasts()
-    }
-    
-    func isFavorite(_ podcast: Podcast) -> Bool {
-        return favorites.contains(podcast)
     }
 }
