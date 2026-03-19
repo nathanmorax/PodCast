@@ -7,7 +7,7 @@
 import UIKit
 import Combine
 
-class PodcastSearchViewModel {
+class EpisodesViewModel {
     
     private let repository: SearchPodcastRepository
     private var cancellables = Set<AnyCancellable>()

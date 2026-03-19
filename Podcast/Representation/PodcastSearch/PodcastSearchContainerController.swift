@@ -13,10 +13,10 @@ class PodcastSearchContainerController: UIViewController {
     
     private let genreController = PodcastGenreController()
     
-    private lazy var viewModel: PodcastSearchViewModel = {
+    private lazy var viewModel: EpisodesViewModel = {
         let remote = PodcastRemoteDataService()
         let repository = PodcastRepositoryImpl(remoteDataSource: remote)
-        return PodcastSearchViewModel(repository: repository)
+        return EpisodesViewModel(repository: repository)
     }()
     
     private lazy var resultsController: PodcastResultSearchController = {
@@ -109,10 +109,10 @@ class PodcastResultSearchController: UITableViewController {
     let cellId = "cellId"
     
     
-    var viewModel: PodcastSearchViewModel
+    var viewModel: EpisodesViewModel
     
     
-    init(viewModel: PodcastSearchViewModel) {
+    init(viewModel: EpisodesViewModel) {
         self.viewModel = viewModel
         super.init(style: .plain)
         
