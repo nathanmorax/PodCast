@@ -2,7 +2,7 @@
 //  File.swift
 //  Podcast
 //
-//  Created by Satori Tech 341 on 19/03/26.
+//  Created by Nathan Mora on 19/03/26.
 //
 import UIKit
 

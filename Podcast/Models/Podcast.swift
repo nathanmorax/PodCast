@@ -7,16 +7,22 @@
 
 import Foundation
 
-struct SearchResults: Decodable {
+struct SearchResults: Codable {
     let resultCount: Int
     let results: [Podcast]
 }
 
-struct Podcast: Decodable {
+struct Podcast: Codable {
+    let trackId: Int
     let trackName: String?
     let artistName: String?
     let artworkUrl600: String?
     let primaryGenreName: String?
     let trackCount: Int?
     let feedUrl: String?
+}
+extension Podcast: Equatable {
+    static func == (lhs: Podcast, rhs: Podcast) -> Bool {
+        return lhs.trackId == rhs.trackId
+    }
 }

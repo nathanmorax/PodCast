@@ -8,12 +8,12 @@
 import UIKit
 import FeedKit
 import SDWebImage
-//import UIImageColors
 
 class EpisodesController: UIViewController {
     fileprivate let cellId = "cellId"
     private let headerView = EpisodeHeaderView()
     private let statusBarBackgroundView = UIView()
+    
     
     
     private enum Layout {
@@ -44,23 +44,44 @@ class EpisodesController: UIViewController {
         return cv
     }()
     
-    private lazy var viewModel: EpisodesViewModel = {
+    private lazy var viewModell: viewModel = {
         let remote = PodcastRemoteDataService()
         let repository = PodcastRepositoryImpl(remoteDataSource: remote)
-        return EpisodesViewModel(repository: repository)
+        return viewModel(repository: repository)
     }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.setupLayout()
-        self.setupBindings()
         self.setupCollectionView()
+        self.setupNavigationButtons()
+        self.updateFavoriteButton()
+        self.setupBindings()
+        self.configureCollectionViewAppearance()
         
         edgesForExtendedLayout = [.top]
         extendedLayoutIncludesOpaqueBars = true
     }
     
-    private func setupLayout() {
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        updateFavoriteButton()
+    }
+    fileprivate func setupNavigationButtons() {
+        navigationItem.rightBarButtonItems = [
+            UIBarButtonItem(image: UIImage(systemName: "heart"),
+                            style: .plain,
+                            target: self,
+                            action: #selector(handleFavoritePodcast)
+            ),
+            UIBarButtonItem(title: "Fetch",
+                            style: .plain,
+                            target: self,
+                            action: #selector(handleFecthPodcast))
+            
+        ]
+    }
+    
+    private func setupCollectionView() {
         view.backgroundColor = .systemBackground
         view.addSubview(collectionView)
         NSLayoutConstraint.activate([
@@ -73,22 +94,22 @@ class EpisodesController: UIViewController {
     
     private func setupBindings() {
         
-        viewModel.onDataUpdated = { [weak self] in
+        viewModell.onDataUpdated = { [weak self] in
             self?.collectionView.reloadData()
         }
         
-        viewModel.onError = { error in
+        viewModell.onError = { error in
             print("Episodes error:", error)
         }
     }
     fileprivate func loadEpisodes() {
         
         guard let feedUrl =  podcast?.feedUrl else { return }
-        viewModel.loadEpisodes(feedURL: feedUrl)
+        viewModell.loadEpisodes(feedURL: feedUrl)
     }
     // MARK: - SetupWork
     
-    private func setupCollectionView() {
+    private func configureCollectionViewAppearance() {
         let nib = UINib(nibName: "EpisodeCell", bundle: nil)
         collectionView.register(nib, forCellWithReuseIdentifier: cellId)
         
@@ -99,12 +120,46 @@ class EpisodesController: UIViewController {
         )
     }
     
+    
+    @objc fileprivate func handleFavoritePodcast() {
+        print("Saving info into UserDeafults")
+        
+        guard let podcast = podcast else { return }
+        
+        viewModell.toggleFavorite(podcast: podcast)
+        updateFavoriteButton()
+        print("✅ Saved with manager")
+        
+        
+    }
+    
+    @objc fileprivate func handleFecthPodcast() {
+        let favorites = viewModell.fecthFavorites()
+        print("📦 Favorites:", favorites.map({ podcat in
+            podcat.artistName
+        }))
+        
+    }
+    
+    private func updateFavoriteButton() {
+        
+        guard let podcast = podcast else { return }
+        
+        let isFavorite = viewModell.isFavorite(podcast)
+        let imageName = isFavorite ? "heart.fill" : "heart"
+        
+        navigationItem.rightBarButtonItem?.image = UIImage(systemName: imageName)
+
+
+    }
+    
+    
 }
 
 extension EpisodesController: UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        viewModel.episodes.count
+        viewModell.episodes.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -113,7 +168,7 @@ extension EpisodesController: UICollectionViewDataSource {
             for: indexPath
         ) as? EpisodeCell else { return UICollectionViewCell() }
         
-        cell.episode = viewModel.episodes[indexPath.row]
+        cell.episode = viewModell.episodes[indexPath.row]
         return cell
     }
     
@@ -136,7 +191,7 @@ extension EpisodesController: UICollectionViewDataSource {
 extension EpisodesController: UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let episode = viewModel.episodes[indexPath.row]
+        let episode = viewModell.episodes[indexPath.row]
         (UIApplication.shared.keyWindow?.rootViewController as? MainTabController)?
             .maximizePlayerDetails(episode: episode)
     }
@@ -161,3 +216,49 @@ extension EpisodesController: UICollectionViewDelegateFlowLayout {
     }
 }
 
+
+class viewModel {
+    
+    private let repository: SearchPodcastRepository
+    private let favoritesManager: FavoritesPodcastManager
+    
+    private(set) var episodes: [Episode] = []
+    private(set) var favorites: [Podcast] = []
+    
+    var onDataUpdated: (() -> Void)?
+    var onError: ((Error) -> Void)?
+    
+    // MARK: - Init
+    init(repository: SearchPodcastRepository,
+         favoritesManager: FavoritesPodcastManager = FavoritesPodcastManager(userDefaults: .standard)) {
+        self.repository = repository
+        self.favoritesManager = favoritesManager
+    }
+    
+    // MARK: - Episodes
+    func loadEpisodes(feedURL: String) {
+        repository.fetchEpisodes(feedURL: feedURL) { [weak self] result in
+            switch result {
+            case .success(let episodes):
+                self?.episodes = episodes
+                self?.onDataUpdated?()
+            case .failure(let error):
+                self?.onError?(error)
+            }
+        }
+    }
+    
+    func toggleFavorite(podcast: Podcast) {
+        favoritesManager.toggleFavorite(podcast)
+        favorites = favoritesManager.fetchFavoritePodcasts()
+        onDataUpdated?()
+    }
+    
+    func fecthFavorites() -> [Podcast] {
+        favoritesManager.fetchFavoritePodcasts()
+    }
+    
+    func isFavorite(_ podcast: Podcast) -> Bool {
+        return favorites.contains(podcast)
+    }
+}

@@ -7,7 +7,7 @@
 import UIKit
 import Combine
 
-class EpisodesViewModel {
+class PodcastSearchViewModel {
     
     private let repository: SearchPodcastRepository
     private var cancellables = Set<AnyCancellable>()
@@ -21,6 +21,9 @@ class EpisodesViewModel {
     
     var onDataUpdated: (() -> Void)?
     var onError: ((String) -> Void)?
+    
+    let favoritesPodcastmanager = FavoritesPodcastManager(userDefaults: .standard)
+
     
     init(repository: SearchPodcastRepository) {
         self.repository = repository
@@ -77,4 +80,6 @@ class EpisodesViewModel {
             }
         }
     }
+    
+    
 }
