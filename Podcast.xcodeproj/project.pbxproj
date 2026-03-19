@@ -122,7 +122,6 @@
 				BA4D2F622F2AE2A9008A036F /* PlayerDetail */,
 				BA4D2F612F2AE287008A036F /* Episodes */,
 				BA4D2F5F2F2AE24B008A036F /* PodcastSearch */,
-				BA4D2F382F2ADF95008A036F /* ViewModel */,
 			);
 			path = Representation;
 			sourceTree = "<group>";
@@ -188,13 +187,6 @@
 			children = (
 			);
 			path = PodcastGenre;
-			sourceTree = "<group>";
-		};
-		BA4D2F382F2ADF95008A036F /* ViewModel */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = ViewModel;
 			sourceTree = "<group>";
 		};
 		BA4D2F3B2F2ADFE9008A036F /* Repository */ = {
@@ -337,9 +329,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7C9D92052B07422900E5AABC /* RSSFeed.swift in Sources */,
-
-
-				0B6094302AFC82B700D9A0DC /* PodcastSearchController.swift in Sources */,
+				0B6094302AFC82B700D9A0DC /* PodcastSearchContainerController.swift in Sources */,
 				BAF855342F2D8C8000D6DA90 /* FavoritesPodcastController.swift in Sources */,
 				0B6094302AFC82B700D9A0DC /* PodcastSearchContainerController.swift in Sources */,
 				7C3C21D32B07E89300FDBA4A /* PlayerDetailView.swift in Sources */,
