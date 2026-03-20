@@ -12,6 +12,7 @@ class EpisodesViewModel {
     private let favoritesManager: FavoritesPodcastManager
     
     private(set) var episodes: [Episode] = []
+    var podcast: [Podcast] = []
     
     var onDataUpdated: (() -> Void)?
     var onError: ((Error) -> Void)?
@@ -38,7 +39,6 @@ class EpisodesViewModel {
     
     func toggleFavorite(podcast: Podcast) {
         favoritesManager.toggleFavorite(podcast)
-//        onDataUpdated?()
     }
     
     func fecthFavorites() -> [Podcast] {
@@ -47,5 +47,9 @@ class EpisodesViewModel {
     
     func isFavorite(_ podcast: Podcast) -> Bool {
         return favoritesManager.isFavorite(podcast)
+    }
+    
+    func removeFavorite(_ podcast: Podcast) {
+        favoritesManager.deleteFavorite(podcast)
     }
 }

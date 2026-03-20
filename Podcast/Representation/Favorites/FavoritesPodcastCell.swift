@@ -38,7 +38,11 @@ class FavoritesPodcastCell: UICollectionViewCell {
         
         imageView.cornerRadius
         
+        contentView.backgroundColor = .clear
+        
         stackView.axis = .vertical
+        stackView.backgroundColor = .clear
+        stackView.spacing = 8
         stackView.translatesAutoresizingMaskIntoConstraints = false
 
         contentView.addSubview(stackView)
@@ -49,9 +53,6 @@ class FavoritesPodcastCell: UICollectionViewCell {
             stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
         ])
-        
-//        contentView.layer.cornerRadius = 12
-//        contentView.layer.masksToBounds = true
     }
     
     func configureData(with podcast: Podcast) {

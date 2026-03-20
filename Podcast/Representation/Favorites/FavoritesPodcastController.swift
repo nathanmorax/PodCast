@@ -5,14 +5,10 @@
 //  Created by Jesus Mora on 30/01/26.
 //
 
-
-//55 6245 3562
-
 import UIKit
 
 class FavoritesPodcastController: UIViewController {
-    
-    private var podcast: [Podcast] = []
+            
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
@@ -31,11 +27,12 @@ class FavoritesPodcastController: UIViewController {
     }
     
     override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         loadPodcastfavorites()
     }
     
     func loadPodcastfavorites() {
-        podcast = viewModel.fecthFavorites()
+        viewModel.podcast = viewModel.fecthFavorites()
         collectionView.reloadData()
     }
     
@@ -58,24 +55,30 @@ class FavoritesPodcastController: UIViewController {
         ])
         
     }
-    
-    
 }
 
 
 extension FavoritesPodcastController: UICollectionViewDataSource, UICollectionViewDelegate ,  UICollectionViewDelegateFlowLayout{
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return podcast.count
+        return viewModel.podcast.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FavoritesPodcastCell.favoritesPodcastCellId, for: indexPath)
         
         if let cell = cell as? FavoritesPodcastCell {
-            let podcast = self.podcast[indexPath.row]
+            let podcast = self.viewModel.podcast[indexPath.row]
             cell.configureData(with: podcast)
         }
         return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+                
+        let episodesController = EpisodesController()
+        let podcast = self.viewModel.podcast[indexPath.item]
+        episodesController.podcast = podcast
+        navigationController?.pushViewController(episodesController, animated: true)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -88,5 +91,49 @@ extension FavoritesPodcastController: UICollectionViewDataSource, UICollectionVi
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int ) -> UIEdgeInsets {
         return UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView,
+                        contextMenuConfigurationForItemAt indexPath: IndexPath,
+                        point: CGPoint) -> UIContextMenuConfiguration? {
+        
+        let selectedPodcast = viewModel.podcast[indexPath.item]
+        
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
+            
+            guard let self = self else { return nil }
+            
+            let playNext = UIAction(
+                title: "Reproducir a continuación",
+                image: UIImage(systemName: "text.insert")
+            ) { _ in
+                print("Play next: \(selectedPodcast.trackName ?? "")")
+            }
+            
+            let markPlayed = UIAction(
+                title: "Marcar como reproducido",
+                image: UIImage(systemName: "checkmark")
+            ) { _ in
+                print("Mark played")
+            }
+            
+            let delete = UIAction(
+                title: "Eliminar de favoritos",
+                image: UIImage(systemName: "trash"),
+                attributes: .destructive
+            ) { _ in
+                let removedPodcast = self.viewModel.podcast[indexPath.item]
+
+                self.viewModel.removeFavorite(removedPodcast)
+                
+                self.viewModel.podcast.remove(at: indexPath.item)
+                
+                self.collectionView.performBatchUpdates {
+                    self.collectionView.deleteItems(at: [indexPath])
+                }
+            }
+            
+            return UIMenu(title: "", children: [playNext, markPlayed, delete])
+        }
     }
 }

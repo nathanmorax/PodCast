@@ -72,12 +72,13 @@ class EpisodesController: UIViewController {
                             style: .plain,
                             target: self,
                             action: #selector(handleFavoritePodcast)
-            ),
-            UIBarButtonItem(title: "Fetch",
-                            style: .plain,
-                            target: self,
-                            action: #selector(handleFecthPodcast))
-            
+            )
+//            ,
+//            UIBarButtonItem(title: "Fetch",
+//                            style: .plain,
+//                            target: self,
+//                            action: #selector(handleFecthPodcast))
+//            
         ]
     }
     

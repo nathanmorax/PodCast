@@ -117,7 +117,7 @@ class MainTabController: UITabBarController {
                 image: UIImage(systemName: "heart")
             ),
             createNavigationController(
-                for: FavoritesPodcastController(),
+                for: UIViewController(),
                 title: "Downloads",
                 image: UIImage(systemName: "arrow.down.circle")
             ),
