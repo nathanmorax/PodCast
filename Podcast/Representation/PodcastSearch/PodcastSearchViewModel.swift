@@ -22,7 +22,7 @@ class PodcastSearchViewModel {
     var onDataUpdated: (() -> Void)?
     var onError: ((String) -> Void)?
     
-    let favoritesPodcastmanager = FavoritesPodcastManager(userDefaults: .standard)
+//    let favoritesPodcastmanager = FavoritesPodcastManager(userDefaults: .standard)
 
     
     init(repository: SearchPodcastRepository) {

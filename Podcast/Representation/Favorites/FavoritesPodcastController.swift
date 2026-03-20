@@ -6,9 +6,12 @@
 //
 
 import UIKit
+import Combine
 
 class FavoritesPodcastController: UIViewController {
-            
+    
+    private var pendingDeleteIndexPath: IndexPath?
+    
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
@@ -21,19 +24,21 @@ class FavoritesPodcastController: UIViewController {
         )
     )
     
+    private var cancellables = Set<AnyCancellable>()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.configureCollection()
+        self.bindViewModel()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        loadPodcastfavorites()
-    }
-    
-    func loadPodcastfavorites() {
-        viewModel.podcast = viewModel.fecthFavorites()
-        collectionView.reloadData()
+    fileprivate func bindViewModel() {
+        viewModel.$favorites
+            .receive(on: DispatchQueue.main)
+            .sink(receiveValue: { [weak self] favorites in
+                self?.collectionView.reloadData()
+            })
+            .store(in: &cancellables)
     }
     
     func configureCollection() {
@@ -60,23 +65,23 @@ class FavoritesPodcastController: UIViewController {
 
 extension FavoritesPodcastController: UICollectionViewDataSource, UICollectionViewDelegate ,  UICollectionViewDelegateFlowLayout{
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return viewModel.podcast.count
+        return viewModel.favorites.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FavoritesPodcastCell.favoritesPodcastCellId, for: indexPath)
         
         if let cell = cell as? FavoritesPodcastCell {
-            let podcast = self.viewModel.podcast[indexPath.row]
+            let podcast = self.viewModel.favorites[indexPath.item]
             cell.configureData(with: podcast)
         }
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-                
+        
         let episodesController = EpisodesController()
-        let podcast = self.viewModel.podcast[indexPath.item]
+        let podcast = self.viewModel.favorites[indexPath.item]
         episodesController.podcast = podcast
         navigationController?.pushViewController(episodesController, animated: true)
     }
@@ -97,7 +102,7 @@ extension FavoritesPodcastController: UICollectionViewDataSource, UICollectionVi
                         contextMenuConfigurationForItemAt indexPath: IndexPath,
                         point: CGPoint) -> UIContextMenuConfiguration? {
         
-        let selectedPodcast = viewModel.podcast[indexPath.item]
+        let selectedPodcast = viewModel.favorites[indexPath.item]
         
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
             
@@ -122,15 +127,8 @@ extension FavoritesPodcastController: UICollectionViewDataSource, UICollectionVi
                 image: UIImage(systemName: "trash"),
                 attributes: .destructive
             ) { _ in
-                let removedPodcast = self.viewModel.podcast[indexPath.item]
-
-                self.viewModel.removeFavorite(removedPodcast)
-                
-                self.viewModel.podcast.remove(at: indexPath.item)
-                
-                self.collectionView.performBatchUpdates {
-                    self.collectionView.deleteItems(at: [indexPath])
-                }
+                self.pendingDeleteIndexPath = indexPath
+                self.viewModel.removeFavorite(selectedPodcast)
             }
             
             return UIMenu(title: "", children: [playNext, markPlayed, delete])

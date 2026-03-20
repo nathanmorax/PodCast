@@ -8,13 +8,14 @@
 import UIKit
 import FeedKit
 import SDWebImage
+import Combine
 
 class EpisodesController: UIViewController {
     fileprivate let cellId = "cellId"
     private let headerView = EpisodeHeaderView()
     private let statusBarBackgroundView = UIView()
     
-    
+    private var cancellables = Set<AnyCancellable>()
     
     private enum Layout {
         static let headerHeight: CGFloat   = 320
@@ -72,13 +73,13 @@ class EpisodesController: UIViewController {
                             style: .plain,
                             target: self,
                             action: #selector(handleFavoritePodcast)
-            )
-//            ,
-//            UIBarButtonItem(title: "Fetch",
-//                            style: .plain,
-//                            target: self,
-//                            action: #selector(handleFecthPodcast))
-//            
+                           )
+            //            ,
+            //            UIBarButtonItem(title: "Fetch",
+            //                            style: .plain,
+            //                            target: self,
+            //                            action: #selector(handleFecthPodcast))
+            //
         ]
     }
     
@@ -94,15 +95,22 @@ class EpisodesController: UIViewController {
     }
     
     private func setupBindings() {
+        viewModel.$episodes
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.collectionView.reloadData()
+            }
+            .store(in: &cancellables)
         
-        viewModel.onDataUpdated = { [weak self] in
-            self?.collectionView.reloadData()
-        }
-        
-        viewModel.onError = { error in
-            print("Episodes error:", error)
-        }
+        viewModel.$errorMessage
+            .compactMap { $0 }
+            .receive(on: DispatchQueue.main)
+            .sink { error in
+                print("Episodes error:", error)
+            }
+            .store(in: &cancellables)
     }
+    
     fileprivate func loadEpisodes() {
         
         guard let feedUrl =  podcast?.feedUrl else { return }
@@ -134,13 +142,13 @@ class EpisodesController: UIViewController {
         
     }
     
-    @objc fileprivate func handleFecthPodcast() {
-        let favorites = viewModel.fecthFavorites()
-        print("📦 Favorites:", favorites.map({ podcat in
-            podcat.artistName
-        }))
-        
-    }
+//    @objc fileprivate func handleFecthPodcast() {
+//        let favorites = viewModel.fecthFavorites()
+//        print("📦 Favorites:", favorites.map({ podcat in
+//            podcat.artistName
+//        }))
+//        
+//    }
     
     private func updateFavoriteButton() {
         
@@ -150,8 +158,8 @@ class EpisodesController: UIViewController {
         let imageName = isFavorite ? "heart.fill" : "heart"
         
         navigationItem.rightBarButtonItem?.image = UIImage(systemName: imageName)
-
-
+        
+        
     }
     
     

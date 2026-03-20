@@ -4,6 +4,7 @@
 //
 //  Created by Jesus Mora on 28/01/26.
 //
+import Combine
 
 protocol SearchPodcastRepository {
     func searchPodcasts(
@@ -15,4 +16,7 @@ protocol SearchPodcastRepository {
         feedURL: String,
         completion: @escaping (Result<[Episode], Error>) -> Void
     )
+    
+    func searchPodcastsPublisher(searchPodcast: String) -> AnyPublisher<[Podcast], Error>
+    func fetchEpisodesPublisher(feedURL: String) -> AnyPublisher<[Episode], Error>
 }
