@@ -7,6 +7,10 @@
 
 import UIKit
 
+private enum PlayerState {
+    case minimized, maximized
+}
+
 class MainTabController: UITabBarController {
     let playerDetailView = PlayerDetailView.initFromNib()
     var maximizedTopAnchorConstraint: NSLayoutConstraint!
@@ -15,43 +19,36 @@ class MainTabController: UITabBarController {
     var heightConstraint: NSLayoutConstraint!
     var bottomAnchorConstraint: NSLayoutConstraint!
     private let miniPlayerHeight: CGFloat = 54
-
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
         UINavigationBar.appearance().prefersLargeTitles = true
         tabBar.tintColor = .purple
         
+        tabBar.backgroundColor = .clear
+        
         setupViewControllers()
         setupPlayerDetailsView()
         
         playerDetailView.miniPlayerView.isHidden = true
-
+        
     }
     // MARK: - Setup functions
     
     @objc func minimizePlayerDetails() {
         maximizedTopAnchorConstraint.isActive = false
         bottomAnchorConstraint.isActive = false
-        
         heightConstraint.isActive = true
         minimizedTopAnchorConstraint.isActive = true
+        additionalSafeAreaInsets.bottom = miniPlayerHeight
+        animatePlayer(to: .minimized)
         
-        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 1, options: .curveEaseOut, animations: {
-            self.view.layoutIfNeeded()
-            
-            self.playerDetailView.maximizedStackView.alpha = 0
-            self.playerDetailView.miniPlayerView.alpha = 1
-            self.playerDetailView.miniPlayerView.isHidden = false
-            self.playerDetailView.backgroundColor = .clear
-
-        })
+        
     }
     
     func maximizePlayerDetails(episode: Episode?) {
-        let isHidden = playerDetailView.transform != .identity
-
-        if isHidden {
+        if playerDetailView.transform != .identity {
             heightConstraint.isActive = true
             minimizedTopAnchorConstraint.isActive = true
             playerDetailView.transform = .identity
@@ -60,26 +57,41 @@ class MainTabController: UITabBarController {
         
         minimizedTopAnchorConstraint.isActive = false
         heightConstraint.isActive = false
-        
         maximizedTopAnchorConstraint.isActive = true
         bottomAnchorConstraint.isActive = true
         
-        if episode != nil {
-            playerDetailView.episode = episode
-        }
+        if let episode { playerDetailView.episode = episode }
         
-        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 1, options: .curveEaseOut, animations: {
-            self.view.layoutIfNeeded()
-            
-            self.playerDetailView.maximizedStackView.alpha = 1
-            self.playerDetailView.miniPlayerView.alpha = 0
-            self.playerDetailView.backgroundColor = .black
-            self.tabBar.frame.origin.y = self.view.frame.height
-
-        })
+        additionalSafeAreaInsets.bottom = 0
+        animatePlayer(to: .maximized)
     }
     
-    fileprivate func setupPlayerDetailsView() {
+    private func animatePlayer(to state: PlayerState) {
+        UIView.animate(
+            withDuration: 0.5,
+            delay: 0,
+            usingSpringWithDamping: 0.7,
+            initialSpringVelocity: 1,
+            options: .curveEaseOut
+        ) {
+            self.view.layoutIfNeeded()
+            
+            switch state {
+            case .minimized:
+                self.playerDetailView.maximizedStackView.alpha = 0
+                self.playerDetailView.miniPlayerView.alpha = 1
+                self.playerDetailView.miniPlayerView.isHidden = false
+                self.playerDetailView.backgroundColor = .clear
+            case .maximized:
+                self.playerDetailView.maximizedStackView.alpha = 1
+                self.playerDetailView.miniPlayerView.alpha = 0
+                self.playerDetailView.backgroundColor = .black
+                self.tabBar.frame.origin.y = self.view.frame.height
+            }
+        }
+    }
+    
+    func setupPlayerDetailsView() {
         print("Setting up PlayerDetailsView")
         
         view.insertSubview(playerDetailView, belowSubview: tabBar)
@@ -127,13 +139,13 @@ class MainTabController: UITabBarController {
             )
         ]
     }
-
+    
     fileprivate func createNavigationController(
         for rootViewController: UIViewController,
         title: String,
         image: UIImage?
     ) -> UIViewController {
-
+        
         let navController = UINavigationController(rootViewController: rootViewController)
         rootViewController.navigationItem.title = title
         navController.tabBarItem.title = title

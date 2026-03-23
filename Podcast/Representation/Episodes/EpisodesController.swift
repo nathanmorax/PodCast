@@ -18,14 +18,13 @@ class EpisodesController: UIViewController {
     private var cancellables = Set<AnyCancellable>()
     
     private enum Layout {
-        static let headerHeight: CGFloat   = 320
+        static let headerHeight: CGFloat   = 160
         static let cellHeight: CGFloat     = 120
         static let sectionInset            = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
     }
     
     var podcast: Podcast? {
         didSet {
-            headerView.configure(with: podcast)
             loadEpisodes()
         }
     }
@@ -38,8 +37,8 @@ class EpisodesController: UIViewController {
         
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
         cv.translatesAutoresizingMaskIntoConstraints = false
-        cv.contentInsetAdjustmentBehavior = .never
-        cv.backgroundColor = .systemBackground
+        cv.contentInsetAdjustmentBehavior = .automatic
+        cv.backgroundColor = .clear
         cv.delegate   = self
         cv.dataSource = self
         return cv
@@ -55,18 +54,11 @@ class EpisodesController: UIViewController {
         super.viewDidLoad()
         self.setupCollectionView()
         self.setupNavigationButtons()
-        self.updateFavoriteButton()
         self.setupBindings()
         self.configureCollectionViewAppearance()
         
-        edgesForExtendedLayout = [.top]
-        extendedLayoutIncludesOpaqueBars = true
     }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        updateFavoriteButton()
-    }
+
     fileprivate func setupNavigationButtons() {
         navigationItem.rightBarButtonItems = [
             UIBarButtonItem(image: UIImage(systemName: "heart"),
@@ -74,12 +66,6 @@ class EpisodesController: UIViewController {
                             target: self,
                             action: #selector(handleFavoritePodcast)
                            )
-            //            ,
-            //            UIBarButtonItem(title: "Fetch",
-            //                            style: .plain,
-            //                            target: self,
-            //                            action: #selector(handleFecthPodcast))
-            //
         ]
     }
     
@@ -109,6 +95,14 @@ class EpisodesController: UIViewController {
                 print("Episodes error:", error)
             }
             .store(in: &cancellables)
+        
+        viewModel.$favorites
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.updateFavoriteButton()
+            }
+            .store(in: &cancellables)
+        
     }
     
     fileprivate func loadEpisodes() {
@@ -136,19 +130,8 @@ class EpisodesController: UIViewController {
         guard let podcast = podcast else { return }
         
         viewModel.toggleFavorite(podcast: podcast)
-        updateFavoriteButton()
-        print("✅ Saved with manager")
-        
-        
+
     }
-    
-//    @objc fileprivate func handleFecthPodcast() {
-//        let favorites = viewModel.fecthFavorites()
-//        print("📦 Favorites:", favorites.map({ podcat in
-//            podcat.artistName
-//        }))
-//        
-//    }
     
     private func updateFavoriteButton() {
         
@@ -158,7 +141,6 @@ class EpisodesController: UIViewController {
         let imageName = isFavorite ? "heart.fill" : "heart"
         
         navigationItem.rightBarButtonItem?.image = UIImage(systemName: imageName)
-        
         
     }
     

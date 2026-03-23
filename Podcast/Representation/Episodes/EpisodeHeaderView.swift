@@ -87,6 +87,7 @@ final class EpisodeHeaderView: UICollectionReusableView {
             trackCountLabel, genreLabel
         ])
         stack.axis      = .horizontal
+        stack.distribution = .equalSpacing
         stack.spacing   = 12
         stack.alignment = .center
         stack.translatesAutoresizingMaskIntoConstraints = false
