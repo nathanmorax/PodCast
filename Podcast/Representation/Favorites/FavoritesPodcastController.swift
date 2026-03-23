@@ -18,11 +18,13 @@ class FavoritesPodcastController: UIViewController {
         return cv
     }()
     
-    private let viewModel = EpisodesViewModel(
-        repository: PodcastRepositoryImpl(
-            remoteDataSource: PodcastRemoteDataService()
-        )
-    )
+//    private let viewModel = EpisodesViewModel(
+//        repository: PodcastRepositoryImpl(
+//            remoteDataSource: PodcastRemoteDataService()
+//        )
+//    )
+    
+    private let viewModel = FavoritesViewModel(favoritesManager: .shared)
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -128,7 +130,7 @@ extension FavoritesPodcastController: UICollectionViewDataSource, UICollectionVi
                 attributes: .destructive
             ) { _ in
                 self.pendingDeleteIndexPath = indexPath
-                self.viewModel.removeFavorite(selectedPodcast)
+                self.viewModel.remove(selectedPodcast)
             }
             
             return UIMenu(title: "", children: [playNext, markPlayed, delete])

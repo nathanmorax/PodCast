@@ -44,20 +44,30 @@ class EpisodesViewModel {
         return favoritesManager.isFavorite(podcast)
     }
     
-    func removeFavorite(_ podcast: Podcast) {
-        favoritesManager.deleteFavorite(podcast)
-    }
+//    func loadEpisodes(feedURL: String) {
+//        repository.fetchEpisodesPublisher(feedURL: feedURL)
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] completion in
+//                if case .failure(let error) = completion {
+//                    self?.errorMessage = error.localizedDescription
+//                }
+//            } receiveValue: { [weak self] episodes in
+//                self?.episodes = episodes
+//            }
+//            .store(in: &cancellables)
+//    }
     
     func loadEpisodes(feedURL: String) {
-        repository.fetchEpisodesPublisher(feedURL: feedURL)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] completion in
-                if case .failure(let error) = completion {
-                    self?.errorMessage = error.localizedDescription
+        Task {
+            do {
+                let episodes = try await repository.fetchEpisodes(feedURL: feedURL)
+                await MainActor.run {
+                    
+                    self.episodes = episodes
                 }
-            } receiveValue: { [weak self] episodes in
-                self?.episodes = episodes
+            } catch {
+                self.errorMessage = error.localizedDescription
             }
-            .store(in: &cancellables)
+        }
     }
 }

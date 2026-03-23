@@ -7,16 +7,8 @@
 import Combine
 
 protocol SearchPodcastRepository {
-    func searchPodcasts(
-        searchPodcast: String,
-        completion: @escaping (Result<[Podcast], Error>) -> Void
-    )
 
-    func fetchEpisodes(
-        feedURL: String,
-        completion: @escaping (Result<[Episode], Error>) -> Void
-    )
-    
-    func searchPodcastsPublisher(searchPodcast: String) -> AnyPublisher<[Podcast], Error>
-    func fetchEpisodesPublisher(feedURL: String) -> AnyPublisher<[Episode], Error>
+    func searchPodcast(query: String) async throws -> [Podcast]
+    func fetchEpisodes(feedURL: String) async throws -> [Episode]
+
 }

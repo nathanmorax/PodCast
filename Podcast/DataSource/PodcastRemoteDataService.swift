@@ -9,6 +9,43 @@ import Foundation
 import Alamofire
 import FeedKit
 
+enum PodcastServiceError: Error {
+    case invalidURL
+    case decodingFailed(Error)
+    case networkFailed(Error)
+    case emptyResponse
+}
+
+enum PodcastEndpoint {
+    case search(query: String)
+    case genres
+    
+    var url: String {
+        switch self {
+        case .search, .genres:
+            return baseURL
+        }
+    }
+    
+    private var baseURL: String {
+        switch self {
+        case .search:
+            return "https://itunes.apple.com/search"
+        case .genres:
+            return "https://itunes.apple.com/WebObjects/MZStoreServices.woa/ws/genres"
+        }
+    }
+    
+    var parameters: [String: String] {
+        switch self {
+        case .search(let query):
+            return ["term": query, "media": "podcast"]
+        case .genres:
+            return ["id": "26", "l": "en"]
+        }
+    }
+}
+
 protocol PodcastRemoteDataSource {
     func searchPodcasts(
         seacrhPodcast: String,
@@ -22,22 +59,57 @@ protocol PodcastRemoteDataSource {
     
     func fetchGenresPodcast(completion: @escaping (Result<[Genre], Error>) -> Void)
     
+    func searchPodcast(query: String) async throws -> [Podcast]
+    
+    func fetchEpisodes(feedURL: String) async throws -> [Episode]
+    
 }
-
-struct GenreResponse: Decodable {
-    let id: String
-    let name: String
-    let subgenres: [String: GenreResponse]?}
-
-struct Genre: Decodable {
-    let id: String
-    let name: String
-}
-
 
 class PodcastRemoteDataService: PodcastRemoteDataSource {
+
     
     private let baseURL = "https://itunes.apple.com/search"
+    
+    func request<T: Decodable>(_ endpoint: PodcastEndpoint) async throws ->T {
+        
+        let response = await AF
+            .request(endpoint.url, parameters: endpoint.parameters)
+            .serializingDecodable(T.self)
+            .response
+        
+        switch response.result {
+        case .success(let value):
+            return value
+        case .failure(let error):
+            throw PodcastServiceError.networkFailed(error)
+        }
+    }
+    
+    
+    func searchPodcast(query: String) async throws -> [Podcast] {
+        let result: SearchResults = try await request(.search(query: query))
+        return result.results
+    }
+    
+    func fetchEpisodes(feedURL: String) async throws -> [Episode] {
+        let secureURL = feedURL.replacingOccurrences(of: "http://", with: "https://")
+        
+        guard let url = URL(string: secureURL) else {
+            throw PodcastServiceError.invalidURL
+        }
+        
+        // Task.detached → hilo separado, sin heredar actor del caller
+        // .value → await hasta que termine y propaga el throw si falla
+        let feed = try await Task.detached(priority: .background) {
+            try await Feed(url: url)
+        }.value
+        
+        switch feed {
+        case .rss(let rssFeed): return rssFeed.toEpisodes()
+        case .atom, .json:      return []
+        }
+    }
+    
     
     func searchPodcasts(seacrhPodcast: String, completion: @escaping (Result<[Podcast], any Error>) -> Void) {
         let parameters = ["term": seacrhPodcast, "media": "podcast"]
@@ -128,26 +200,4 @@ class PodcastRemoteDataService: PodcastRemoteDataSource {
             }
         }
     }
-}
-
-protocol GenresRepository {
-    func fetchGenresPodcast(completion: @escaping (Result<[Genre], Error>) -> Void)
-}
-
-
-final class GenresRepositoryImpl: GenresRepository {
-    
-    private let remoteDataSource: PodcastRemoteDataSource
-    
-    
-    init(remoteDataSource: PodcastRemoteDataSource) {
-        self.remoteDataSource = remoteDataSource
-    }
-    
-    
-    func fetchGenresPodcast(completion: @escaping (Result<[Genre], any Error>) -> Void) {
-        remoteDataSource.fetchGenresPodcast(completion: completion)
-    }
-    
-    
 }

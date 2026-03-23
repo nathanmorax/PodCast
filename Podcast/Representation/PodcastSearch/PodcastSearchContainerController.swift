@@ -7,11 +7,14 @@
 
 import UIKit
 import Alamofire
+import Combine
 
 class PodcastSearchContainerController: UIViewController {
     let searchController = UISearchController(searchResultsController: nil)
     
     private let genreController = PodcastGenreController()
+    private var cancellables = Set<AnyCancellable>()
+
     
     private lazy var viewModel: PodcastSearchViewModel = {
         let remote = PodcastRemoteDataService()
@@ -32,13 +35,25 @@ class PodcastSearchContainerController: UIViewController {
         
     }
     
+//    private func setupBindings() {
+//        viewModel.onDataUpdated = { [weak self] in
+//            self?.resultsController.tableView.reloadData()
+//        }
+//        viewModel.onError = { error in
+//            print(error)
+//        }
+//    }
+    
     private func setupBindings() {
-        viewModel.onDataUpdated = { [weak self] in
-            self?.resultsController.tableView.reloadData()
-        }
-        viewModel.onError = { error in
-            print(error)
-        }
+        // El container no necesita suscribirse a podcasts,
+        // eso le toca al resultsController
+        viewModel.$error
+            .compactMap { $0 }
+            .receive(on: DispatchQueue.main)
+            .sink { errorMessage in
+                print(errorMessage) // o mostrar alerta
+            }
+            .store(in: &cancellables)
     }
 
     
@@ -108,7 +123,7 @@ class PodcastResultSearchController: UITableViewController {
     
     let cellId = "cellId"
     
-    
+    private var cancellables = Set<AnyCancellable>()
     var viewModel: PodcastSearchViewModel
     
     
@@ -129,13 +144,12 @@ class PodcastResultSearchController: UITableViewController {
     }
     
     private func setupBindings() {
-        viewModel.onDataUpdated = { [weak self] in
-            self?.tableView.reloadData()
-        }
-        
-        viewModel.onError = { error in
-            print(error)
-        }
+        viewModel.$podcasts
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.tableView.reloadData()
+            }
+            .store(in: &cancellables)
     }
     
     fileprivate func configure() {

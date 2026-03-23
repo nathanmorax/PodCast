@@ -8,6 +8,11 @@ import UIKit
 
 final class StretchyHeaderLayout: UICollectionViewFlowLayout {
     
+    override func prepare() {
+        super.prepare()
+        collectionView?.contentInset.top = 0
+    }
+    
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
         guard let attributes = super.layoutAttributesForElements(in: rect)?.map({ $0.copy() as! UICollectionViewLayoutAttributes }),
               let collectionView else { return nil }
