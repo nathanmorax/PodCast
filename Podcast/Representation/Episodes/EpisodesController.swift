@@ -59,6 +59,18 @@ class EpisodesController: UIViewController {
         
     }
 
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        updateCollectionViewInset()
+    }
+
+    private func updateCollectionViewInset() {
+        let tabBarHeight = tabBarController?.tabBar.frame.height ?? 0
+        collectionView.contentInset.bottom = tabBarHeight
+        collectionView.verticalScrollIndicatorInsets.bottom = tabBarHeight
+    }
+    
     fileprivate func setupNavigationButtons() {
         navigationItem.rightBarButtonItems = [
             UIBarButtonItem(image: UIImage(systemName: "heart"),
@@ -70,7 +82,6 @@ class EpisodesController: UIViewController {
     }
     
     private func setupCollectionView() {
-        view.backgroundColor = .systemBackground
         view.addSubview(collectionView)
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: view.topAnchor),
@@ -178,13 +189,11 @@ extension EpisodesController: UICollectionViewDataSource {
         return header
     }
 }
-
 extension EpisodesController: UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let episode = viewModel.episodes[indexPath.row]
-        (UIApplication.shared.keyWindow?.rootViewController as? MainTabController)?
-            .maximizePlayerDetails(episode: episode)
+        PlayerManager.shared.play(episode: episode)
     }
 }
 

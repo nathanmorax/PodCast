@@ -162,9 +162,31 @@ class PlayerDetailView: UIView {
         }
     }
     
+    func maximize() {
+        miniPlayerView.isHidden = false
+        
+        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 1, options: .curveEaseOut) {
+            self.maximizedStackView.alpha = 1
+            self.miniPlayerView.alpha = 0
+            self.backgroundColor = .black
+        }
+    }
+    
+    
+    func minimize() {
+        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 1, options: .curveEaseOut) {
+            self.maximizedStackView.alpha = 0
+            self.miniPlayerView.alpha = 1
+            self.miniPlayerView.isHidden = false
+            self.backgroundColor = .clear
+        }
+    }
+    
     @objc func handleTapMaximize() {
-        let mainTabBarController = UIApplication.shared.keyWindow?.rootViewController as? MainTabController
-        mainTabBarController?.maximizePlayerDetails(episode: nil)
+//        let mainTabBarController = UIApplication.shared.keyWindow?.rootViewController as? MainTabController
+//        mainTabBarController?.maximizePlayerDetails(episode: nil)
+        
+        PlayerManager.shared.expand()
     }
     
     @objc private func handlePlayPause() {
@@ -175,8 +197,10 @@ class PlayerDetailView: UIView {
     
     @IBAction func handleDismiss(_ sender: Any) {
         print("Dismiss")
-        let mainTabController = UIApplication.shared.keyWindow?.rootViewController as? MainTabController
-        mainTabController?.minimizePlayerDetails()
+//        let mainTabController = UIApplication.shared.keyWindow?.rootViewController as? MainTabController
+//        mainTabController?.minimizePlayerDetails()
+        
+        PlayerManager.shared.collapse()
     }
     
     @IBAction func handleCurrentTimeSliderChange(_ sender: Any) {

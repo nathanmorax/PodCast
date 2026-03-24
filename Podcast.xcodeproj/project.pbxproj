@@ -28,6 +28,7 @@
 		7C9D92002B0708AD00E5AABC /* EpisodeCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7C9D91FE2B0708AD00E5AABC /* EpisodeCell.xib */; };
 		7C9D92032B07412900E5AABC /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C9D92022B07412900E5AABC /* String.swift */; };
 		7C9D92052B07422900E5AABC /* RSSFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C9D92042B07422900E5AABC /* RSSFeed.swift */; };
+		9411F4D32F720EDD0029272E /* PlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9411F4D22F720EDD0029272E /* PlayerManager.swift */; };
 		94F4E5B22F6C810B00DC1130 /* StretchyHeaderLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94F4E5B12F6C810400DC1130 /* StretchyHeaderLayout.swift */; };
 		94F4E5B42F6C815900DC1130 /* EpisodeHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94F4E5B32F6C815900DC1130 /* EpisodeHeaderView.swift */; };
 		94F4E5B72F6C81B700DC1130 /* UIImage + averageBrightness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94F4E5B62F6C81B700DC1130 /* UIImage + averageBrightness.swift */; };
@@ -75,6 +76,7 @@
 		7C9D91FE2B0708AD00E5AABC /* EpisodeCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = EpisodeCell.xib; sourceTree = "<group>"; };
 		7C9D92022B07412900E5AABC /* String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
 		7C9D92042B07422900E5AABC /* RSSFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RSSFeed.swift; sourceTree = "<group>"; };
+		9411F4D22F720EDD0029272E /* PlayerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerManager.swift; sourceTree = "<group>"; };
 		94F4E5B12F6C810400DC1130 /* StretchyHeaderLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StretchyHeaderLayout.swift; sourceTree = "<group>"; };
 		94F4E5B32F6C815900DC1130 /* EpisodeHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeHeaderView.swift; sourceTree = "<group>"; };
 		94F4E5B62F6C81B700DC1130 /* UIImage + averageBrightness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage + averageBrightness.swift"; sourceTree = "<group>"; };
@@ -170,6 +172,7 @@
 				0B6B1F202B06AC7600FB0EFE /* Representation */,
 				0B6B1F1D2B06A68A00FB0EFE /* DataSource */,
 				0B6094312AFC83B300D9A0DC /* Models */,
+				9411F4D22F720EDD0029272E /* PlayerManager.swift */,
 				0BCC344E2AFB195C005A3E38 /* AppDelegate.swift */,
 				0BCC34502AFB195C005A3E38 /* SceneDelegate.swift */,
 				0BCC34522AFB195C005A3E38 /* ViewController.swift */,
@@ -378,6 +381,7 @@
 				0B6094302AFC82B700D9A0DC /* PodcastSearchContainerController.swift in Sources */,
 				7C3C21D32B07E89300FDBA4A /* PlayerDetailView.swift in Sources */,
 				0B6B1F1F2B06A69C00FB0EFE /* PodcastRemoteDataService.swift in Sources */,
+				9411F4D32F720EDD0029272E /* PlayerManager.swift in Sources */,
 				94F4E5B72F6C81B700DC1130 /* UIImage + averageBrightness.swift in Sources */,
 				0B6B1F242B06B15100FB0EFE /* PodcastCell.swift in Sources */,
 				94F4E5B22F6C810B00DC1130 /* StretchyHeaderLayout.swift in Sources */,
