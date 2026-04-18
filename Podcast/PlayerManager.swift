@@ -4,7 +4,8 @@
 //
 //  Created by Satori Tech 341 on 23/03/26.
 //
-
+import Foundation
+import UIKit
 
 final class PlayerManager {
     static let shared = PlayerManager()

@@ -30,27 +30,6 @@ class PlayerDetailView: UIView {
     @IBOutlet weak var miniTitleLabel: UILabel!
     @IBOutlet weak var miniEpisodeImageView: UIImageView!
     
-    @IBOutlet weak var episodeImageView: UIImageView! {
-        didSet {
-            episodeImageView.layer.cornerRadius =  16
-            episodeImageView.clipsToBounds = true
-            episodeImageView.transform = shrunkenTransform
-        }
-    }
-    
-    @IBOutlet weak var miniPlayPauseButton: UIButton! {
-        didSet {
-            miniPlayPauseButton.imageEdgeInsets = .init(top: 8, left: 8, bottom: 8, right: 8)
-            miniPlayPauseButton.addTarget(self, action: #selector(handlePlayPause), for: .touchUpInside)
-        }
-    }
-    
-    @IBOutlet weak var miniFastForwardButton: UIButton! {
-        didSet {
-            miniFastForwardButton.imageEdgeInsets = .init(top: 8, left: 8, bottom: 8, right: 8)
-            miniFastForwardButton.addTarget(self, action: #selector(handleFastForward(_:)), for: .touchUpInside)
-        }
-    }
     var episode: Episode? {
         didSet {
             updateUI(with: episode)
@@ -64,11 +43,6 @@ class PlayerDetailView: UIView {
         setupViewModel()
         setupGestures()
         
-    }
-    
-    
-    static func initFromNib() -> PlayerDetailView {
-        return Bundle.main.loadNibNamed("PlayerDetailView", owner: self, options: nil)?.first as! PlayerDetailView
     }
     
     private func setupUI() {
@@ -100,7 +74,7 @@ class PlayerDetailView: UIView {
     }
     
     private func setupMiniPlayerGlass() {
-        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        let blurEffect = UIBlurEffect(style: .light)
         let blurView = UIVisualEffectView(effect: blurEffect)
         
         blurView.frame = miniPlayerView.bounds
@@ -134,7 +108,6 @@ class PlayerDetailView: UIView {
         
         isPlaying ? enlargeEpisodeImageView() : shrinkEpisodeImageView()
     }
-    
     
     // MARK: - Animations
     
@@ -182,10 +155,39 @@ class PlayerDetailView: UIView {
         }
     }
     
+    @IBOutlet weak var episodeImageView: UIImageView! {
+        didSet {
+            episodeImageView.layer.cornerRadius =  16
+            episodeImageView.clipsToBounds = true
+            episodeImageView.transform = shrunkenTransform
+        }
+    }
+    
+    @IBOutlet weak var miniPlayPauseButton: UIButton! {
+        didSet {
+                var config = miniPlayPauseButton.configuration ?? .plain()
+                config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
+                miniPlayPauseButton.configuration = config
+                
+                miniPlayPauseButton.addTarget(self, action: #selector(handlePlayPause), for: .touchUpInside)
+            }
+    }
+    
+    @IBOutlet weak var miniFastForwardButton: UIButton! {
+        didSet {
+               var config = miniFastForwardButton.configuration ?? .plain()
+               config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
+               miniFastForwardButton.configuration = config
+               
+               miniFastForwardButton.addTarget(self, action: #selector(handleFastForward(_:)), for: .touchUpInside)
+           }
+    }
+    
+    static func initFromNib() -> PlayerDetailView {
+        return Bundle.main.loadNibNamed("PlayerDetailView", owner: self, options: nil)?.first as! PlayerDetailView
+    }
+    
     @objc func handleTapMaximize() {
-//        let mainTabBarController = UIApplication.shared.keyWindow?.rootViewController as? MainTabController
-//        mainTabBarController?.maximizePlayerDetails(episode: nil)
-        
         PlayerManager.shared.expand()
     }
     
@@ -196,10 +198,6 @@ class PlayerDetailView: UIView {
     // MARK: - IBActions
     
     @IBAction func handleDismiss(_ sender: Any) {
-        print("Dismiss")
-//        let mainTabController = UIApplication.shared.keyWindow?.rootViewController as? MainTabController
-//        mainTabController?.minimizePlayerDetails()
-        
         PlayerManager.shared.collapse()
     }
     

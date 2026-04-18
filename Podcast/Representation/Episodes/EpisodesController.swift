@@ -38,7 +38,7 @@ class EpisodesController: UIViewController {
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
         cv.translatesAutoresizingMaskIntoConstraints = false
         cv.contentInsetAdjustmentBehavior = .automatic
-        cv.backgroundColor = .clear
+//        cv.backgroundColor = .clear
         cv.delegate   = self
         cv.dataSource = self
         return cv
