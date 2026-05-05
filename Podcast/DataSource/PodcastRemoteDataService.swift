@@ -44,6 +44,12 @@ enum PodcastEndpoint {
             return ["id": "26", "l": "en"]
         }
     }
+    
+    var methotHttp: HTTPMethod {
+        switch self {
+        case .search, .genres: .post
+        }
+    }
 }
 
 protocol PodcastRemoteDataSource {
@@ -59,6 +65,8 @@ protocol PodcastRemoteDataSource {
     
     func fetchGenresPodcast(completion: @escaping (Result<[Genre], Error>) -> Void)
     
+//    func fecthGenresPodcast() async throws -> [Genre]
+    
     func searchPodcast(query: String) async throws -> [Podcast]
     
     func fetchEpisodes(feedURL: String) async throws -> [Episode]
@@ -66,7 +74,6 @@ protocol PodcastRemoteDataSource {
 }
 
 class PodcastRemoteDataService: PodcastRemoteDataSource {
-
     
     private let baseURL = "https://itunes.apple.com/search"
     
@@ -98,8 +105,6 @@ class PodcastRemoteDataService: PodcastRemoteDataSource {
             throw PodcastServiceError.invalidURL
         }
         
-        // Task.detached → hilo separado, sin heredar actor del caller
-        // .value → await hasta que termine y propaga el throw si falla
         let feed = try await Task.detached(priority: .background) {
             try await Feed(url: url)
         }.value
@@ -109,6 +114,15 @@ class PodcastRemoteDataService: PodcastRemoteDataSource {
         case .atom, .json:      return []
         }
     }
+    
+//    func fecthGenresPodcast() async throws -> [Genre] {
+//        
+//        let genre: [String: GenreResponse] = try await request(.genres)
+//        
+//        let result = try decoder.decode([String: GenreResponse].self, from: data)
+//
+//    }
+    
     
     
     func searchPodcasts(seacrhPodcast: String, completion: @escaping (Result<[Podcast], any Error>) -> Void) {
@@ -200,4 +214,25 @@ class PodcastRemoteDataService: PodcastRemoteDataSource {
             }
         }
     }
+}
+
+
+enum NetworkingError: Error {
+    case encodingFailed(innerError: EncodingError)
+    case decodingFailed(innerError: DecodingError)
+    case invalidStatusCode(innerError: Int)
+    case requestFailed(innerError: URLError)
+    case otherError(innerError: Error)
+}
+
+
+protocol EndpointProvider {
+    var schema: String { get }
+    var baseURL: String { get }
+    var path: String { get }
+    var method: HTTPMethod { get }
+    var token: String { get }
+    var queryItems: [URLQueryItem]? { get }
+    var body: [String: Any]? { get }
+    
 }
