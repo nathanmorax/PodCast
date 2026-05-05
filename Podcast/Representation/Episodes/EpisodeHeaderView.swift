@@ -5,6 +5,7 @@
 //  Created by Satori Tech 341 on 19/03/26.
 //
 import UIKit
+import SwiftUI
 
 final class EpisodeHeaderView: UICollectionReusableView {
     
@@ -195,3 +196,32 @@ final class EpisodeHeaderView: UICollectionReusableView {
         currentImageURL           = nil
     }
 }
+
+struct HeaderViewUI: View {
+    
+    var podcast: Podcast
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            
+            PodcastImage(source: podcast.artworkUrl600)
+                .frame(maxWidth: 130, maxHeight: 130)
+            
+            Text(podcast.trackName ?? "")
+            Text(podcast.artistName ?? "")
+
+            HStack {
+                Text("\(podcast.trackCount ?? 0) episodios")
+                Spacer()
+                Text(podcast.primaryGenreName ?? "")
+            }
+        }
+    }
+}
+
+#Preview(traits: .sizeThatFitsLayout) {
+    HeaderViewUI(podcast: .mock)
+        .padding()
+}
+
+

@@ -9,6 +9,7 @@ import UIKit
 import FeedKit
 import SDWebImage
 import Combine
+import SwiftUI
 
 class EpisodesController: UIViewController {
     fileprivate let cellId = "cellId"
@@ -50,6 +51,10 @@ class EpisodesController: UIViewController {
         return EpisodesViewModel(repository: repository)
     }()
     
+    private let episodeCellRegistration = UICollectionView.hostingRegistration { (episode: Episode) in
+        EpisodeCellUI(episode: episode)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setupCollectionView()
@@ -59,7 +64,6 @@ class EpisodesController: UIViewController {
         
     }
 
-    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateCollectionViewInset()
@@ -165,13 +169,11 @@ extension EpisodesController: UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(
-            withReuseIdentifier: cellId,
-            for: indexPath
-        ) as? EpisodeCell else { return UICollectionViewCell() }
-        
-        cell.episode = viewModel.episodes[indexPath.row]
-        return cell
+        let episode = viewModel.episodes[indexPath.item]
+        return collectionView.dequeueConfiguredReusableCell(
+            using: episodeCellRegistration,
+            for: indexPath,
+            item: episode)
     }
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {

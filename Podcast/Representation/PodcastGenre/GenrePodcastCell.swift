@@ -4,46 +4,34 @@
 //
 //  Created by Satori Tech 341 on 25/02/26.
 //
-import UIKit
+import SwiftUI
 
-class GenrePodcastCell: UICollectionViewCell {
+struct GenrePodcastCell: View {
+    let genre: Genre
     
-    static let identifier: String = "GenrePodcastCell"
-    
-    lazy var imageView = UIImageView(image: UIImage(named: "appicon"))
-    let titleLabel = UILabel()
-    
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        self.configure()
-    }
-    
-    required init(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        contentView.cornerRadius
-        contentView.backgroundColor = .lightGray
-    }
-    
-    
-    private func configure() {
-        
-        titleLabel.font = .systemFont(ofSize: 16, weight: .medium)
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        contentView.addSubview(titleLabel)
-        
-        NSLayoutConstraint.activate([
-            titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            titleLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
-        ])
-    }
-    
-    func configure(data: Genre) {
-        titleLabel.text = data.name
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(genre.name)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(.primary)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, minHeight: 130)
+        .cornerRadius(8)
     }
 }
+
+#if DEBUG
+extension Genre {
+    static let mock = Genre(
+        id: "",
+        name: "Horror"
+    )
+}
+#endif
+
+#Preview(traits: .sizeThatFitsLayout) {
+    GenrePodcastCell(genre: .mock)
+        .padding()
+}
+
