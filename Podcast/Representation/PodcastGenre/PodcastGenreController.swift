@@ -5,6 +5,7 @@
 //  Created by Satori Tech 341 on 25/02/26.
 //
 import UIKit
+import SwiftUI
 
 class PodcastGenreController: UIViewController {
     
@@ -21,11 +22,16 @@ class PodcastGenreController: UIViewController {
         return collectionView
     }()
     
+    private let genreCellRegistration = UICollectionView.hostingRegistration { (genre: Genre) in
+        GenrePodcastCell(genre: genre)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad( )
         self.configure()
         self.loadData()
         
+        title = "SwiftUI in Cells"
         viewModel.loadGenre()
     }
     
@@ -42,8 +48,6 @@ class PodcastGenreController: UIViewController {
         collectionView.dataSource = self
         
         collectionView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.register(GenrePodcastCell.self, forCellWithReuseIdentifier: GenrePodcastCell.identifier)
-        
         
         view.addSubview(collectionView)
         
@@ -60,15 +64,15 @@ extension PodcastGenreController: UICollectionViewDelegate, UICollectionViewData
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         viewModel.genre.count
     }
-    
+
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GenrePodcastCell.identifier, for: indexPath)
-        if let cell = cell as? GenrePodcastCell {
-            let genre = viewModel.genre[indexPath.item]
-            cell.configure(data: genre)
-        }
-        return cell
-    }
+          let genre = viewModel.genre[indexPath.item]
+          return collectionView.dequeueConfiguredReusableCell(
+              using: genreCellRegistration,
+              for: indexPath,
+              item: genre
+          )
+      }
 }
 
 extension PodcastGenreController: UICollectionViewDelegateFlowLayout {

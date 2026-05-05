@@ -35,23 +35,12 @@ class PodcastSearchContainerController: UIViewController {
         
     }
     
-//    private func setupBindings() {
-//        viewModel.onDataUpdated = { [weak self] in
-//            self?.resultsController.tableView.reloadData()
-//        }
-//        viewModel.onError = { error in
-//            print(error)
-//        }
-//    }
-    
     private func setupBindings() {
-        // El container no necesita suscribirse a podcasts,
-        // eso le toca al resultsController
         viewModel.$error
             .compactMap { $0 }
             .receive(on: DispatchQueue.main)
             .sink { errorMessage in
-                print(errorMessage) // o mostrar alerta
+                print(errorMessage)
             }
             .store(in: &cancellables)
     }
@@ -119,18 +108,28 @@ extension PodcastSearchContainerController: UISearchBarDelegate {
     }
 }
 
-class PodcastResultSearchController: UITableViewController {
-    
-    let cellId = "cellId"
+class PodcastResultSearchController: UIViewController {
     
     private var cancellables = Set<AnyCancellable>()
     var viewModel: PodcastSearchViewModel
     
+    private lazy var collectionView: UICollectionView = {
+        let config = UICollectionLayoutListConfiguration(appearance: .plain)
+        let layout = UICollectionViewCompositionalLayout.list(using: config)
+        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        cv.translatesAutoresizingMaskIntoConstraints = false
+        cv.allowsSelection = true
+        cv.allowsMultipleSelection = false
+        return cv
+    }()
+    
+    private let searchPodcastCellRegistration = UICollectionView.hostingListRegistration { (podcast: Podcast) in
+        PodcastCellUI(podcast: podcast)
+    }
     
     init(viewModel: PodcastSearchViewModel) {
         self.viewModel = viewModel
-        super.init(style: .plain)
-        
+        super.init(nibName: nil, bundle: nil)
     }
     
     required init?(coder: NSCoder) {
@@ -139,48 +138,88 @@ class PodcastResultSearchController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.configure()
-        self.setupBindings()
+        configure()
+        setupBindings()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        clearCollectionViewSelection(collectionView, animated: true)
+    }
+    
+    private func configure() {
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        
+        view.addSubview(collectionView)
+        NSLayoutConstraint.activate([
+            collectionView.topAnchor.constraint(equalTo: view.topAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
     }
     
     private func setupBindings() {
         viewModel.$podcasts
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.tableView.reloadData()
+                self?.collectionView.reloadData()
             }
             .store(in: &cancellables)
     }
+}
+
+// MARK: - DataSource
+
+extension PodcastResultSearchController: UICollectionViewDataSource {
     
-    fileprivate func configure() {
-        let nib = UINib(nibName: "PodcastCell", bundle: nil)
-        tableView.register(nib, forCellReuseIdentifier: cellId)
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        viewModel.podcasts.count
     }
     
-    
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return viewModel.podcasts.count
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let podcast = viewModel.podcasts[indexPath.item]
+        return collectionView.dequeueConfiguredReusableCell(
+            using: searchPodcastCellRegistration,
+            for: indexPath,
+            item: podcast
+        )
     }
+}
+
+// MARK: - Delegate
+
+extension PodcastResultSearchController: UICollectionViewDelegate {
     
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath)
-        
-        if let cell = cell as? PodcastCell {
-            let podcast = viewModel.podcasts[indexPath.row]
-            cell.podcast = podcast
-        }
-        cell.selectionStyle = .none
-        return cell
-    }
-    
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let podcast = viewModel.podcasts[indexPath.item]
         let episodesController = EpisodesController()
-        let podcast = self.viewModel.podcasts[indexPath.row]
         episodesController.podcast = podcast
         navigationController?.pushViewController(episodesController, animated: true)
     }
-    
-    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 140
+}
+
+import UIKit
+
+extension UIViewController {
+    func clearCollectionViewSelection(_ collectionView: UICollectionView, animated: Bool) {
+        guard let selected = collectionView.indexPathsForSelectedItems,
+              !selected.isEmpty else { return }
+        
+        guard let coordinator = transitionCoordinator else {
+            selected.forEach { collectionView.deselectItem(at: $0, animated: animated) }
+            return
+        }
+        
+        coordinator.animate { _ in
+            selected.forEach { collectionView.deselectItem(at: $0, animated: true) }
+        } completion: { context in
+            if context.isCancelled {
+                selected.forEach {
+                    collectionView.selectItem(at: $0, animated: false, scrollPosition: [])
+                }
+            }
+        }
     }
 }
