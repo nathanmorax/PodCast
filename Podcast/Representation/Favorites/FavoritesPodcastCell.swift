@@ -4,64 +4,45 @@
 //
 //  Created by Satori Tech 341 on 19/03/26.
 //
-import UIKit
+import SwiftUI
 
-class FavoritesPodcastCell: UICollectionViewCell {
+struct FavoritesPodcastCellUI: View {
+    var podcast: Podcast
     
-    static let favoritesPodcastCellId = "FavoritesPodcastCellId"
-    
-    let imageView = UIImageView(image: UIImage(named: "appicon"))
-
-    let titlePodcastLabel = UILabel()
-    let artistNameLabel = UILabel()
-    
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        self.configure()
+    var body: some View {
+        VStack(spacing: 12) {
+            PodcastImage(source: podcast.artworkUrl600)
+                .frame(width: 95, height: 95)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .rotationEffect(.degrees(-4))
+                .shadow(color: .black.opacity(0.25), radius: 12, x: 0, y: 8)
+                .offset(y: -70)
+                .padding(.bottom, -50)
+            
+            Text(podcast.trackName ?? "")
+                .font(.system(size: 14, weight: .semibold))
+                .multilineTextAlignment(.center)
+            
+            Text(podcast.artistName ?? "")
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+            
+            Spacer()
+        }
+        .padding(.top, 40)
+        .padding(.bottom, 30)
+        .padding(.horizontal, 20)
+        .frame(maxWidth: .infinity, maxHeight: 125)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(Color(uiColor: .systemGray5))
+        )
     }
+}
 
-    required init(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func configure() {
-        
-        let stackView = UIStackView(arrangedSubviews: [
-            imageView ,titlePodcastLabel, artistNameLabel
-        ])
-        
-        titlePodcastLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
-        
-        artistNameLabel.font = UIFont.systemFont(ofSize: 14)
-        artistNameLabel.textColor = .lightGray
-        
-        imageView.cornerRadius
-        
-        contentView.backgroundColor = .clear
-        
-        stackView.axis = .vertical
-        stackView.backgroundColor = .clear
-        stackView.spacing = 8
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-
-        contentView.addSubview(stackView)
-
-        NSLayoutConstraint.activate([
-            stackView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
-        ])
-    }
-    
-    func configureData(with podcast: Podcast) {
-        
-        titlePodcastLabel.text = podcast.trackName
-        
-        artistNameLabel.text = podcast.artistName
-        
-        imageView.sd_setImage(with: URL(string: podcast.artworkUrl600 ?? ""), completed: nil)
-
-    }
+#Preview(traits: .sizeThatFitsLayout) {
+    FavoritesPodcastCellUI(podcast: .mock)
+        .frame(width: 280)
+        .padding(40)
 }

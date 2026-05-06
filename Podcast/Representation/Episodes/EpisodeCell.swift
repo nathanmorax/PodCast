@@ -31,10 +31,6 @@ struct EpisodeCellUI: View {
     }
 }
 
-//#Preview(traits: .sizeThatFitsLayout) {
-//    EpisodeCellUI(episode: .mocks)
-//        .padding()
-//}
 #Preview {
     VStack {
         ForEach(Episode.mocks, id: \.title) { episode in
