@@ -18,15 +18,9 @@ class FavoritesPodcastController: UIViewController {
         return cv
     }()
     
-//    private let viewModel = EpisodesViewModel(
-//        repository: PodcastRepositoryImpl(
-//            remoteDataSource: PodcastRemoteDataService()
-//        )
-//    )
-    
     private let viewModel = FavoritesViewModel(favoritesManager: .shared)
     
-    private let favoritesPodcastCellRegistration = UICollectionView.hostingRegistration { (podcast: Podcast) in
+    private let favoritesPodcastCellRegistration = UICollectionView.hostingRegistration(backgroundStyle: .none) { (podcast: Podcast) in
         FavoritesPodcastCellUI(podcast: podcast)
     }
     
@@ -36,6 +30,8 @@ class FavoritesPodcastController: UIViewController {
         super.viewDidLoad()
         self.configureCollection()
         self.bindViewModel()
+        collectionView.backgroundColor = .brown
+
     }
     
     fileprivate func bindViewModel() {

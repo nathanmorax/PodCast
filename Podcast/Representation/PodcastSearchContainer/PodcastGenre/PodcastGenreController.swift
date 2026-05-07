@@ -19,11 +19,12 @@ class PodcastGenreController: UIViewController {
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.contentInsetAdjustmentBehavior = .always
         return collectionView
     }()
     
-    private let genreCellRegistration = UICollectionView.hostingRegistration { (genre: Genre) in
-        GenrePodcastCell(genre: genre)
+    private let genreCellRegistration = UICollectionView.hostingRegistration(backgroundStyle: .none) {  (genre: Genre, indexpath: IndexPath) in
+        GenrePodcastCell(genre: genre, index: indexpath.item)
     }
     
     override func viewDidLoad() {
@@ -31,8 +32,9 @@ class PodcastGenreController: UIViewController {
         self.configure()
         self.loadData()
         
-        title = "SwiftUI in Cells"
         viewModel.loadGenre()
+        
+        collectionView.backgroundColor = .systemRed
     }
     
     func loadData() {
@@ -55,8 +57,7 @@ class PodcastGenreController: UIViewController {
             collectionView.topAnchor.constraint(equalTo: view.topAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)        ])
     }
 }
 
@@ -70,7 +71,7 @@ extension PodcastGenreController: UICollectionViewDelegate, UICollectionViewData
           return collectionView.dequeueConfiguredReusableCell(
               using: genreCellRegistration,
               for: indexPath,
-              item: genre
+              item: (genre, indexPath)
           )
       }
 }

@@ -2,7 +2,7 @@
 //  EpisodesViewModel 2.swift
 //  Podcast
 //
-//  Created by Satori Tech 341 on 19/03/26.
+//  Created by Jesus Mora on 19/03/26.
 //
 import Combine
 import Foundation

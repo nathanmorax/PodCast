@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SwiftUI
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
@@ -13,13 +14,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
-        // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
-        // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         guard let windowScene = (scene as? UIWindowScene) else { return }
-        let vc = MainTabController()
-        let window  = UIWindow(windowScene: windowScene)
-        window.rootViewController =  vc
+        
+        let tabBarController = MainTabBarController()
+        
+        let window = UIWindow(windowScene: windowScene)
+        window.rootViewController = tabBarController
         window.makeKeyAndVisible()
         
         self.window = window
@@ -55,4 +55,39 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
     
     
+}
+
+import UIKit
+
+class MainTabBarController: UITabBarController {
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupTabs()
+    }
+    
+    private func setupTabs() {
+        let searchVC = UINavigationController(rootViewController: PodcastSearchContainerController())
+        searchVC.tabBarItem = UITabBarItem(
+            title: "Search",
+            image: UIImage(systemName: "magnifyingglass"),
+            tag: 0
+        )
+        
+        let favoritesVC = UINavigationController(rootViewController: FavoritesPodcastController())
+        favoritesVC.tabBarItem = UITabBarItem(
+            title: "Favorites",
+            image: UIImage(systemName: "heart"),
+            tag: 1
+        )
+        
+        let downloadsVC = UINavigationController(rootViewController: UIViewController())
+        downloadsVC.tabBarItem = UITabBarItem(
+            title: "Downloads",
+            image: UIImage(systemName: "arrow.down.circle"),
+            tag: 2
+        )
+        
+        viewControllers = [searchVC, favoritesVC, downloadsVC]
+    }
 }

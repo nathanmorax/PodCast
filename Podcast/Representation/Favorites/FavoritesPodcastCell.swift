@@ -2,7 +2,7 @@
 //  FavoritesPodcastCell.swift
 //  Podcast
 //
-//  Created by Satori Tech 341 on 19/03/26.
+//  Created by Jesus Mora on 19/03/26.
 //
 import SwiftUI
 
@@ -18,7 +18,7 @@ struct FavoritesPodcastCellUI: View {
                 .shadow(color: .black.opacity(0.25), radius: 12, x: 0, y: 8)
                 .offset(y: -70)
                 .padding(.bottom, -50)
-            
+             
             Text(podcast.trackName ?? "")
                 .font(.system(size: 14, weight: .semibold))
                 .multilineTextAlignment(.center)

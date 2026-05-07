@@ -21,7 +21,10 @@ struct EpisodeCellUI: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 Text(episode.pubDate, style: .date)
+                    .foregroundStyle(AppColor.dustyBlue)
+                    .font(.subheadline)
                 Text(episode.description)
+                    .font(.caption)
                 
             }
             

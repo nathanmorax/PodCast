@@ -15,9 +15,12 @@ struct PodcastCellUI: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             
-            artworkView
+            PodcastImage(source: podcast?.artworkUrl600)
                 .frame(width: 80, height: 80)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+//            artworkView
+//                .frame(width: 80, height: 80)
+//                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             VStack(alignment: .leading, spacing: 4) {
                 Text(podcast?.trackName ?? "")
                     .font(.system(size: 16, weight: .semibold))

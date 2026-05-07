@@ -2,7 +2,7 @@
 //  PodcastResultSearchController.swift
 //  Podcast
 //
-//  Created by Satori Tech 341 on 05/05/26.
+//  Created by Jesus Mora on 05/05/26.
 //
 import UIKit
 import Combine

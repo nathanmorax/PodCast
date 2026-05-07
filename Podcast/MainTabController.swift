@@ -5,62 +5,89 @@
 //  Created by Nathan Mora on 07/11/23.
 //
 
+import SwiftUI
 import UIKit
 
-class MainTabController: UITabBarController {
+struct UIViewControllerHost: UIViewControllerRepresentable {
+    let builder: () -> UIViewController
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        self.configureTabarAppearance()
-        self.setupViewControllers()
-        
-        
+    func makeUIViewController(context: Context) -> UIViewController {
+        builder()
     }
-    // MARK: - Setup functions
+    
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+}
 
-    func configureTabarAppearance() {
-        UINavigationBar.appearance().prefersLargeTitles = true
-        tabBar.tintColor = .purple
-        
-        tabBar.backgroundColor = .clear
+
+struct MainTabView: View {
+    var body: some View {
+        TabView {
+            Tab("Search", systemImage: "magnifyingglass") {
+                UIViewControllerHost {
+                    UINavigationController(rootViewController: PodcastSearchContainerController())
+                }
+            }
+            
+            Tab("Favorites", systemImage: "heart") {
+                UIViewControllerHost {
+                    UINavigationController(rootViewController: FavoritesPodcastController())
+                }
+            }
+            
+            Tab("Downloads", systemImage: "arrow.down.circle") {
+                UIViewControllerHost {
+                    UINavigationController(rootViewController: UIViewController())
+                }
+            }
+        }
+        .tabBarMinimizeBehavior(.onScrollDown)
+        .tabViewBottomAccessory {
+            MiniPlayerView()
+        }
     }
+}
+
+
+struct MiniPlayerView: View {
     
-    func setupViewControllers() {
-        viewControllers = [
-            createNavigationController(
-                for: PodcastSearchContainerController(),
-                title: "Search",
-                image: UIImage(systemName: "magnifyingglass")
-            ),
-            createNavigationController(
-                for: FavoritesPodcastController(),
-                title: "Favorites",
-                image: UIImage(systemName: "heart")
-            ),
-            createNavigationController(
-                for: UIViewController(),
-                title: "Downloads",
-                image: UIImage(systemName: "arrow.down.circle")
-            ),
-            createNavigationController(
-                for: ViewController(),
-                title: "Movies",
-                image: UIImage(systemName: "film")
-            )
-        ]
-    }
+    @Environment(\.tabViewBottomAccessoryPlacement) private var placement
     
-    fileprivate func createNavigationController(
-        for rootViewController: UIViewController,
-        title: String,
-        image: UIImage?
-    ) -> UIViewController {
-        
-        let navController = UINavigationController(rootViewController: rootViewController)
-        rootViewController.navigationItem.title = title
-        navController.tabBarItem.title = title
-        navController.tabBarItem.image = image
-        return navController
+    var body: some View {
+        HStack(spacing: 12) {
+            // Artwork
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(Color(uiColor: .systemGray4))
+                .frame(width: 36, height: 36)
+                .overlay(
+                    Image(systemName: "music.note")
+                        .foregroundStyle(.secondary)
+                )
+            
+            if placement == .expanded {
+                // Cuando hay espacio (sin scroll), muestra título y autor
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Nombre del episodio")
+                        .font(.system(size: 14, weight: .semibold))
+                        .lineLimit(1)
+                    Text("Podcast")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+                
+                Spacer(minLength: 8)
+            }
+            
+            // Botón play/pause (siempre visible)
+            Button {
+                // PlayerManager.shared.togglePlayPause()
+            } label: {
+                Image(systemName: "play.fill")
+                    .font(.system(size: 20))
+                    .foregroundStyle(.primary)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 12)
     }
 }
