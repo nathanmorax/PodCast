@@ -33,6 +33,8 @@ class PodcastSearchContainerController: UIViewController {
         self.setupChildControllers()
         self.showGenres()
         
+        view.backgroundColor = AppColor.slateGray.uiColor
+        
     }
     
     private func setupBindings() {

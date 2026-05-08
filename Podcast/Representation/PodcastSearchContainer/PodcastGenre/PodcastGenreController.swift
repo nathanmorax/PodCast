@@ -34,7 +34,7 @@ class PodcastGenreController: UIViewController {
         
         viewModel.loadGenre()
         
-        collectionView.backgroundColor = .systemRed
+        collectionView.backgroundColor = .clear
     }
     
     func loadData() {
