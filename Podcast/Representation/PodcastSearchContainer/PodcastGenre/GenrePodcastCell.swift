@@ -32,6 +32,12 @@ enum AppColor {
     ]
 }
 
+extension Color {
+    var uiColor: UIColor {
+        UIColor(self)
+    }
+}
+
 struct GenrePodcastCell: View {
     let genre: Genre
     let index: Int

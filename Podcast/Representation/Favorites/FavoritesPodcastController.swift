@@ -7,6 +7,7 @@
 
 import UIKit
 import Combine
+import SwiftUI
 
 class FavoritesPodcastController: UIViewController {
     
@@ -30,7 +31,9 @@ class FavoritesPodcastController: UIViewController {
         super.viewDidLoad()
         self.configureCollection()
         self.bindViewModel()
-        collectionView.backgroundColor = .brown
+        
+        view.backgroundColor = AppColor.slateGray.uiColor
+        collectionView.backgroundColor = .clear
 
     }
     
