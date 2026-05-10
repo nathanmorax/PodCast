@@ -17,6 +17,7 @@ enum AppColor {
     static let oliveGreen    = Color("oliveGreen")
     static let burntOrange   = Color("burntOrange")
     static let charcoalBrown = Color("charcoalBrown")
+    static let lavender      = Color("lavender")
 
     static let palette: [Color] = [
         limeGreen,
@@ -28,7 +29,8 @@ enum AppColor {
         dustyBlue,
         oliveGreen,
         burntOrange,
-        charcoalBrown
+        charcoalBrown,
+        lavender
     ]
 }
 
