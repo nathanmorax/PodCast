@@ -4,224 +4,183 @@
 //
 //  Created by Jesus Mora on 19/03/26.
 //
-import UIKit
+
 import SwiftUI
 
-final class EpisodeHeaderView: UICollectionReusableView {
-    
-    private let backgroundImageView: UIImageView = {
-        let iv = UIImageView()
-        iv.contentMode = .scaleToFill
-        iv.clipsToBounds = true
-        iv.translatesAutoresizingMaskIntoConstraints = false
-        return iv
-    }()
-    
-    private let blurView: UIVisualEffectView = {
-        let blur = UIBlurEffect(style: .systemUltraThinMaterialDark)
-        let view = UIVisualEffectView(effect: blur)
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private let headerImageView: UIImageView = {
-        let iv = UIImageView()
-        iv.contentMode = .scaleAspectFill
-        iv.cornerRadius
-        iv.translatesAutoresizingMaskIntoConstraints = false
-        return iv
-    }()
-    
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 16, weight: .semibold)
-        label.textColor = .white
-        label.numberOfLines = 2
-        return label
-    }()
-    
-    private let artistLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 14)
-        label.textColor = .secondaryLabel
-        label.textColor = UIColor.white.withAlphaComponent(0.4)
-        return label
-    }()
-    
-    private let descriptionLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 13)
-        label.numberOfLines = 3
-        label.textColor = .secondaryLabel
-        return label
-    }()
-    
-    private let genreLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 13)
-        label.numberOfLines = 3
-        label.textColor = .secondaryLabel
-        return label
-    }()
-    
-    private let trackCountLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 13)
-        label.numberOfLines = 3
-        label.textColor = .secondaryLabel
-        return label
-    }()
-    
-    private lazy var contentStackV: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [
-            headerImageView, titleLabel, artistLabel, descriptionLabel
-        ])
-        stack.axis      = .vertical
-        stack.spacing   = 12
-        stack.alignment = .center
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        return stack
-    }()
-    
-    private lazy var contentStackH: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [
-            trackCountLabel, genreLabel
-        ])
-        stack.axis      = .horizontal
-        stack.distribution = .equalSpacing
-        stack.spacing   = 12
-        stack.alignment = .center
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        return stack
-    }()
-    
-    // MARK: - State
-    private var currentImageURL: String?
-    static let idIdentifierEpisodeHeader = "identifierEpisodeHeaderView"
-    
-    // MARK: - Init
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupView()
-    }
-    
-    required init?(coder: NSCoder) { fatalError() }
-    
-    // MARK: - Setup
-    
-    private func setupView() {
-        clipsToBounds = true
+// MARK: - Style Constants
 
-        addSubview(backgroundImageView)
-        addSubview(blurView)
-        blurView.contentView.addSubview(contentStackV)
-        blurView.contentView.addSubview(contentStackH)
-
-        NSLayoutConstraint.activate([
-            backgroundImageView.topAnchor.constraint(equalTo: topAnchor),
-            backgroundImageView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            backgroundImageView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            backgroundImageView.bottomAnchor.constraint(equalTo: bottomAnchor),
-
-            blurView.topAnchor.constraint(equalTo: topAnchor),
-            blurView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            blurView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            blurView.bottomAnchor.constraint(equalTo: bottomAnchor),
-
-            contentStackV.leadingAnchor.constraint(equalTo: blurView.contentView.leadingAnchor, constant: 16),
-            contentStackV.trailingAnchor.constraint(equalTo: blurView.contentView.trailingAnchor, constant: -16),
-            contentStackV.bottomAnchor.constraint(equalTo: contentStackH.bottomAnchor, constant: -16),
-            
-            contentStackH.leadingAnchor.constraint(equalTo: blurView.contentView.leadingAnchor, constant: 12),
-            contentStackH.trailingAnchor.constraint(equalTo: blurView.contentView.trailingAnchor, constant: -12),
-            contentStackH.bottomAnchor.constraint(equalTo: blurView.contentView.bottomAnchor, constant: -16),
-
-            headerImageView.heightAnchor.constraint(equalToConstant: 130),
-            headerImageView.widthAnchor.constraint(equalToConstant: 130),
-        ])
-    }
-    
-    // MARK: - Configure
-    
-    func configure(with podcast: Podcast?) {
-        titleLabel.text  = podcast?.trackName
-        artistLabel.text = podcast?.artistName
-        trackCountLabel.text = podcast?.trackCount.map { "\($0) episodes" }
-        genreLabel.text = podcast?.primaryGenreName
-
-        guard let urlString = podcast?.artworkUrl600,
-              let url = URL(string: urlString) else { return }
-
-        currentImageURL = urlString
-        headerImageView.sd_setImage(with: url)
-
-        backgroundImageView.sd_setImage(with: url) { [weak self] image, _, _, _ in
-            guard let self, let image, self.currentImageURL == urlString else { return }
-            self.adaptTextColors(to: image)
-        }
-    }
-    
-    // MARK: - Color Adaptation
-
-    private func adaptTextColors(to image: UIImage) {
-        DispatchQueue.global(qos: .userInitiated).async {
-            let brightness = image.averageBrightness()
-            let isDark = brightness < 0.5
-
-            let primary   = isDark ? UIColor.white : UIColor.black
-            let secondary = isDark
-                ? UIColor.white.withAlphaComponent(0.6)
-                : UIColor.black.withAlphaComponent(0.5)
-
-            DispatchQueue.main.async { [weak self] in
-                guard let self else { return }
-                UIView.animate(withDuration: 0.2) {
-                    self.titleLabel.textColor       = primary
-                    self.artistLabel.textColor      = secondary
-                    self.trackCountLabel.textColor  = secondary
-                    self.genreLabel.textColor       = secondary
-                }
-            }
-        }
-    }
-    
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        headerImageView.image     = nil
-        backgroundImageView.image = nil
-        backgroundImageView.backgroundColor = nil
-        titleLabel.textColor      = .label
-        artistLabel.textColor     = .secondaryLabel
-        currentImageURL           = nil
-    }
+private enum HeaderStyle {
+    static let yellow = Color(red: 0.96, green: 0.96, blue: 0.40)
+    static let cardCornerRadius: CGFloat = 16
+    static let horizontalPadding: CGFloat = 24
+    static let cardOverlap: CGFloat = 80   // cuánto sobresale la card de la imagen
 }
 
-struct HeaderViewUI: View {
+// MARK: - Main Header View
+
+struct EpisodeHeaderViewUI: View {
     
-    var podcast: Podcast
+    let podcast: Podcast
+    var isFavorite: Bool = false
+    
+    var onPlay: () -> Void = {}
+    var onBookmark: () -> Void = {}
+    var onDownload: () -> Void = {}
     
     var body: some View {
-        VStack(spacing: 12) {
-            
+        VStack(spacing: 0) {
+            heroSection
+            actionsRow
+            metaRow
+            aboutSection
+        }
+    }
+    
+    // MARK: - Hero (imagen + tarjeta amarilla flotante)
+    
+    private var heroSection: some View {
+        ZStack(alignment: .bottom) {
             PodcastImage(source: podcast.artworkUrl600)
-                .frame(maxWidth: 130, maxHeight: 130)
+                .aspectRatio(1, contentMode: .fill)
+                .frame(maxWidth: .infinity)
+                .clipped()
+            
+            yellowCard
+                .padding(.horizontal, HeaderStyle.horizontalPadding)
+                .offset(y: HeaderStyle.cardOverlap)
+        }
+        .padding(.bottom, HeaderStyle.cardOverlap) // compensa el offset
+    }
+    
+    private var yellowCard: some View {
+        VStack(spacing: 10) {
+            Text(podcast.trackName ?? "")
+                .font(.custom("NewYorkLarge-Bold", size: 28))
+                .foregroundStyle(.black)
+                .multilineTextAlignment(.center)
+                .lineLimit(3)
+                .minimumScaleFactor(0.8)
+            
+            Text(podcast.artistName ?? "")
+                .font(.system(size: 15, weight: .regular))
+                .foregroundStyle(.black.opacity(0.75))
+                .multilineTextAlignment(.center)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 24)
+        .frame(maxWidth: .infinity)
+        .background(HeaderStyle.yellow)
+        .clipShape(RoundedRectangle(cornerRadius: HeaderStyle.cardCornerRadius))
+    }
+    
+    // MARK: - Acciones (Play + bookmark + download)
+    
+    private var actionsRow: some View {
+        HStack(spacing: 10) {
+            Button(action: onPlay) {
+                HStack(spacing: 10) {
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 32, weight: .regular))
+                    Text("Play Podcast")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundStyle(.black)
+                .padding(.vertical, 10)
+                .padding(.leading, 8)
+                .padding(.trailing, 24)
+                .background(HeaderStyle.yellow, in: Capsule())
+            }
+            
+            Spacer(minLength: 8)
+            
+            CircleIconButton(
+                systemName: isFavorite ? "bookmark.fill" : "bookmark",
+                isHighlighted: isFavorite,
+                action: onBookmark
+            )
+            CircleIconButton(systemName: "arrow.down.to.line", action: onDownload)
+        }
+        .padding(.horizontal, HeaderStyle.horizontalPadding)
+        .padding(.top, 20)
+    }
+    
+    // MARK: - Meta (episodios + género)
+    
+    private var metaRow: some View {
+        HStack {
+            if let count = podcast.trackCount {
+                Text("\(count) episodios")
+            }
+            Spacer()
+            if let genre = podcast.primaryGenreName {
+                Text(genre)
+            }
+        }
+        .font(.system(size: 13, weight: .medium))
+        .foregroundStyle(.secondary)
+        .padding(.horizontal, HeaderStyle.horizontalPadding)
+        .padding(.top, 16)
+    }
+    
+    // MARK: - About this podcast
+    
+    private var aboutSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("About this podcast")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(.primary)
             
             Text(podcast.trackName ?? "")
-            Text(podcast.artistName ?? "")
+                .font(.system(size: 15))
+                .foregroundStyle(.secondary)
+                .lineSpacing(2)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, HeaderStyle.horizontalPadding)
+        .padding(.top, 20)
+    }
 
-            HStack {
-                Text("\(podcast.trackCount ?? 0) episodios")
-                Spacer()
-                Text(podcast.primaryGenreName ?? "")
-            }
+}
+
+// MARK: - Circle Icon Button (bookmark / download)
+
+private struct CircleIconButton: View {
+    let systemName: String
+    var isHighlighted: Bool = false
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 18, weight: .regular))
+                .foregroundStyle(isHighlighted ? .white : .black)
+                .frame(width: 44, height: 44)
+                .background(
+                    isHighlighted
+                        ? Color(AppColor.lavender)
+                        : Color(.systemGray6),
+                    in: Circle()
+                )
+                .animation(.easeInOut(duration: 0.2), value: isHighlighted)
         }
     }
 }
 
-#Preview(traits: .sizeThatFitsLayout) {
-    HeaderViewUI(podcast: .mock)
-        .padding()
+// MARK: - Preview
+
+
+#Preview("Header — mock") {
+    ScrollView {
+        EpisodeHeaderViewUI(
+            podcast: .mock,
+            onPlay:     { print("▶️ play tapped") },
+            onBookmark: { print("🔖 bookmark tapped") },
+            onDownload: { print("⬇️ download tapped") }
+        )
+    }
+    .ignoresSafeArea(edges: .top)
 }
 
-
+#Preview("Header — sizeThatFits", traits: .sizeThatFitsLayout) {
+    EpisodeHeaderViewUI(podcast: .mock)
+}
