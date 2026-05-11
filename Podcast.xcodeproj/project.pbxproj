@@ -35,6 +35,7 @@
 		9418C4F02FAD465700729079 /* PodcastApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9418C4EF2FAD465700729079 /* PodcastApp.swift */; };
 		945DCE3D2FA3E75F00256995 /* HostingCellBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 945DCE3C2FA3E75F00256995 /* HostingCellBackground.swift */; };
 		9490FA4A2FB2422000378ED5 /* CircleIconButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9490FA492FB2422000378ED5 /* CircleIconButton.swift */; };
+		9490FA4C2FB244A600378ED5 /* HostingHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9490FA4B2FB244A600378ED5 /* HostingHeaderView.swift */; };
 		94F4E5B22F6C810B00DC1130 /* StretchyHeaderLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94F4E5B12F6C810400DC1130 /* StretchyHeaderLayout.swift */; };
 		94F4E5B42F6C815900DC1130 /* EpisodeHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94F4E5B32F6C815900DC1130 /* EpisodeHeaderView.swift */; };
 		94F4E5B72F6C81B700DC1130 /* UIImage + averageBrightness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94F4E5B62F6C81B700DC1130 /* UIImage + averageBrightness.swift */; };
@@ -89,6 +90,7 @@
 		9418C4EF2FAD465700729079 /* PodcastApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastApp.swift; sourceTree = "<group>"; };
 		945DCE3C2FA3E75F00256995 /* HostingCellBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostingCellBackground.swift; sourceTree = "<group>"; };
 		9490FA492FB2422000378ED5 /* CircleIconButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircleIconButton.swift; sourceTree = "<group>"; };
+		9490FA4B2FB244A600378ED5 /* HostingHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostingHeaderView.swift; sourceTree = "<group>"; };
 		94F4E5B12F6C810400DC1130 /* StretchyHeaderLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StretchyHeaderLayout.swift; sourceTree = "<group>"; };
 		94F4E5B32F6C815900DC1130 /* EpisodeHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeHeaderView.swift; sourceTree = "<group>"; };
 		94F4E5B62F6C81B700DC1130 /* UIImage + averageBrightness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage + averageBrightness.swift"; sourceTree = "<group>"; };
@@ -290,6 +292,7 @@
 			isa = PBXGroup;
 			children = (
 				94F4E5B02F6C80E000DC1130 /* Layouts */,
+				9490FA4B2FB244A600378ED5 /* HostingHeaderView.swift */,
 				94F4E5BC2F6CA21A00DC1130 /* EpisodesViewModel.swift */,
 				94F4E5B32F6C815900DC1130 /* EpisodeHeaderView.swift */,
 				0B6B1F252B06C5F000FB0EFE /* EpisodesController.swift */,
@@ -438,6 +441,7 @@
 				94F4E5B42F6C815900DC1130 /* EpisodeHeaderView.swift in Sources */,
 				0BCC344F2AFB195C005A3E38 /* AppDelegate.swift in Sources */,
 				0B4218762AFB1AA1009100A8 /* MainTabController.swift in Sources */,
+				9490FA4C2FB244A600378ED5 /* HostingHeaderView.swift in Sources */,
 				0BCC34512AFB195C005A3E38 /* SceneDelegate.swift in Sources */,
 				0BBEE1292B0AD8DB00FE20A7 /* CMTime.swift in Sources */,
 				945DCE3D2FA3E75F00256995 /* HostingCellBackground.swift in Sources */,
