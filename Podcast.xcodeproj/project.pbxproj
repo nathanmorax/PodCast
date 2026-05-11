@@ -36,6 +36,7 @@
 		945DCE3D2FA3E75F00256995 /* HostingCellBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 945DCE3C2FA3E75F00256995 /* HostingCellBackground.swift */; };
 		9490FA4A2FB2422000378ED5 /* CircleIconButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9490FA492FB2422000378ED5 /* CircleIconButton.swift */; };
 		9490FA4C2FB244A600378ED5 /* HostingHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9490FA4B2FB244A600378ED5 /* HostingHeaderView.swift */; };
+		9490FA4E2FB2713D00378ED5 /* PodcastImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9490FA4D2FB2713D00378ED5 /* PodcastImage.swift */; };
 		94F4E5B22F6C810B00DC1130 /* StretchyHeaderLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94F4E5B12F6C810400DC1130 /* StretchyHeaderLayout.swift */; };
 		94F4E5B42F6C815900DC1130 /* EpisodeHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94F4E5B32F6C815900DC1130 /* EpisodeHeaderView.swift */; };
 		94F4E5B72F6C81B700DC1130 /* UIImage + averageBrightness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94F4E5B62F6C81B700DC1130 /* UIImage + averageBrightness.swift */; };
@@ -91,6 +92,7 @@
 		945DCE3C2FA3E75F00256995 /* HostingCellBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostingCellBackground.swift; sourceTree = "<group>"; };
 		9490FA492FB2422000378ED5 /* CircleIconButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircleIconButton.swift; sourceTree = "<group>"; };
 		9490FA4B2FB244A600378ED5 /* HostingHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostingHeaderView.swift; sourceTree = "<group>"; };
+		9490FA4D2FB2713D00378ED5 /* PodcastImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastImage.swift; sourceTree = "<group>"; };
 		94F4E5B12F6C810400DC1130 /* StretchyHeaderLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StretchyHeaderLayout.swift; sourceTree = "<group>"; };
 		94F4E5B32F6C815900DC1130 /* EpisodeHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeHeaderView.swift; sourceTree = "<group>"; };
 		94F4E5B62F6C81B700DC1130 /* UIImage + averageBrightness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage + averageBrightness.swift"; sourceTree = "<group>"; };
@@ -255,6 +257,7 @@
 		94F4E5B02F6C80E000DC1130 /* Layouts */ = {
 			isa = PBXGroup;
 			children = (
+				9490FA4D2FB2713D00378ED5 /* PodcastImage.swift */,
 				9490FA492FB2422000378ED5 /* CircleIconButton.swift */,
 				94F4E5B12F6C810400DC1130 /* StretchyHeaderLayout.swift */,
 			);
@@ -428,6 +431,7 @@
 				BA4D2F642F2AE4E6008A036F /* AVPlayerDataSource.swift in Sources */,
 				94F4E5BD2F6CA21A00DC1130 /* EpisodesViewModel.swift in Sources */,
 				9418C40F2FAA8DCC00729079 /* GenrePodcastCell.swift in Sources */,
+				9490FA4E2FB2713D00378ED5 /* PodcastImage.swift in Sources */,
 				9418C4102FAA8DCC00729079 /* GenresViewModel.swift in Sources */,
 				9418C4112FAA8DCC00729079 /* PodcastGenreController.swift in Sources */,
 				BA4D2F3A2F2ADFB0008A036F /* PodcastSearchViewModel.swift in Sources */,
