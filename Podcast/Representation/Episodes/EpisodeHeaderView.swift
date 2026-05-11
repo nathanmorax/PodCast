@@ -13,7 +13,8 @@ private enum HeaderStyle {
     static let yellow = Color(red: 0.96, green: 0.96, blue: 0.40)
     static let cardCornerRadius: CGFloat = 16
     static let horizontalPadding: CGFloat = 24
-    static let cardOverlap: CGFloat = 80   // cuánto sobresale la card de la imagen
+    static let cardOverlap: CGFloat = 80
+    static let collapsedLineLimit = 2
 }
 
 // MARK: - Main Header View
@@ -22,10 +23,14 @@ struct EpisodeHeaderViewUI: View {
     
     let podcast: Podcast
     var isFavorite: Bool = false
+    var podcastDescription: String?
+    var isLoadingDescription: Bool = false
     
     var onPlay: () -> Void = {}
     var onBookmark: () -> Void = {}
     var onDownload: () -> Void = {}
+    
+    @State private var isAboutExpanded = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -36,7 +41,7 @@ struct EpisodeHeaderViewUI: View {
         }
     }
     
-    // MARK: - Hero (imagen + tarjeta amarilla flotante)
+    // MARK: - Hero
     
     private var heroSection: some View {
         ZStack(alignment: .bottom) {
@@ -49,7 +54,7 @@ struct EpisodeHeaderViewUI: View {
                 .padding(.horizontal, HeaderStyle.horizontalPadding)
                 .offset(y: HeaderStyle.cardOverlap)
         }
-        .padding(.bottom, HeaderStyle.cardOverlap) // compensa el offset
+        .padding(.bottom, HeaderStyle.cardOverlap)
     }
     
     private var yellowCard: some View {
@@ -73,7 +78,7 @@ struct EpisodeHeaderViewUI: View {
         .clipShape(RoundedRectangle(cornerRadius: HeaderStyle.cardCornerRadius))
     }
     
-    // MARK: - Acciones (Play + bookmark + download)
+    // MARK: - Acciones
     
     private var actionsRow: some View {
         HStack(spacing: 10) {
@@ -104,7 +109,7 @@ struct EpisodeHeaderViewUI: View {
         .padding(.top, 20)
     }
     
-    // MARK: - Meta (episodios + género)
+    // MARK: - Meta
     
     private var metaRow: some View {
         HStack {
@@ -122,7 +127,7 @@ struct EpisodeHeaderViewUI: View {
         .padding(.top, 16)
     }
     
-    // MARK: - About this podcast
+    // MARK: - About this podcast (colapsable)
     
     private var aboutSection: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -130,57 +135,57 @@ struct EpisodeHeaderViewUI: View {
                 .font(.system(size: 18, weight: .bold))
                 .foregroundStyle(.primary)
             
-            Text(podcast.trackName ?? "")
-                .font(.system(size: 15))
-                .foregroundStyle(.secondary)
-                .lineSpacing(2)
+            if isLoadingDescription {
+                HStack(spacing: 8) {
+                    ProgressView()
+                    Text("Cargando descripción...")
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
+                }
+            } else if let description = podcastDescription, !description.isEmpty {
+                expandableDescription(description)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, HeaderStyle.horizontalPadding)
         .padding(.top, 20)
     }
-
-}
-
-// MARK: - Circle Icon Button (bookmark / download)
-
-private struct CircleIconButton: View {
-    let systemName: String
-    var isHighlighted: Bool = false
-    let action: () -> Void
     
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: systemName)
-                .font(.system(size: 18, weight: .regular))
-                .foregroundStyle(isHighlighted ? .white : .black)
-                .frame(width: 44, height: 44)
-                .background(
-                    isHighlighted
-                        ? Color(AppColor.lavender)
-                        : Color(.systemGray6),
-                    in: Circle()
-                )
-                .animation(.easeInOut(duration: 0.2), value: isHighlighted)
+    @ViewBuilder
+    private func expandableDescription(_ description: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(description)
+                .font(.system(size: 15))
+                .foregroundStyle(.secondary)
+                .lineSpacing(2)
+                .lineLimit(isAboutExpanded ? nil : HeaderStyle.collapsedLineLimit)
+            
+            Button {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    isAboutExpanded.toggle()
+                }
+            } label: {
+                Text(isAboutExpanded ? "Show less" : "Read more")                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color(AppColor.lavender))
+            }
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            withAnimation(.easeInOut(duration: 0.25)) {
+                isAboutExpanded.toggle()
+            }
         }
     }
 }
 
 // MARK: - Preview
 
-
 #Preview("Header — mock") {
     ScrollView {
         EpisodeHeaderViewUI(
             podcast: .mock,
-            onPlay:     { print("▶️ play tapped") },
-            onBookmark: { print("🔖 bookmark tapped") },
-            onDownload: { print("⬇️ download tapped") }
+            podcastDescription: "Este es un podcast de prueba con una descripción larga para ver cómo se ve el botón de leer más cuando hay mucho texto que mostrar al usuario."
         )
     }
     .ignoresSafeArea(edges: .top)
-}
-
-#Preview("Header — sizeThatFits", traits: .sizeThatFitsLayout) {
-    EpisodeHeaderViewUI(podcast: .mock)
 }
