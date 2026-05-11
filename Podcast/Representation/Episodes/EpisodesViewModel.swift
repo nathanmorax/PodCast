@@ -15,7 +15,6 @@ class EpisodesViewModel {
     @Published private(set) var episodes: [Episode] = []
     @Published private(set) var errorMessage: String?
     
-    // ⬇️ Nuevo: descripción del podcast obtenida del feed RSS
     @Published private(set) var podcastDescription: String?
     @Published private(set) var isLoadingDescription = false
     

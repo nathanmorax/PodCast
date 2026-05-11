@@ -12,7 +12,6 @@ import Combine
 import SwiftUI
 
 class EpisodesController: UIViewController {
-    fileprivate let cellId = "cellId"
     private var cancellables = Set<AnyCancellable>()
     
     private enum Layout {
@@ -58,7 +57,7 @@ class EpisodesController: UIViewController {
         setupHeaderRegistration()
         setupCollectionView()
         setupBindings()
-        configureCollectionViewAppearance()
+//        configureCollectionViewAppearance()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -151,11 +150,6 @@ class EpisodesController: UIViewController {
         viewModel.loadEpisodes(feedURL: feedUrl)
     }
     
-    private func configureCollectionViewAppearance() {
-        let nib = UINib(nibName: "EpisodeCell", bundle: nil)
-        collectionView.register(nib, forCellWithReuseIdentifier: cellId)
-    }
-    
     // MARK: - Actions
     
     @objc fileprivate func handleFavoritePodcast() {
@@ -240,6 +234,3 @@ extension EpisodesController: UICollectionViewDelegateFlowLayout {
         CGSize(width: collectionView.bounds.width, height: Layout.headerHeight)
     }
 }
-
-// MARK: - HostingHeaderView
-
