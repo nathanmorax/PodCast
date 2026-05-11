@@ -115,15 +115,6 @@ class PodcastRemoteDataService: PodcastRemoteDataSource {
         }
     }
     
-//    func fecthGenresPodcast() async throws -> [Genre] {
-//        
-//        let genre: [String: GenreResponse] = try await request(.genres)
-//        
-//        let result = try decoder.decode([String: GenreResponse].self, from: data)
-//
-//    }
-    
-    
     
     func searchPodcasts(seacrhPodcast: String, completion: @escaping (Result<[Podcast], any Error>) -> Void) {
         let parameters = ["term": seacrhPodcast, "media": "podcast"]

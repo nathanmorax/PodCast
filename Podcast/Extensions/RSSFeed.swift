@@ -40,4 +40,13 @@ extension RSSFeed {
         
         return episodes
     }
+    
+    func toPodcastDescription() -> String? {
+        let raw = self.channel?.iTunes?.summary
+              ?? self.channel?.description
+              ?? ""
+        
+        let cleaned = raw.strippingHTML()
+        return cleaned.isEmpty ? nil : cleaned
+    }
 }
