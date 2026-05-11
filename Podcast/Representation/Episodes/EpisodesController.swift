@@ -22,7 +22,10 @@ class EpisodesController: UIViewController {
     }
     
     var podcast: Podcast? {
-        didSet { loadEpisodes() }
+        didSet {
+            loadEpisodes()
+            viewModel.loadPodcastDescription(feedURL: podcast?.feedUrl)
+        }
     }
     
     private lazy var collectionView: UICollectionView = {
@@ -85,20 +88,20 @@ class EpisodesController: UIViewController {
             elementKind: UICollectionView.elementKindSectionHeader
         ) { [weak self] supplementaryView, _, _ in
             guard let self, let podcast = self.podcast else { return }
-            
-            // Lee el estado actual cada vez que se monta el header
-            let isFav = self.viewModel.isFavorite(podcast)
-            
-            supplementaryView.host(
-                EpisodeHeaderViewUI(
-                    podcast: podcast,
-                    isFavorite: isFav,
-                    onPlay:     { [weak self] in self?.handlePlayPodcast() },
-                    onBookmark: { [weak self] in self?.handleFavoritePodcast() },
-                    onDownload: { [weak self] in self?.handleDownloadPodcast() }
-                )
-            )
+            supplementaryView.host(self.makeHeaderView(for: podcast))
         }
+    }
+    
+    private func makeHeaderView(for podcast: Podcast) -> EpisodeHeaderViewUI {
+        EpisodeHeaderViewUI(
+            podcast: podcast,
+            isFavorite: viewModel.isFavorite(podcast),
+            podcastDescription: viewModel.podcastDescription,
+            isLoadingDescription: viewModel.isLoadingDescription,
+            onPlay:     { [weak self] in self?.handlePlayPodcast() },
+            onBookmark: { [weak self] in self?.handleFavoritePodcast() },
+            onDownload: { [weak self] in self?.handleDownloadPodcast() }
+        )
     }
     
     private func setupBindings() {
@@ -107,7 +110,6 @@ class EpisodesController: UIViewController {
             .sink { [weak self] _ in
                 guard let self else { return }
                 self.collectionView.reloadData()
-                // ⬇️ Después del reload, el header existe — refrescar con isFavorite correcto
                 DispatchQueue.main.async {
                     self.refreshVisibleHeader()
                 }
@@ -123,6 +125,20 @@ class EpisodesController: UIViewController {
             .store(in: &cancellables)
         
         viewModel.$favorites
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.refreshVisibleHeader()
+            }
+            .store(in: &cancellables)
+        
+        viewModel.$podcastDescription
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.refreshVisibleHeader()
+            }
+            .store(in: &cancellables)
+        
+        viewModel.$isLoadingDescription
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.refreshVisibleHeader()
@@ -156,7 +172,6 @@ class EpisodesController: UIViewController {
         print("Download tapped")
     }
     
-    /// Reconstruye el SwiftUI rootView del header visible con el isFavorite actualizado.
     private func refreshVisibleHeader() {
         guard let podcast = self.podcast else { return }
         let kind = UICollectionView.elementKindSectionHeader
@@ -165,16 +180,7 @@ class EpisodesController: UIViewController {
             guard let header = collectionView.supplementaryView(forElementKind: kind, at: indexPath)
                     as? HostingHeaderView else { continue }
             
-            let isFav = viewModel.isFavorite(podcast)
-            header.host(
-                EpisodeHeaderViewUI(
-                    podcast: podcast,
-                    isFavorite: isFav,
-                    onPlay:     { [weak self] in self?.handlePlayPodcast() },
-                    onBookmark: { [weak self] in self?.handleFavoritePodcast() },
-                    onDownload: { [weak self] in self?.handleDownloadPodcast() }
-                )
-            )
+            header.host(makeHeaderView(for: podcast))
         }
     }
 }
@@ -235,7 +241,7 @@ extension EpisodesController: UICollectionViewDelegateFlowLayout {
     }
 }
 
-// MARK: - HostingHeaderView (puente UIKit ↔ SwiftUI para el header)
+// MARK: - HostingHeaderView
 
 final class HostingHeaderView: UICollectionReusableView {
     
