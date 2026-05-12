@@ -45,6 +45,24 @@ class PlayerDetailView: UIView {
         
     }
     
+    // MARK: - Hit Test
+
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        // Expanded: capture everything
+        if miniPlayerView.isHidden || miniPlayerView.alpha == 0 {
+            return super.hitTest(point, with: event)
+        }
+        
+        // Collapsed: only capture touches inside the mini player
+        let pointInMiniPlayer = miniPlayerView.convert(point, from: self)
+        if miniPlayerView.bounds.contains(pointInMiniPlayer) {
+            return super.hitTest(point, with: event)
+        }
+        
+        // Otherwise let the touch pass through
+        return nil
+    }
+    
     private func setupUI() {
         setupMiniPlayerGlass()
         
@@ -70,7 +88,9 @@ class PlayerDetailView: UIView {
     }
     
     private func setupGestures() {
-        addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleTapMaximize)))
+        let tap = UITapGestureRecognizer(target: self, action: #selector(handleTapMaximize))
+        miniPlayerView.addGestureRecognizer(tap)
+        miniPlayerView.isUserInteractionEnabled = true
     }
     
     private func setupMiniPlayerGlass() {

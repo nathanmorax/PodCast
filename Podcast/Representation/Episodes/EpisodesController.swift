@@ -13,6 +13,9 @@ import SwiftUI
 
 class EpisodesController: UIViewController {
     private var cancellables = Set<AnyCancellable>()
+    private var lastHeaderState: HeaderState?
+    private var headerActions = EpisodeHeaderActions()
+    private var eventsTaks: Task<Void, Never>?
     
     private enum Layout {
         static let headerHeight: CGFloat = 720
@@ -57,13 +60,17 @@ class EpisodesController: UIViewController {
         setupHeaderRegistration()
         setupCollectionView()
         setupBindings()
-//        configureCollectionViewAppearance()
+        listenerHeaderEvents()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateCollectionViewInset()
         refreshVisibleHeader()
+    }
+    
+    deinit {
+        eventsTaks?.cancel()
     }
     
     private func updateCollectionViewInset() {
@@ -91,15 +98,13 @@ class EpisodesController: UIViewController {
         }
     }
     
-    private func makeHeaderView(for podcast: Podcast) -> EpisodeHeaderViewUI {
-        EpisodeHeaderViewUI(
+    private func makeHeaderView(for podcast: Podcast) -> EpisodeHeaderView {
+        EpisodeHeaderView(
             podcast: podcast,
             isFavorite: viewModel.isFavorite(podcast),
             podcastDescription: viewModel.podcastDescription,
             isLoadingDescription: viewModel.isLoadingDescription,
-            onPlay:     { [weak self] in self?.handlePlayPodcast() },
-            onBookmark: { [weak self] in self?.handleFavoritePodcast() },
-            onDownload: { [weak self] in self?.handleDownloadPodcast() }
+            actions: headerActions
         )
     }
     
@@ -124,23 +129,17 @@ class EpisodesController: UIViewController {
             .store(in: &cancellables)
         
         viewModel.$favorites
+            .combineLatest(viewModel.$podcastDescription, viewModel.$isLoadingDescription)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.refreshVisibleHeader()
-            }
-            .store(in: &cancellables)
-        
-        viewModel.$podcastDescription
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.refreshVisibleHeader()
-            }
-            .store(in: &cancellables)
-        
-        viewModel.$isLoadingDescription
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.refreshVisibleHeader()
+            .sink { [weak self] _, description, isLoadingDescription in
+                
+                guard let self, let podcast = self.podcast else { return }
+                
+                let newState = HeaderState(isFavorite: viewModel.isFavorite(podcast), description: viewModel.podcastDescription, isLoadingDescription: viewModel.isLoadingDescription)
+                
+                guard newState == lastHeaderState else { return }
+                lastHeaderState = newState
+                refreshVisibleHeader()
             }
             .store(in: &cancellables)
     }
@@ -150,6 +149,23 @@ class EpisodesController: UIViewController {
         viewModel.loadEpisodes(feedURL: feedUrl)
     }
     
+    func listenerHeaderEvents() {
+        eventsTaks = Task { [weak self] in
+            guard let self else { return }
+            
+            for await event in headerActions.events {
+                switch event {
+                case .play:
+                    handlePlayPodcast()
+                case .bookmark:
+                    handleFavoritePodcast()
+                case .download:
+                    handleDownloadPodcast()
+                }
+            }
+        }
+    }
+
     // MARK: - Actions
     
     @objc fileprivate func handleFavoritePodcast() {
@@ -160,6 +176,7 @@ class EpisodesController: UIViewController {
     private func handlePlayPodcast() {
         guard let firstEpisode = viewModel.episodes.first else { return }
         PlayerManager.shared.play(episode: firstEpisode)
+        
     }
     
     private func handleDownloadPodcast() {

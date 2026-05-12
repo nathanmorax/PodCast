@@ -56,7 +56,7 @@ class AVPlayerViewModel {
     
     
     func playEpisode(_ episode: Episode) {
-        guard let url = URL(string: episode.streamUrl ?? "") else { return }
+        guard let url = URL(string: episode.streamUrl) else { return }
         currentURL = url
         player.play(url: url)
     }
@@ -78,7 +78,7 @@ class AVPlayerViewModel {
     }
     
     func togglePlayPause() {
-        guard let url = currentURL else { return }
+        guard currentURL != nil else { return }
         
         isPlaying
         ? player.pause()

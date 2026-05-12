@@ -17,18 +17,13 @@ private enum HeaderStyle {
     static let collapsedLineLimit = 2
 }
 
-// MARK: - Main Header View
-
-struct EpisodeHeaderViewUI: View {
+struct EpisodeHeaderView: View {
     
     let podcast: Podcast
     var isFavorite: Bool = false
     var podcastDescription: String?
     var isLoadingDescription: Bool = false
-    
-    var onPlay: () -> Void = {}
-    var onBookmark: () -> Void = {}
-    var onDownload: () -> Void = {}
+    let actions: EpisodeHeaderActions
     
     @State private var isAboutExpanded = false
     
@@ -82,7 +77,7 @@ struct EpisodeHeaderViewUI: View {
     
     private var actionsRow: some View {
         HStack(spacing: 10) {
-            Button(action: onPlay) {
+            Button(action: { actions.send(.play) }) {
                 HStack(spacing: 10) {
                     Image(systemName: "play.circle.fill")
                         .font(.system(size: 32, weight: .regular))
@@ -101,9 +96,9 @@ struct EpisodeHeaderViewUI: View {
             CircleIconButton(
                 systemName: isFavorite ? "bookmark.fill" : "bookmark",
                 isHighlighted: isFavorite,
-                action: onBookmark
+                action: { actions.send(.bookmark) }
             )
-            CircleIconButton(systemName: "arrow.down.to.line", action: onDownload)
+            CircleIconButton(systemName: "arrow.down.to.line", action:{ actions.send(.download)})
         }
         .padding(.horizontal, HeaderStyle.horizontalPadding)
         .padding(.top, 20)
@@ -182,9 +177,9 @@ struct EpisodeHeaderViewUI: View {
 
 #Preview("Header — mock") {
     ScrollView {
-        EpisodeHeaderViewUI(
+        EpisodeHeaderView(
             podcast: .mock,
-            podcastDescription: "Este es un podcast de prueba con una descripción larga para ver cómo se ve el botón de leer más cuando hay mucho texto que mostrar al usuario."
+            podcastDescription: "Este es un podcast de prueba con una descripción larga para ver cómo se ve el botón de leer más cuando hay mucho texto que mostrar al usuario.", actions: EpisodeHeaderActions()
         )
     }
     .ignoresSafeArea(edges: .top)
