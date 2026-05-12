@@ -4,7 +4,6 @@
 //
 //  Created by Satori Tech 341 on 11/05/26.
 //
-
 import SwiftUI
 
 /// Muestra una imagen desde una URL remota, un asset local, o un placeholder.
