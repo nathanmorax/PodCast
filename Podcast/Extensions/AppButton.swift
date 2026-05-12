@@ -50,8 +50,8 @@ public struct AppButton: View {
         /// Tamaño del botón circular cuando style == .icon
         var iconButtonSize: CGFloat {
             switch self {
-            case .regular: return 48
-            case .compact: return 40
+            case .regular: return 68
+            case .compact: return 48
             }
         }
     }
@@ -65,22 +65,61 @@ public struct AppButton: View {
         case brand
         case critical
         case success
+        case warning
         
-        var mainColor: Color {
+        var palette: ButtonPalette {
             switch self {
-            case .neutral:  return .blue
-            case .brand:    return Color(red: 0.6, green: 0.45, blue: 0.95)
-            case .critical: return .red.opacity(0.85)
-            case .success:  return .green.opacity(0.85)
+            case .neutral:
+                return ButtonPalette(
+                    activeBackground: AppColor.Text.primary,
+                    activeForeground: AppColor.Text.inverse,
+                    inactiveBackground: AppColor.slateGray.opacity(0.15),
+                    inactiveForeground: AppColor.Text.primary
+                )
+                
+            case .brand:
+                return ButtonPalette(
+                    activeBackground: AppColor.Brand.primary,
+                    activeForeground: AppColor.Text.inverse,
+                    inactiveBackground: AppColor.Brand.primary.opacity(0.15),
+                    inactiveForeground: AppColor.Brand.primary
+                )
+                
+            case .critical:
+                return ButtonPalette(
+                    activeBackground: AppColor.Status.critical,
+                    activeForeground: AppColor.Text.inverse,
+                    inactiveBackground: AppColor.Status.critical.opacity(0.15),
+                    inactiveForeground: AppColor.Status.critical
+                )
+                
+            case .success:
+                return ButtonPalette(
+                    activeBackground: AppColor.Status.success,
+                    activeForeground: AppColor.Text.inverse,
+                    inactiveBackground: AppColor.Status.success.opacity(0.15),
+                    inactiveForeground: AppColor.Status.success
+                )
+                
+            case .warning:
+                return ButtonPalette(
+                    activeBackground: AppColor.Status.warning,
+                    activeForeground: AppColor.Text.inverse,
+                    inactiveBackground: AppColor.Status.warning.opacity(0.15),
+                    inactiveForeground: AppColor.Status.warning
+                )
             }
         }
-        
-        var contentColor: Color {
-            switch self {
-            case .neutral, .brand, .critical, .success:
-                return .white
-            }
-        }
+    }
+    
+    // MARK: - Palette -
+    
+    /// Define los pares de colores para los estados activo e inactivo del botón.
+    public struct ButtonPalette {
+        let activeBackground: Color
+        let activeForeground: Color
+        let inactiveBackground: Color
+        let inactiveForeground: Color
     }
     
     // MARK: - Icon Placement -
@@ -89,7 +128,8 @@ public struct AppButton: View {
     public enum IconPlacement {
         case leading(Image)
         case trailing(Image)
-        case only(Image)    // para botones con style == .icon
+        case only(Image)                                       // ícono estático en botón circular
+        case toggle(selected: Image, unselected: Image)        // ícono cambia según isSelected
     }
     
     // MARK: - Properties -
@@ -99,6 +139,7 @@ public struct AppButton: View {
     private let size: Size
     private let icon: IconPlacement?
     private let title: String
+    private let isSelected: Bool
     private let action: () -> Void
     
     // MARK: - Init -
@@ -108,6 +149,7 @@ public struct AppButton: View {
                 size: Size = .regular,
                 icon: IconPlacement? = nil,
                 title: String,
+                isSelected: Bool = false,
                 action: @escaping () -> Void) {
         
         self.style = style
@@ -115,6 +157,7 @@ public struct AppButton: View {
         self.size = size
         self.icon = icon
         self.title = title
+        self.isSelected = isSelected
         self.action = action
     }
     
@@ -144,38 +187,60 @@ public struct AppButton: View {
     
     private var filledButton: some View {
         buttonContent
-            .foregroundColor(tone.contentColor)
+            .foregroundColor(tone.palette.activeForeground)
             .frame(height: size.height)
-            .filledBackground(tone.mainColor)
+            .filledBackground(tone.palette.activeBackground)
     }
     
     private var outlinedButton: some View {
         buttonContent
-            .foregroundColor(tone.mainColor)
+            .foregroundColor(tone.palette.activeBackground)
             .frame(height: size.height)
-            .outlinedBorder(tone.mainColor, width: size.borderWidth)
+            .outlinedBorder(tone.palette.activeBackground, width: size.borderWidth)
     }
     
     private var plainButton: some View {
         buttonContent
-            .foregroundColor(tone.mainColor)
+            .foregroundColor(tone.palette.activeBackground)
             .frame(height: size.height)
             .contentShape(Rectangle())
     }
     
     private var iconButton: some View {
         Group {
-            if case .only(let image) = icon {
-                image
+            if let iconImage = currentIconImage {
+                iconImage
                     .renderingMode(.template)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: size.iconSize, height: size.iconSize)
-                    .foregroundColor(tone.contentColor)
+                    .foregroundColor(iconForegroundColor)
             }
         }
         .frame(width: size.iconButtonSize, height: size.iconButtonSize)
-        .background(Circle().fill(tone.mainColor))
+        .background(Circle().fill(iconBackgroundColor))
+    }
+    
+    // MARK: - Icon Resolution Helpers -
+    
+    private var currentIconImage: Image? {
+        guard let icon = icon else { return nil }
+        switch icon {
+        case .only(let image):
+            return image
+        case .toggle(let selected, let unselected):
+            return isSelected ? selected : unselected
+        case .leading, .trailing:
+            return nil
+        }
+    }
+    
+    private var iconBackgroundColor: Color {
+        isSelected ? tone.palette.activeBackground : tone.palette.inactiveBackground
+    }
+    
+    private var iconForegroundColor: Color {
+        isSelected ? tone.palette.activeForeground : tone.palette.inactiveForeground
     }
     
     // MARK: - Content -
@@ -239,6 +304,7 @@ extension AppButton: Hashable {
             && lhs.tone == rhs.tone
             && lhs.size == rhs.size
             && lhs.title == rhs.title
+            && lhs.isSelected == rhs.isSelected
     }
     
     public func hash(into hasher: inout Hasher) {
@@ -246,53 +312,76 @@ extension AppButton: Hashable {
         hasher.combine(tone)
         hasher.combine(size)
         hasher.combine(title)
+        hasher.combine(isSelected)
     }
 }
 
 // MARK: - Preview -
 
 #Preview {
-    VStack(spacing: 20) {
-        AppButton(
-            style: .filled,
-            tone: .brand,
-            icon: .leading(Image(systemName: "play.fill")),
-            title: "Play Podcast"
-        ) { }
-        
-        AppButton(
-            style: .outlined,
-            tone: .brand,
-            title: "Suscribirse"
-        ) { }
-        
-        AppButton(
-            style: .plain,
-            tone: .neutral,
-            title: "Cancelar"
-        ) { }
-        
-        HStack(spacing: 16) {
+    ScrollView {
+        VStack(spacing: 20) {
             AppButton(
-                style: .icon,
+                style: .filled,
                 tone: .brand,
-                icon: .only(Image(systemName: "bookmark.fill")),
-                title: "Bookmark"
+                icon: .leading(Image(systemName: "play.fill")),
+                title: "Play Podcast"
             ) { }
             
             AppButton(
-                style: .icon,
+                style: .outlined,
+                tone: .brand,
+                title: "Suscribirse"
+            ) { }
+            
+            AppButton(
+                style: .plain,
                 tone: .neutral,
-                icon: .only(Image(systemName: "arrow.down")),
-                title: "Download"
+                title: "Cancelar"
+            ) { }
+            
+            HStack(spacing: 16) {
+                AppButton(
+                    style: .icon,
+                    tone: .brand,
+                    icon: .toggle(
+                        selected: Image(systemName: "bookmark.fill"),
+                        unselected: Image(systemName: "bookmark")
+                    ),
+                    title: "Bookmark",
+                    isSelected: true
+                ) { }
+                
+                AppButton(
+                    style: .icon,
+                    tone: .neutral,
+                    icon: .toggle(
+                        selected: Image(systemName: "checkmark"),
+                        unselected: Image(systemName: "arrow.down")
+                    ),
+                    title: "Download",
+                    isSelected: false
+                ) { }
+            }
+            
+            AppButton(
+                style: .filled,
+                tone: .critical,
+                title: "Eliminar episodio"
+            ) { }
+            
+            AppButton(
+                style: .filled,
+                tone: .success,
+                title: "Marcar como escuchado"
+            ) { }
+            
+            AppButton(
+                style: .outlined,
+                tone: .warning,
+                title: "Sin conexión"
             ) { }
         }
-        
-        AppButton(
-            style: .filled,
-            tone: .critical,
-            title: "Eliminar episodio"
-        ) { }
+        .padding()
     }
-    .padding()
 }

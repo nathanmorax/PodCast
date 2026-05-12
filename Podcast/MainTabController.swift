@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SwiftUI
 
 class MainTabBarController: UITabBarController {
 
@@ -31,5 +32,16 @@ class MainTabBarController: UITabBarController {
                 UINavigationController(rootViewController: PodcastSearchContainerController())
             }
         ]
+    }
+}
+
+struct MainTabBarRepresentable: UIViewControllerRepresentable {
+    
+    func makeUIViewController(context: Context) -> MainTabBarController {
+        MainTabBarController()
+    }
+    
+    func updateUIViewController(_ uiViewController: MainTabBarController, context: Context) {
+        // sin actualizaciones por ahora
     }
 }
