@@ -6,10 +6,6 @@
 //
 
 import UIKit
-import AVKit
-import SwiftUI
-
-
 import SwiftUI
 
 struct PlayerView: View {
@@ -77,17 +73,18 @@ struct PlayerView: View {
     
     // MARK: - Waveform y tiempos
     private var waveForm: some View {
-        
         VStack(spacing: 8) {
-            Image(systemName: "waveform")
-                .font(.system(size: 40, weight: .light))
-                .foregroundStyle(.black)
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 24)
+            
+            WaveformBars(
+                progress: viewModel.progress,
+                barCount: 60
+            ) { percentage in
+                viewModel.seek(to: percentage)
+            }
+            .frame(height: 40)
+            .padding(.horizontal, 42)
             
             HStack {
-                
-                
                 Text(viewModel.currentTimeText)
                     .font(.system(size: 13))
                     .foregroundStyle(.gray)
@@ -98,7 +95,7 @@ struct PlayerView: View {
                     .font(.system(size: 13))
                     .foregroundStyle(.gray)
             }
-            .padding(.horizontal, 48)
+            .padding(.horizontal, 42)
         }
     }
     
@@ -168,5 +165,3 @@ struct PlayerView: View {
 #Preview {
     PlayerView(episode: .mock)
 }
-
-

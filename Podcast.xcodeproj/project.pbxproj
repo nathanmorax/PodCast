@@ -39,6 +39,7 @@
 		9490FA4E2FB2713D00378ED5 /* PodcastImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9490FA4D2FB2713D00378ED5 /* PodcastImage.swift */; };
 		9490FA502FB38DE300378ED5 /* HeaderState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9490FA4F2FB38DE300378ED5 /* HeaderState.swift */; };
 		9490FA522FB3AB9600378ED5 /* AppButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9490FA512FB3AB9600378ED5 /* AppButton.swift */; };
+		9490FA542FB3C78E00378ED5 /* WaveformBars.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9490FA532FB3C78E00378ED5 /* WaveformBars.swift */; };
 		94F4E5B22F6C810B00DC1130 /* StretchyHeaderLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94F4E5B12F6C810400DC1130 /* StretchyHeaderLayout.swift */; };
 		94F4E5B42F6C815900DC1130 /* EpisodeHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94F4E5B32F6C815900DC1130 /* EpisodeHeaderView.swift */; };
 		94F4E5B72F6C81B700DC1130 /* UIImage + averageBrightness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94F4E5B62F6C81B700DC1130 /* UIImage + averageBrightness.swift */; };
@@ -97,6 +98,7 @@
 		9490FA4D2FB2713D00378ED5 /* PodcastImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastImage.swift; sourceTree = "<group>"; };
 		9490FA4F2FB38DE300378ED5 /* HeaderState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderState.swift; sourceTree = "<group>"; };
 		9490FA512FB3AB9600378ED5 /* AppButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppButton.swift; sourceTree = "<group>"; };
+		9490FA532FB3C78E00378ED5 /* WaveformBars.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformBars.swift; sourceTree = "<group>"; };
 		94F4E5B12F6C810400DC1130 /* StretchyHeaderLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StretchyHeaderLayout.swift; sourceTree = "<group>"; };
 		94F4E5B32F6C815900DC1130 /* EpisodeHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeHeaderView.swift; sourceTree = "<group>"; };
 		94F4E5B62F6C81B700DC1130 /* UIImage + averageBrightness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage + averageBrightness.swift"; sourceTree = "<group>"; };
@@ -262,6 +264,7 @@
 		94F4E5B02F6C80E000DC1130 /* Layouts */ = {
 			isa = PBXGroup;
 			children = (
+				9490FA532FB3C78E00378ED5 /* WaveformBars.swift */,
 				9490FA4D2FB2713D00378ED5 /* PodcastImage.swift */,
 				9490FA492FB2422000378ED5 /* CircleIconButton.swift */,
 				94F4E5B12F6C810400DC1130 /* StretchyHeaderLayout.swift */,
@@ -455,6 +458,7 @@
 				0B4218762AFB1AA1009100A8 /* MainTabController.swift in Sources */,
 				9490FA4C2FB244A600378ED5 /* HostingHeaderView.swift in Sources */,
 				0BCC34512AFB195C005A3E38 /* SceneDelegate.swift in Sources */,
+				9490FA542FB3C78E00378ED5 /* WaveformBars.swift in Sources */,
 				0BBEE1292B0AD8DB00FE20A7 /* CMTime.swift in Sources */,
 				945DCE3D2FA3E75F00256995 /* HostingCellBackground.swift in Sources */,
 				BAF855312F2D709800D6DA90 /* PlayerDetailViewModel.swift in Sources */,
