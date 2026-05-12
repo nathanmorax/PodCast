@@ -6,22 +6,21 @@
 //
 
 import UIKit
-import FeedKit
-import SDWebImage
 import Combine
 import SwiftUI
+
+
+private enum Layout {
+    static let headerHeight: CGFloat = 720
+    static let cellHeight: CGFloat   = 120
+    static let sectionInset          = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
+}
 
 class EpisodesController: UIViewController {
     private var cancellables = Set<AnyCancellable>()
     private var lastHeaderState: HeaderState?
     private var headerActions = EpisodeHeaderActions()
     private var eventsTaks: Task<Void, Never>?
-    
-    private enum Layout {
-        static let headerHeight: CGFloat = 720
-        static let cellHeight: CGFloat   = 120
-        static let sectionInset          = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
-    }
     
     var podcast: Podcast? {
         didSet {
@@ -212,12 +211,10 @@ extension EpisodesController: UICollectionViewDataSource {
             item: episode)
     }
     
-    func collectionView(_ collectionView: UICollectionView,
-                        viewForSupplementaryElementOfKind kind: String,
-                        at indexPath: IndexPath) -> UICollectionReusableView {
-        guard kind == UICollectionView.elementKindSectionHeader else {
-            return UICollectionReusableView()
-        }
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        
+        guard kind == UICollectionView.elementKindSectionHeader else { return UICollectionReusableView() }
+        
         return collectionView.dequeueConfiguredReusableSupplementary(
             using: headerRegistration,
             for: indexPath

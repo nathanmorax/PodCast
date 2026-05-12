@@ -160,7 +160,8 @@ struct EpisodeHeaderView: View {
                     isAboutExpanded.toggle()
                 }
             } label: {
-                Text(isAboutExpanded ? "Show less" : "Read more")                    .font(.system(size: 14, weight: .semibold))
+                Text(isAboutExpanded ? "Show less" : "Read more")
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(Color(AppColor.lavender))
             }
         }
@@ -179,7 +180,8 @@ struct EpisodeHeaderView: View {
     ScrollView {
         EpisodeHeaderView(
             podcast: .mock,
-            podcastDescription: "Este es un podcast de prueba con una descripción larga para ver cómo se ve el botón de leer más cuando hay mucho texto que mostrar al usuario.", actions: EpisodeHeaderActions()
+            podcastDescription: "Este es un podcast de prueba con una descripción larga para ver cómo se ve el botón de leer más cuando hay mucho texto que mostrar al usuario.",
+            actions: EpisodeHeaderActions()
         )
     }
     .ignoresSafeArea(edges: .top)

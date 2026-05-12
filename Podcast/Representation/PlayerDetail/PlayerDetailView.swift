@@ -7,6 +7,7 @@
 
 import UIKit
 import AVKit
+import SwiftUI
 
 class PlayerDetailView: UIView {
     
@@ -46,20 +47,17 @@ class PlayerDetailView: UIView {
     }
     
     // MARK: - Hit Test
-
+    
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-        // Expanded: capture everything
         if miniPlayerView.isHidden || miniPlayerView.alpha == 0 {
             return super.hitTest(point, with: event)
         }
         
-        // Collapsed: only capture touches inside the mini player
         let pointInMiniPlayer = miniPlayerView.convert(point, from: self)
         if miniPlayerView.bounds.contains(pointInMiniPlayer) {
             return super.hitTest(point, with: event)
         }
         
-        // Otherwise let the touch pass through
         return nil
     }
     
@@ -185,22 +183,22 @@ class PlayerDetailView: UIView {
     
     @IBOutlet weak var miniPlayPauseButton: UIButton! {
         didSet {
-                var config = miniPlayPauseButton.configuration ?? .plain()
-                config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
-                miniPlayPauseButton.configuration = config
-                
-                miniPlayPauseButton.addTarget(self, action: #selector(handlePlayPause), for: .touchUpInside)
-            }
+            var config = miniPlayPauseButton.configuration ?? .plain()
+            config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
+            miniPlayPauseButton.configuration = config
+            
+            miniPlayPauseButton.addTarget(self, action: #selector(handlePlayPause), for: .touchUpInside)
+        }
     }
     
     @IBOutlet weak var miniFastForwardButton: UIButton! {
         didSet {
-               var config = miniFastForwardButton.configuration ?? .plain()
-               config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
-               miniFastForwardButton.configuration = config
-               
-               miniFastForwardButton.addTarget(self, action: #selector(handleFastForward(_:)), for: .touchUpInside)
-           }
+            var config = miniFastForwardButton.configuration ?? .plain()
+            config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
+            miniFastForwardButton.configuration = config
+            
+            miniFastForwardButton.addTarget(self, action: #selector(handleFastForward(_:)), for: .touchUpInside)
+        }
     }
     
     static func initFromNib() -> PlayerDetailView {
@@ -238,3 +236,153 @@ class PlayerDetailView: UIView {
     }
     
 }
+
+
+import SwiftUI
+
+struct PlayerView: View {
+    
+    var episode: Episode
+    @State private var isPlaying: Bool = false
+    
+    var body: some View {
+        ZStack {
+            Color.white
+                .edgesIgnoringSafeArea(.all)
+            
+            VStack(spacing: 0) {
+                backgroundImageEpisode
+                
+                playerPanel
+            }
+            .edgesIgnoringSafeArea(.top)
+        }
+    }
+    
+    // MARK: - Imagen superior del episodio
+    private var backgroundImageEpisode: some View {
+        PodcastImage(source: episode.imageUrl)
+            .frame(maxWidth: .infinity)
+            .frame(height: UIScreen.main.bounds.height * 0.5)
+            .clipped()
+    }
+    
+    // MARK: - Panel blanco inferior
+    private var playerPanel: some View {
+        VStack(spacing: 24) {
+            descriptionEpisode
+                .padding(.top, 32)
+            
+            waveForm
+            
+            buttonAction
+            
+            lyrics
+            
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+        .background(Color.white)
+    }
+    
+    // MARK: - Título y autor
+    private var descriptionEpisode: some View {
+        VStack(spacing: 12) {
+            Text(episode.title)
+                .font(.system(size: 32, weight: .bold, design: .serif))
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.black)
+                .padding(.horizontal, 24)
+            
+            Text(episode.author ?? "Rebakah Shirley")
+                .font(.system(size: 16, weight: .regular))
+                .foregroundStyle(.gray)
+        }
+    }
+    
+    // MARK: - Waveform y tiempos
+    private var waveForm: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "waveform")
+                .font(.system(size: 40, weight: .light))
+                .foregroundStyle(.black)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 24)
+            
+            HStack {
+                Text("17:30")
+                    .font(.system(size: 13))
+                    .foregroundStyle(.gray)
+                
+                Spacer()
+                
+                Text("43:20")
+                    .font(.system(size: 13))
+                    .foregroundStyle(.gray)
+            }
+            .padding(.horizontal, 48)
+        }
+    }
+    
+    // MARK: - Controles play/atrás/adelante
+    private var buttonAction: some View {
+        HStack(spacing: 48) {
+            Button {
+                // retroceder 15s
+            } label: {
+                Image(systemName: "gobackward.15")
+                    .font(.system(size: 26, weight: .regular))
+                    .foregroundStyle(.black)
+            }
+            
+            Button {
+                isPlaying.toggle()
+            } label: {
+                ZStack {
+                    Circle()
+                        .fill(Color(red: 0.6, green: 0.45, blue: 0.95))
+                        .frame(width: 64, height: 64)
+                    
+                    Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                        .font(.system(size: 24, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
+            }
+            
+            Button {
+                // adelantar 15s
+            } label: {
+                Image(systemName: "goforward.15")
+                    .font(.system(size: 26, weight: .regular))
+                    .foregroundStyle(.black)
+            }
+        }
+        .padding(.vertical, 8)
+    }
+    
+    // MARK: - Texto inferior (lyrics / preview)
+    private var lyrics: some View {
+        VStack(spacing: 4) {
+            Text("Why aren't more people investing")
+                .font(.system(size: 15))
+                .foregroundStyle(.gray.opacity(0.5))
+            
+            Text("in Africa's green energy?")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(.black)
+            
+            Text("Environmental researcher")
+                .font(.system(size: 14))
+                .foregroundStyle(.gray.opacity(0.6))
+        }
+        .multilineTextAlignment(.center)
+        .padding(.horizontal, 24)
+        .padding(.top, 8)
+    }
+}
+
+#Preview {
+    PlayerView(episode: .mock)
+}
+
+

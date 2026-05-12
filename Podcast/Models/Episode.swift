@@ -53,6 +53,8 @@ extension Episode {
 #if DEBUG
 extension Episode {
     
+    static let mock: Episode = .mocks.first!
+    
     static let mocks: [Episode] = [
         Episode(
             title: "Global News Podcast",
