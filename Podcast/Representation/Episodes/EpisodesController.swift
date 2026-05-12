@@ -174,7 +174,7 @@ class EpisodesController: UIViewController {
     
     private func handlePlayPodcast() {
         guard let firstEpisode = viewModel.episodes.first else { return }
-        PlayerManager.shared.play(episode: firstEpisode)
+        PlayerManager.shared.play(firstEpisode)
         
     }
     
@@ -228,7 +228,7 @@ extension EpisodesController: UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let episode = viewModel.episodes[indexPath.row]
-        PlayerManager.shared.play(episode: episode)
+        PlayerManager.shared.play(episode)
     }
 }
 

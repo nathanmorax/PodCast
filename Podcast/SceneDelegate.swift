@@ -13,18 +13,18 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
     
     
-    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        guard let windowScene = (scene as? UIWindowScene) else { return }
-        
-        let tabBarController = MainTabBarController()
-        
-        let window = UIWindow(windowScene: windowScene)
-        window.rootViewController = tabBarController
-        window.makeKeyAndVisible()
-        
-        self.window = window
-        PlayerManager.shared.setup(in: window)
-    }
+    func scene(_ scene: UIScene,
+                 willConnectTo session: UISceneSession,
+                 options connectionOptions: UIScene.ConnectionOptions) {
+          
+          guard let windowScene = (scene as? UIWindowScene) else { return }
+          
+          let window = UIWindow(windowScene: windowScene)
+          window.rootViewController = UIHostingController(rootView: RootView())
+          window.makeKeyAndVisible()
+          
+          self.window = window
+      }
     
     func sceneDidDisconnect(_ scene: UIScene) {
         // Called as the scene is being released by the system.
@@ -52,5 +52,131 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Called as the scene transitions from the foreground to the background.
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
+    }
+}
+
+//
+//  RootView.swift
+//  Podcast
+//
+
+import SwiftUI
+
+struct RootView: View {
+    
+    @State private var manager = PlayerManager.shared
+    
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            
+            // Tu tab bar UIKit envuelto
+            MainTabBarRepresentable()
+                .edgesIgnoringSafeArea(.all)
+            
+            // Overlay del player
+            playerOverlay
+        }
+    }
+    
+    @ViewBuilder
+    private var playerOverlay: some View {
+        switch manager.presentation {
+            
+        case .hidden:
+            EmptyView()
+            
+        case .mini:
+            if let episode = manager.currentEpisode {
+                MiniPlayerView(
+                    episode: episode,
+                    viewModel: manager.viewModel
+                )
+                .padding(.horizontal, 12)
+                .padding(.bottom, 60) // espacio sobre el tab bar
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .onTapGesture {
+                    manager.expand()
+                }
+            }
+            
+        case .expanded:
+            if let episode = manager.currentEpisode {
+                PlayerView(episode: episode)
+                    .transition(.move(edge: .bottom))
+                    .ignoresSafeArea()
+                    .zIndex(1)
+            }
+        }
+    }
+}
+
+#Preview {
+    RootView()
+}
+
+
+//
+//  MiniPlayerView.swift
+//  Podcast
+//
+
+import SwiftUI
+
+struct MiniPlayerView: View {
+    
+    let episode: Episode
+    let viewModel: AVPlayerViewModel
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            
+            PodcastImage(source: episode.imageUrl)
+                .frame(width: 40, height: 40)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(episode.title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .lineLimit(1)
+                    .foregroundStyle(.black)
+                
+                Text(episode.author ?? "")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.gray)
+                    .lineLimit(1)
+            }
+            
+            Spacer()
+            
+            AppButton(
+                style: .icon,
+                tone: .brand,
+                size: .compact,
+                icon: .toggle(
+                    selected: Image(systemName: "pause.fill"),
+                    unselected: Image(systemName: "play.fill")
+                ),
+                title: "Play/Pause",
+                isSelected: viewModel.isPlaying
+            ) {
+                viewModel.togglePlayPause()
+            }
+            
+            AppButton(
+                style: .icon,
+                tone: .neutral,
+                size: .compact,
+                icon: .only(Image(systemName: "forward.fill")),
+                title: "Forward"
+            ) {
+                viewModel.seekForward()
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(.ultraThinMaterial)
+        )
     }
 }

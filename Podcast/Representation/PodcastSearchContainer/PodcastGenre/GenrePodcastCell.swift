@@ -7,9 +7,12 @@
 import SwiftUI
 
 enum AppColor {
+    
+    // MARK: - Raw palette
+    
     static let limeGreen     = Color("limeGreen")
     static let dustyRose     = Color("dustyRose")
-    static let coralRed      = Color("colarRed")
+    static let coralRed      = Color("coralRed")    // OJO: tu asset tiene typo "colarRed"
     static let slateGray     = Color("slateGray")
     static let warmOrange    = Color("warmOrange")
     static let paleYellow    = Color("paleYellow")
@@ -18,19 +21,37 @@ enum AppColor {
     static let burntOrange   = Color("burntOrange")
     static let charcoalBrown = Color("charcoalBrown")
     static let lavender      = Color("lavender")
-
+    
+    // MARK: - Semantic roles
+    
+    enum Brand {
+        static let primary   = AppColor.lavender
+        static let secondary = AppColor.paleYellow
+    }
+    
+    enum Status {
+        static let success  = AppColor.oliveGreen
+        static let warning  = AppColor.burntOrange
+        static let critical = AppColor.coralRed
+        static let info     = AppColor.dustyBlue
+    }
+    
+    enum Surface {
+        static let primary   = AppColor.paleYellow
+        static let secondary = AppColor.dustyRose
+        static let elevated  = Color.white
+    }
+    
+    enum Text {
+        static let primary   = AppColor.charcoalBrown
+        static let secondary = AppColor.slateGray
+        static let inverse   = Color.white
+    }
+    
     static let palette: [Color] = [
-        limeGreen,
-        dustyRose,
-        coralRed,
-        slateGray,
-        warmOrange,
-        paleYellow,
-        dustyBlue,
-        oliveGreen,
-        burntOrange,
-        charcoalBrown,
-        lavender
+        limeGreen, dustyRose, coralRed, slateGray,
+        warmOrange, paleYellow, dustyBlue, oliveGreen,
+        burntOrange, charcoalBrown, lavender
     ]
 }
 
@@ -39,7 +60,6 @@ extension Color {
         UIColor(self)
     }
 }
-
 struct GenrePodcastCell: View {
     let genre: Genre
     let index: Int

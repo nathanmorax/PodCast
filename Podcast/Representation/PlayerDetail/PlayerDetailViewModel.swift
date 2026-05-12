@@ -5,17 +5,18 @@
 //  Created by Jesus Mora on 30/01/26.
 //
 import AVKit
+import Observation
 
+@Observable
 class AVPlayerViewModel {
     
     private let player: AVPlayerDataSource
     private var currentURL: URL?
     
-    var onTimeUpdate: ((String, String?, Float) -> Void)?
-    var onPlayStateChange: ((Bool) -> Void)?
-    var onEpisodeStarted: (() -> Void)?
-
-    var isPlaying = false
+    var isPlaying: Bool = false
+    var currentTimeText: String = "00:00"
+    var durationText: String = "00:00"
+    var progress: Float = 0
     
     init(player: AVPlayerDataSource = AVPlayerDataSource()) {
         self.player = player
@@ -35,22 +36,21 @@ class AVPlayerViewModel {
     
     private func bind() {
         player.onTimeUpdate = { [weak self] current, duration in
-            let currentText = current.toDisplayString()
-            let durationText = duration?.toDisplayString()
-            let percentage = Float(
+            self?.currentTimeText = current.toDisplayString()
+            self?.durationText = duration?.toDisplayString() ?? ""
+            self?.progress = Float(
                 CMTimeGetSeconds(current) /
                 CMTimeGetSeconds(duration ?? CMTime(value: 1, timescale: 1))
             )
-            self?.onTimeUpdate?(currentText, durationText, percentage)
         }
         
         player.onStateChange = { [weak self] isPlaying in
             self?.isPlaying = isPlaying
-            self?.onPlayStateChange?(isPlaying)
+//            self?.onPlayStateChange?(isPlaying)
         }
         
         player.onEpisodeStarted = { [weak self] in
-            self?.onEpisodeStarted?()
+//            self?.onEpisodeStarted?()
         }
     }
     
