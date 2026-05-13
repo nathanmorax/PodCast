@@ -57,7 +57,7 @@ extension Episode {
     
     static let mocks: [Episode] = [
         Episode(
-            title: "Global News Podcast",
+            title: "Global News Podcast Global News Podcast",
             author: "BBC World Service",
             pubDate: Date(timeIntervalSince1970: 1_745_000_000),
             description: "Noticias globales del día con análisis.",

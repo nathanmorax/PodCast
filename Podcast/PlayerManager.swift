@@ -13,17 +13,15 @@ final class PlayerManager {
     static let shared = PlayerManager()
     private init() {}
     
-    // Estado observable
     var currentEpisode: Episode?
     var presentation: PlayerPresentation = .hidden
     
-    // ViewModel del player (uno solo, compartido)
     let viewModel = AVPlayerViewModel()
     
     enum PlayerPresentation {
-        case hidden       // no hay episodio
-        case mini         // mini player abajo
-        case expanded     // pantalla completa
+        case hidden
+        case mini
+        case expanded
     }
     
     // MARK: - Public API

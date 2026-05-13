@@ -27,7 +27,34 @@ struct PlayerView: View {
                 playerPanel
             }
             .edgesIgnoringSafeArea(.top)
+            
+            dismissButton
         }
+        .gesture(dismissGesture)
+        
+    }
+    
+    private var dismissButton: some View {
+        Button {
+            PlayerManager.shared.collapse()
+        } label: {
+            Image(systemName: "chevron.down")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 36, height: 36)
+                .background(Circle().fill(.black.opacity(0.35)))
+        }
+        .padding(.top, 60)
+        .padding(.leading, 20)
+    }
+    
+    private var dismissGesture: some Gesture {
+        DragGesture(minimumDistance: 30)
+            .onEnded { value in
+                if value.translation.height > 100 {
+                    PlayerManager.shared.collapse()
+                }
+            }
     }
     
     // MARK: - Imagen superior del episodio
@@ -60,10 +87,12 @@ struct PlayerView: View {
     private var descriptionEpisode: some View {
         VStack(spacing: 12) {
             Text(episode.title)
-                .font(.system(size: 32, weight: .bold, design: .serif))
+                .font(.system(size: 29, weight: .bold, design: .serif))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.black)
+                .lineLimit(4)
                 .padding(.horizontal, 24)
+                .frame(maxWidth: .infinity)
             
             Text(episode.author)
                 .font(.system(size: 16, weight: .regular))

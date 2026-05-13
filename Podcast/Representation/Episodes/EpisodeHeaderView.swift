@@ -46,8 +46,9 @@ struct EpisodeHeaderView: View {
                 .clipped()
             
             yellowCard
-                .padding(.horizontal, HeaderStyle.horizontalPadding)
                 .offset(y: HeaderStyle.cardOverlap)
+                .aspectRatio(1, contentMode: .fit)
+
         }
         .padding(.bottom, HeaderStyle.cardOverlap)
     }
@@ -55,14 +56,15 @@ struct EpisodeHeaderView: View {
     private var yellowCard: some View {
         VStack(spacing: 10) {
             Text(podcast.trackName ?? "")
-                .font(.custom("NewYorkLarge-Bold", size: 28))
+                .font(.system(size: 32, weight: .bold, design: .serif))
+//                .font(.custom("NewYorkLarge-Bold", size: 28))
                 .foregroundStyle(.black)
                 .multilineTextAlignment(.center)
-                .lineLimit(3)
+//                .lineLimit(3)
                 .minimumScaleFactor(0.8)
             
             Text(podcast.artistName ?? "")
-                .font(.system(size: 15, weight: .regular))
+                .font(.system(size: 16, weight: .regular))
                 .foregroundStyle(.black.opacity(0.75))
                 .multilineTextAlignment(.center)
         }

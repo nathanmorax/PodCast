@@ -24,9 +24,9 @@ class MainTabBarController: UITabBarController {
                 UINavigationController(rootViewController: FavoritesPodcastController())
             },
             UITab(title: "Descargas",
-                  image: UIImage(systemName: "square.and.arrow.down.fill"),
+                  image: UIImage(systemName: "bookmark.fill"),
                   identifier: "exercises") { _ in
-                UINavigationController(rootViewController: PodcastSearchContainerController())
+                UINavigationController(rootViewController: FavoritesPodcastController())
             },
             UISearchTab { _ in
                 UINavigationController(rootViewController: PodcastSearchContainerController())
