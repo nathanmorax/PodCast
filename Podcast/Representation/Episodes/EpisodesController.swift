@@ -30,7 +30,7 @@ class EpisodesController: UIViewController {
     }
     
     private lazy var collectionView: UICollectionView = {
-        let layout = StretchyHeaderLayout()
+        let layout = UICollectionViewFlowLayout()
         layout.minimumLineSpacing      = 0
         layout.minimumInteritemSpacing = 0
         layout.sectionInset            = Layout.sectionInset
