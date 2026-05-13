@@ -170,24 +170,133 @@ struct PlayerView: View {
         .padding(.vertical, 8)
     }
     
-    // MARK: - Texto inferior (lyrics / preview)
+//    // MARK: - Texto inferior (lyrics / preview)
+//    private var lyrics: some View {
+//        VStack(spacing: 4) {
+//            Text("Why aren't more people investing")
+//                .font(.system(size: 15))
+//                .foregroundStyle(.gray.opacity(0.5))
+//            
+//            Text("in Africa's green energy?")
+//                .font(.system(size: 15, weight: .semibold))
+//                .foregroundStyle(.black)
+//            
+//            Text("Environmental researcher")
+//                .font(.system(size: 14))
+//                .foregroundStyle(.gray.opacity(0.6))
+//        }
+//        .multilineTextAlignment(.center)
+//        .padding(.horizontal, 24)
+//        .padding(.top, 8)
+//    }
+    
+    // MARK: - Transcripción del episodio
     private var lyrics: some View {
-        VStack(spacing: 4) {
-            Text("Why aren't more people investing")
-                .font(.system(size: 15))
-                .foregroundStyle(.gray.opacity(0.5))
-            
-            Text("in Africa's green energy?")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(.black)
-            
-            Text("Environmental researcher")
-                .font(.system(size: 14))
-                .foregroundStyle(.gray.opacity(0.6))
+        VStack(spacing: 12) {
+            if viewModel.isLoadingTranscript {
+                // Estado: cargando
+                VStack(spacing: 8) {
+                    ProgressView()
+                    Text(viewModel.transcriptProgress)
+                        .font(.caption)
+                        .foregroundStyle(.gray)
+                }
+                .padding()
+                
+            } else if let error = viewModel.transcriptError {
+                // Estado: error
+                VStack(spacing: 8) {
+                    Text(error)
+                        .font(.system(size: 13))
+                        .foregroundStyle(.red.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                    
+                    Button("Reintentar") {
+                        Task { await runTranscription() }
+                    }
+                    .font(.caption)
+                }
+                .padding()
+                
+            } else if viewModel.transcriptSegments.isEmpty {
+                // Estado: sin transcript, muestra botón
+                Button {
+                    Task { await runTranscription() }
+                } label: {
+                    Label("Generar transcripción", systemImage: "text.bubble")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.white)
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 24)
+                        .background(Capsule().fill(AppColor.lavender))
+                }
+                .padding(.top, 8)
+                
+            } else {
+                transcriptScrollView
+            }
         }
-        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity)
         .padding(.horizontal, 24)
         .padding(.top, 8)
+    }
+
+    // MARK: - ScrollView de segmentos
+    private var transcriptScrollView: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    ForEach(viewModel.transcriptSegments) { segment in
+                        Text(segment.text)
+                            .font(.system(
+                                size: 16,
+                                weight: viewModel.currentSegment?.id == segment.id ? .semibold : .regular
+                            ))
+                            .foregroundStyle(
+                                viewModel.currentSegment?.id == segment.id
+                                    ? .black
+                                    : .gray.opacity(0.5)
+                            )
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .id(segment.id)
+                            .onTapGesture {
+                                seekToSegment(segment)
+                            }
+                    }
+                }
+                .padding(.vertical, 8)
+            }
+            .frame(maxHeight: 220)
+            .onChange(of: viewModel.currentSegment?.id) { _, newId in
+                guard let newId else { return }
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    proxy.scrollTo(newId, anchor: .center)
+                }
+            }
+        }
+    }
+
+    // MARK: - Acciones del transcript
+
+    private func runTranscription() async {
+        print("🚀 Botón presionado, llamando generateTranscript...")
+        
+        if #available(iOS 26.0, *) {
+            await viewModel.generateTranscript(
+                for: episode.streamUrl,
+                episodeId: episode.streamUrl
+            )
+        } else {
+            print("❌ Requiere iOS 26+")
+        }
+    }
+
+    private func seekToSegment(_ segment: LocalTranscriptSegment) {
+        guard let lastSegment = viewModel.transcriptSegments.last,
+              lastSegment.endTime > 0 else { return }
+        
+        let percentage = Float(segment.startTime / lastSegment.endTime)
+        viewModel.seek(to: percentage)
     }
 }
 

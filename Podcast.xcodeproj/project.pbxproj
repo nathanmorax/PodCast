@@ -40,6 +40,7 @@
 		9490FA542FB3C78E00378ED5 /* WaveformBars.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9490FA532FB3C78E00378ED5 /* WaveformBars.swift */; };
 		9490FA572FB3E13900378ED5 /* MiniPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9490FA562FB3E13900378ED5 /* MiniPlayerView.swift */; };
 		9490FA5A2FB3E29000378ED5 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9490FA592FB3E29000378ED5 /* RootView.swift */; };
+		9490FA5D2FB4F6A100378ED5 /* LocalTranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9490FA5C2FB4F6A100378ED5 /* LocalTranscriptionService.swift */; };
 		94F4E5B22F6C810B00DC1130 /* StretchyHeaderLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94F4E5B12F6C810400DC1130 /* StretchyHeaderLayout.swift */; };
 		94F4E5B42F6C815900DC1130 /* EpisodeHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94F4E5B32F6C815900DC1130 /* EpisodeHeaderView.swift */; };
 		94F4E5B72F6C81B700DC1130 /* UIImage + averageBrightness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94F4E5B62F6C81B700DC1130 /* UIImage + averageBrightness.swift */; };
@@ -99,6 +100,7 @@
 		9490FA532FB3C78E00378ED5 /* WaveformBars.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformBars.swift; sourceTree = "<group>"; };
 		9490FA562FB3E13900378ED5 /* MiniPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerView.swift; sourceTree = "<group>"; };
 		9490FA592FB3E29000378ED5 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		9490FA5C2FB4F6A100378ED5 /* LocalTranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalTranscriptionService.swift; sourceTree = "<group>"; };
 		94F4E5B12F6C810400DC1130 /* StretchyHeaderLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StretchyHeaderLayout.swift; sourceTree = "<group>"; };
 		94F4E5B32F6C815900DC1130 /* EpisodeHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeHeaderView.swift; sourceTree = "<group>"; };
 		94F4E5B62F6C81B700DC1130 /* UIImage + averageBrightness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage + averageBrightness.swift"; sourceTree = "<group>"; };
@@ -145,6 +147,7 @@
 		0B6B1F1D2B06A68A00FB0EFE /* DataSource */ = {
 			isa = PBXGroup;
 			children = (
+				9490FA5C2FB4F6A100378ED5 /* LocalTranscriptionService.swift */,
 				9411F4D22F720EDD0029272E /* PlayerManager.swift */,
 				94F4E5BA2F6C8D0F00DC1130 /* FavoritesPodcastManager.swift */,
 				BA4D2F632F2AE4E1008A036F /* AVPlayerDataSource.swift */,
@@ -462,6 +465,7 @@
 				9418C4132FAA98F300729079 /* UIViewController.swift in Sources */,
 				94F4E5B22F6C810B00DC1130 /* StretchyHeaderLayout.swift in Sources */,
 				7C9D91FF2B0708AD00E5AABC /* EpisodeCell.swift in Sources */,
+				9490FA5D2FB4F6A100378ED5 /* LocalTranscriptionService.swift in Sources */,
 				7C9D91FC2B07075D00E5AABC /* Episode.swift in Sources */,
 				BA4D2F642F2AE4E6008A036F /* AVPlayerDataSource.swift in Sources */,
 				94F4E5BD2F6CA21A00DC1130 /* EpisodesViewModel.swift in Sources */,
