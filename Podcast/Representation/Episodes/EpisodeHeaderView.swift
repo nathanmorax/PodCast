@@ -57,10 +57,8 @@ struct EpisodeHeaderView: View {
         VStack(spacing: 10) {
             Text(podcast.trackName ?? "")
                 .font(.system(size: 32, weight: .bold, design: .serif))
-//                .font(.custom("NewYorkLarge-Bold", size: 28))
                 .foregroundStyle(.black)
                 .multilineTextAlignment(.center)
-//                .lineLimit(3)
                 .minimumScaleFactor(0.8)
             
             Text(podcast.artistName ?? "")
@@ -178,13 +176,13 @@ struct EpisodeHeaderView: View {
 
 // MARK: - Preview
 
-#Preview("Header — mock") {
-    ScrollView {
-        EpisodeHeaderView(
-            podcast: .mock,
-            podcastDescription: "Este es un podcast de prueba con una descripción larga para ver cómo se ve el botón de leer más cuando hay mucho texto que mostrar al usuario.",
-            actions: EpisodeHeaderActions()
-        )
-    }
-    .ignoresSafeArea(edges: .top)
-}
+//#Preview("Header — mock") {
+//    ScrollView {
+//        EpisodeHeaderView(
+//            podcast: .mock,
+//            podcastDescription: "Este es un podcast de prueba con una descripción larga para ver cómo se ve el botón de leer más cuando hay mucho texto que mostrar al usuario.",
+//            actions: EpisodeHeaderActions()
+//        )
+//    }
+//    .ignoresSafeArea(edges: .top)
+//}

@@ -66,6 +66,45 @@ struct MiniPlayerView: View {
 }
 
 
-#Preview {
-    MiniPlayerView(episode: Episode.mock, viewModel: AVPlayerViewModel())
+//#Preview {
+//    MiniPlayerView(episode: Episode.mock, viewModel: AVPlayerViewModel())
+//}
+
+
+struct HeaderEpisodeView: View {
+    
+    let episode: Episode
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            
+            PodcastImage(source: episode.imageUrl)
+                .frame(width: 40, height: 40)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(episode.title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .lineLimit(1)
+                    .foregroundStyle(.black)
+                
+                Text(episode.author)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.gray)
+                    .lineLimit(1)
+            }
+            
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(.ultraThinMaterial)
+        )
+    }
 }
+
+
+//#Preview {
+//    HeaderEpisodeView(episode: Episode.mock)
+//}

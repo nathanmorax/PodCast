@@ -36,7 +36,7 @@ enum PodcastEndpoint {
         }
     }
     
-    var parameters: [String: String] {
+    var parameters: [String: Any] {
         switch self {
         case .search(let query):
             return ["term": query, "media": "podcast"]

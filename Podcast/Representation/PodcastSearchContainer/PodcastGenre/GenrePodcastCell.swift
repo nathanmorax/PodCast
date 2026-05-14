@@ -99,8 +99,8 @@ extension Genre {
 }
 #endif
 
-#Preview(traits: .sizeThatFitsLayout) {
-    GenrePodcastCell(genre: .mock, index: 0)
-        .padding()
-}
+//#Preview(traits: .sizeThatFitsLayout) {
+//    GenrePodcastCell(genre: .mock, index: 0)
+//        .padding()
+//}
 
