@@ -1,8 +1,8 @@
 //
-//  UIImage+Extension.swift
+//  UIImage+Decode.swift
 //  Podcast
 //
-//  Created by Satori Tech 341 on 14/05/26.
+//  Created by Jonathan Mora on 14/05/26.
 //
 import SwiftUI
 

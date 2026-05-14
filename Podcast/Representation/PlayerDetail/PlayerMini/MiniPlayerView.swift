@@ -66,9 +66,9 @@ struct MiniPlayerView: View {
 }
 
 
-#Preview {
-    MiniPlayerView(episode: Episode.mock, viewModel: AVPlayerViewModel())
-}
+//#Preview {
+//    MiniPlayerView(episode: Episode.mock, viewModel: AVPlayerViewModel())
+//}
 
 
 struct HeaderEpisodeView: View {
@@ -105,6 +105,6 @@ struct HeaderEpisodeView: View {
 }
 
 
-#Preview {
-    HeaderEpisodeView(episode: Episode.mock)
-}
+//#Preview {
+//    HeaderEpisodeView(episode: Episode.mock)
+//}

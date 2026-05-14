@@ -82,7 +82,7 @@ extension Podcast {
 #endif
 
 
-#Preview(traits: .sizeThatFitsLayout) {
-    PodcastCellUI(podcast: .mock)
-        .padding()
-}
+//#Preview(traits: .sizeThatFitsLayout) {
+//    PodcastCellUI(podcast: .mock)
+//        .padding()
+//}

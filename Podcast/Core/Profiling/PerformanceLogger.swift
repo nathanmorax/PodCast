@@ -9,12 +9,6 @@ import os
 /// Logger centralizado para medir performance con os_signpost.
 /// Aparece en Instruments cuando agregas el instrumento "os_signpost".
 ///
-/// Uso:
-/// ```
-/// PerformanceLogger.scroll.measure("Configure cell") {
-///     // código a medir
-/// }
-/// ```
 enum PerformanceLogger {
     
     // MARK: - Instances per category

@@ -8,7 +8,7 @@
 import UIKit
 import SwiftUI
 
-struct EpisodeCellUI: View {
+struct EpisodeCell: View {
     
     var episode: Episode
     
@@ -18,7 +18,7 @@ struct EpisodeCellUI: View {
             PodcastImage(source: episode.imageUrl)
                 .frame(width: 80, height: 80)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-
+            
             VStack(alignment: .leading, spacing: 8) {
                 Text(episode.pubDate, style: .date)
                     .foregroundStyle(AppColor.dustyBlue)
@@ -30,16 +30,19 @@ struct EpisodeCellUI: View {
             
             Spacer(minLength: 12)
         }
+        .onAppear {
+            PerformanceLogger.rendering.event("EpisodeCellUI appeared", "title: \(episode.title)")
+        }
         .padding(.horizontal, 8)
     }
 }
 
-#Preview {
-    VStack {
-        ForEach(Episode.mocks, id: \.title) { episode in
-            EpisodeCellUI(episode: episode)
-        }
-    }
-    .padding()
-    .background(Color.gray)
-}
+//#Preview {
+//    VStack {
+//        ForEach(Episode.mocks, id: \.title) { episode in
+//            EpisodeCellUI(episode: episode)
+//        }
+//    }
+//    .padding()
+//    .background(Color.gray)
+//}

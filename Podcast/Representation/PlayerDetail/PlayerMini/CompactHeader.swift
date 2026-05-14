@@ -50,6 +50,6 @@ struct CompactHeader: View {
     }
 }
 
-#Preview {
-    CompactHeader(episode: .mock, playerMode: .constant(.normal))
-}
+//#Preview {
+//    CompactHeader(episode: .mock, playerMode: .constant(.normal))
+//}

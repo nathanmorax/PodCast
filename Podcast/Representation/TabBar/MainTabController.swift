@@ -13,7 +13,7 @@ class MainTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.tabBarMinimizeBehavior = .onScrollDown
+//        self.tabBarMinimizeBehavior = .onScrollDown
         
         tabBar.tintColor = AppColor.lavender.uiColor
 

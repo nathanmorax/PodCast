@@ -17,6 +17,10 @@ private enum Layout {
 }
 
 class EpisodesController: UIViewController {
+    
+    private let perf = PerformanceLogger.scroll
+    
+    
     private var cancellables = Set<AnyCancellable>()
     private var lastHeaderState: HeaderState?
     private var headerActions = EpisodeHeaderActions()
@@ -49,17 +53,19 @@ class EpisodesController: UIViewController {
     }()
     
     private let episodeCellRegistration = UICollectionView.hostingRegistration { (episode: Episode) in
-        EpisodeCellUI(episode: episode)
+        EpisodeCell(episode: episode)
     }
     
     private var headerRegistration: UICollectionView.SupplementaryRegistration<HostingHeaderView>!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupHeaderRegistration()
-        setupCollectionView()
-        setupBindings()
-        listenerHeaderEvents()
+        perf.measure("viewDidLoad") {
+            setupHeaderRegistration()
+            setupCollectionView()
+            setupBindings()
+            listenerHeaderEvents()
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -98,13 +104,15 @@ class EpisodesController: UIViewController {
     }
     
     private func makeHeaderView(for podcast: Podcast) -> EpisodeHeaderView {
-        EpisodeHeaderView(
-            podcast: podcast,
-            isFavorite: viewModel.isFavorite(podcast),
-            podcastDescription: viewModel.podcastDescription,
-            isLoadingDescription: viewModel.isLoadingDescription,
-            actions: headerActions
-        )
+        perf.measure("makeHeaderView") {
+            EpisodeHeaderView(
+                podcast: podcast,
+                isFavorite: viewModel.isFavorite(podcast),
+                podcastDescription: viewModel.podcastDescription,
+                isLoadingDescription: viewModel.isLoadingDescription,
+                actions: headerActions
+            )
+        }
     }
     
     private func setupBindings() {
@@ -112,7 +120,9 @@ class EpisodesController: UIViewController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 guard let self else { return }
-                self.collectionView.reloadData()
+                self.perf.measure("reloadData") {
+                    self.collectionView.reloadData()
+                }
                 DispatchQueue.main.async {
                     self.refreshVisibleHeader()
                 }
@@ -134,11 +144,17 @@ class EpisodesController: UIViewController {
                 
                 guard let self, let podcast = self.podcast else { return }
                 
-                let newState = HeaderState(isFavorite: viewModel.isFavorite(podcast), description: viewModel.podcastDescription, isLoadingDescription: viewModel.isLoadingDescription)
-                
-                guard newState == lastHeaderState else { return }
-                lastHeaderState = newState
-                refreshVisibleHeader()
+                self.perf.measure("favorites pipeline") {
+                    let newState = HeaderState(
+                        isFavorite: self.viewModel.isFavorite(podcast),
+                        description: description,
+                        isLoadingDescription: isLoadingDescription
+                    )
+                    
+                    guard newState != self.lastHeaderState else { return }
+                    self.lastHeaderState = newState
+                    self.refreshVisibleHeader()
+                }
             }
             .store(in: &cancellables)
     }
@@ -164,7 +180,7 @@ class EpisodesController: UIViewController {
             }
         }
     }
-
+    
     // MARK: - Actions
     
     @objc fileprivate func handleFavoritePodcast() {
@@ -183,14 +199,16 @@ class EpisodesController: UIViewController {
     }
     
     private func refreshVisibleHeader() {
-        guard let podcast = self.podcast else { return }
-        let kind = UICollectionView.elementKindSectionHeader
-        
-        for indexPath in collectionView.indexPathsForVisibleSupplementaryElements(ofKind: kind) {
-            guard let header = collectionView.supplementaryView(forElementKind: kind, at: indexPath)
-                    as? HostingHeaderView else { continue }
+        perf.measure("refreshVisibleHeader") {
+            guard let podcast = self.podcast else { return }
+            let kind = UICollectionView.elementKindSectionHeader
             
-            header.host(makeHeaderView(for: podcast))
+            for indexPath in collectionView.indexPathsForVisibleSupplementaryElements(ofKind: kind) {
+                guard let header = collectionView.supplementaryView(forElementKind: kind, at: indexPath)
+                        as? HostingHeaderView else { continue }
+                
+                header.host(makeHeaderView(for: podcast))
+            }
         }
     }
 }
@@ -204,21 +222,26 @@ extension EpisodesController: UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let episode = viewModel.episodes[indexPath.item]
-        return collectionView.dequeueConfiguredReusableCell(
-            using: episodeCellRegistration,
-            for: indexPath,
-            item: episode)
+        perf.measure("cellForItemAt") {
+            let episode = viewModel.episodes[indexPath.item]
+            return collectionView.dequeueConfiguredReusableCell(
+                using: episodeCellRegistration,
+                for: indexPath,
+                item: episode
+            )
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         
-        guard kind == UICollectionView.elementKindSectionHeader else { return UICollectionReusableView() }
-        
-        return collectionView.dequeueConfiguredReusableSupplementary(
-            using: headerRegistration,
-            for: indexPath
-        )
+        perf.measure("viewForSupplementaryElement") {
+            guard kind == UICollectionView.elementKindSectionHeader else { return UICollectionReusableView() }
+            
+            return collectionView.dequeueConfiguredReusableSupplementary(
+                using: headerRegistration,
+                for: indexPath
+            )
+        }
     }
 }
 
@@ -246,5 +269,19 @@ extension EpisodesController: UICollectionViewDelegateFlowLayout {
                         layout collectionViewLayout: UICollectionViewLayout,
                         referenceSizeForHeaderInSection section: Int) -> CGSize {
         CGSize(width: collectionView.bounds.width, height: Layout.headerHeight)
+    }
+}
+
+extension EpisodesController: UIScrollViewDelegate {
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+
+        let offsetY = scrollView.contentOffset.y
+        let contentHeight = scrollView.contentSize.height
+        let height = scrollView.frame.size.height
+
+        if offsetY > contentHeight - height * 1.5 {
+            viewModel.loadMoreEpisodes()
+        }
     }
 }

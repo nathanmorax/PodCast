@@ -41,8 +41,8 @@ struct FavoritesPodcastCellUI: View {
     }
 }
 
-#Preview(traits: .sizeThatFitsLayout) {
-    FavoritesPodcastCellUI(podcast: .mock)
-        .frame(width: 280)
-        .padding(40)
-}
+//#Preview(traits: .sizeThatFitsLayout) {
+//    FavoritesPodcastCellUI(podcast: .mock)
+//        .frame(width: 280)
+//        .padding(40)
+//}
