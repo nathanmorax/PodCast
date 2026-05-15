@@ -34,7 +34,7 @@ class EpisodesController: UIViewController {
     }
     
     private lazy var collectionView: UICollectionView = {
-        let layout = UICollectionViewFlowLayout()
+        let layout = StretchyHeaderLayout()
         layout.minimumLineSpacing      = 0
         layout.minimumInteritemSpacing = 0
         layout.sectionInset            = Layout.sectionInset
@@ -44,6 +44,29 @@ class EpisodesController: UIViewController {
         cv.delegate   = self
         cv.dataSource = self
         return cv
+    }()
+    
+    private lazy var loaderView: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .medium)
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        indicator.color = .label
+        indicator.hidesWhenStopped = true
+        return indicator
+    }()
+    
+    private lazy var loaderContainerView: UIView = {
+        let container = UIView()
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.backgroundColor = .clear
+        
+        container.addSubview(loaderView)
+        NSLayoutConstraint.activate([
+            loaderView.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+            loaderView.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            container.heightAnchor.constraint(equalToConstant: 200)
+        ])
+        
+        return container
     }()
     
     private lazy var viewModel: EpisodesViewModel = {
@@ -86,11 +109,19 @@ class EpisodesController: UIViewController {
     
     private func setupCollectionView() {
         view.addSubview(collectionView)
+        collectionView.addSubview(loaderContainerView)    // ← dentro del collection
+        
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: view.topAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            // El loader va justo debajo del header, dentro del collection (scrollea con él)
+            loaderContainerView.topAnchor.constraint(equalTo: collectionView.topAnchor, constant: Layout.headerHeight),
+            loaderContainerView.leadingAnchor.constraint(equalTo: collectionView.leadingAnchor),
+            loaderContainerView.trailingAnchor.constraint(equalTo: collectionView.trailingAnchor),
+            loaderContainerView.widthAnchor.constraint(equalTo: collectionView.widthAnchor)
         ])
     }
     
@@ -116,16 +147,28 @@ class EpisodesController: UIViewController {
     }
     
     private func setupBindings() {
+        
+        viewModel.$isLoadingEpisodes
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isLoading in
+                if isLoading {
+                    self?.loaderView.startAnimating()
+                    self?.loaderContainerView.isHidden = false
+                } else {
+                    self?.loaderView.stopAnimating()
+                    self?.loaderContainerView.isHidden = true
+                }
+            }
+            .store(in: &cancellables)
+        
+        // ✅ Fix — elimina el async anidado, llama directo
         viewModel.$episodes
+            .filter { !$0.isEmpty }
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 guard let self else { return }
-                self.perf.measure("reloadData") {
-                    self.collectionView.reloadData()
-                }
-                DispatchQueue.main.async {
-                    self.refreshVisibleHeader()
-                }
+                self.collectionView.reloadData()
+                self.refreshVisibleHeader()   // sin DispatchQueue.main.async extra
             }
             .store(in: &cancellables)
         
@@ -165,17 +208,15 @@ class EpisodesController: UIViewController {
     }
     
     func listenerHeaderEvents() {
-        eventsTaks = Task { [weak self] in
+        // ✅ Fix — prioridad explícita + cancellation point claro
+        eventsTaks = Task(priority: .userInitiated) { [weak self] in
             guard let self else { return }
-            
-            for await event in headerActions.events {
+            for await event in self.headerActions.events {
+                guard !Task.isCancelled else { break }
                 switch event {
-                case .play:
-                    handlePlayPodcast()
-                case .bookmark:
-                    handleFavoritePodcast()
-                case .download:
-                    handleDownloadPodcast()
+                case .play:     self.handlePlayPodcast()
+                case .bookmark: self.handleFavoritePodcast()
+                case .download: self.handleDownloadPodcast()
                 }
             }
         }
@@ -199,16 +240,16 @@ class EpisodesController: UIViewController {
     }
     
     private func refreshVisibleHeader() {
-        perf.measure("refreshVisibleHeader") {
-            guard let podcast = self.podcast else { return }
-            let kind = UICollectionView.elementKindSectionHeader
-            
-            for indexPath in collectionView.indexPathsForVisibleSupplementaryElements(ofKind: kind) {
-                guard let header = collectionView.supplementaryView(forElementKind: kind, at: indexPath)
-                        as? HostingHeaderView else { continue }
-                
-                header.host(makeHeaderView(for: podcast))
-            }
+        guard let podcast = self.podcast else { return }
+
+        // Captura estado una sola vez, fuera del loop
+        let headerView = makeHeaderView(for: podcast)
+        let kind = UICollectionView.elementKindSectionHeader
+
+        for indexPath in collectionView.indexPathsForVisibleSupplementaryElements(ofKind: kind) {
+            guard let header = collectionView.supplementaryView(forElementKind: kind, at: indexPath)
+                    as? HostingHeaderView else { continue }
+            header.host(headerView)   // misma instancia para todos los headers visibles
         }
     }
 }
@@ -273,13 +314,13 @@ extension EpisodesController: UICollectionViewDelegateFlowLayout {
 }
 
 extension EpisodesController: UIScrollViewDelegate {
-
+    
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-
+        
         let offsetY = scrollView.contentOffset.y
         let contentHeight = scrollView.contentSize.height
         let height = scrollView.frame.size.height
-
+        
         if offsetY > contentHeight - height * 1.5 {
             viewModel.loadMoreEpisodes()
         }

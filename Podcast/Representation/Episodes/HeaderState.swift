@@ -2,16 +2,24 @@
 //  HeaderState.swift
 //  Podcast
 //
-//  Created by Satori Tech 341 on 12/05/26.
-//
-import SwiftUI
+
+import Foundation
+
+// MARK: - HeaderState
 
 struct HeaderState: Equatable {
-    
     let isFavorite: Bool
     let description: String?
     let isLoadingDescription: Bool
+
+    static func == (lhs: HeaderState, rhs: HeaderState) -> Bool {
+        lhs.isFavorite == rhs.isFavorite &&
+        lhs.isLoadingDescription == rhs.isLoadingDescription &&
+        (lhs.description ?? "") == (rhs.description ?? "")
+    }
 }
+
+// MARK: - EpisodeHeaderEvent
 
 enum EpisodeHeaderEvent {
     case play
@@ -19,15 +27,24 @@ enum EpisodeHeaderEvent {
     case download
 }
 
-struct EpisodeHeaderActions {
-    
-    private var continuation: AsyncStream<EpisodeHeaderEvent>.Continuation?
-    
-    lazy var events: AsyncStream<EpisodeHeaderEvent> = {
-        AsyncStream { self.continuation = $0 }
-    }()
-    
+// MARK: - EpisodeHeaderActions
+
+final class EpisodeHeaderActions {
+
+    let events: AsyncStream<EpisodeHeaderEvent>
+    private let continuation: AsyncStream<EpisodeHeaderEvent>.Continuation
+
+    init() {
+        // makeStream garantiza que continuation existe antes de cualquier send()
+        (events, continuation) = AsyncStream.makeStream(of: EpisodeHeaderEvent.self)
+    }
+
     func send(_ event: EpisodeHeaderEvent) {
-        continuation?.yield(event)
+        continuation.yield(event)
+    }
+
+    deinit {
+        // Finaliza el stream para que el for await en el controller termine limpiamente
+        continuation.finish()
     }
 }
