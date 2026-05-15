@@ -15,9 +15,11 @@ struct EpisodeCell: View {
     var body: some View {
         HStack {
             
-            PodcastImage(source: episode.imageUrl)
-                .frame(width: 80, height: 80)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+//            PodcastImage(source: episode.imageUrl)
+//                .frame(width: 80, height: 80)
+//                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            
+            WaveformIcon()
             
             VStack(alignment: .leading, spacing: 8) {
                 Text(episode.pubDate, style: .date)
@@ -27,6 +29,7 @@ struct EpisodeCell: View {
                     .font(.caption)
                 
             }
+        
             
             Spacer(minLength: 12)
         }
