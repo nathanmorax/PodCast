@@ -8,11 +8,12 @@
 import Foundation
 import FeedKit
 
-struct Episode {
+struct Episode: Codable {
     let title: String
     let author: String
     let pubDate: Date
     let description: String
+    let duration: String?
     let streamUrl: String
     var imageUrl: String?
     
@@ -25,6 +26,7 @@ struct Episode {
                                   ?? feedItem.description
                                   ?? ""
         self.description    = rawDescription.strippingHTML()
+        self.duration       = feedItem.iTunes?.duration?.description
         
         self.streamUrl      = feedItem.enclosure?.attributes?.url ?? ""
         self.imageUrl       = feedItem.iTunes?.image?.attributes?.href ?? ""
@@ -37,15 +39,17 @@ extension Episode {
         author: String,
         pubDate: Date,
         description: String,
+        duration: String,
         streamUrl: String,
         imageUrl: String? = nil
     ) {
-        self.title = title
-        self.author = author
-        self.pubDate = pubDate
-        self.description = description
-        self.streamUrl = streamUrl
-        self.imageUrl = imageUrl
+        self.title          = title
+        self.author         = author
+        self.pubDate        = pubDate
+        self.description    = description
+        self.duration       = duration
+        self.streamUrl      = streamUrl
+        self.imageUrl       = imageUrl
     }
 }
 
@@ -61,6 +65,7 @@ extension Episode {
             author: "BBC World Service",
             pubDate: Date(timeIntervalSince1970: 1_745_000_000),
             description: "Noticias globales del día con análisis.",
+            duration: "58 min",
             streamUrl: "https://example.com/episodes/1.mp3",
             imageUrl: "appicon"
         ),
@@ -69,6 +74,7 @@ extension Episode {
             author: "Tech Daily",
             pubDate: Date(timeIntervalSince1970: 1_745_100_000),
             description: "Lo último en tecnología y desarrollo iOS.",
+            duration: "58 min",
             streamUrl: "https://example.com/episodes/2.mp3",
             imageUrl: "appicon"
         ),
@@ -77,6 +83,7 @@ extension Episode {
             author: "Founders Hub",
             pubDate: Date(timeIntervalSince1970: 1_745_200_000),
             description: "Historias de emprendedores exitosos.",
+            duration: "58 min",
             streamUrl: "https://example.com/episodes/3.mp3",
             imageUrl: "appicon"
         ),
@@ -85,6 +92,7 @@ extension Episode {
             author: "UX Collective",
             pubDate: Date(timeIntervalSince1970: 1_745_300_000),
             description: "Diseño de productos digitales y UX.",
+            duration: "58 min",
             streamUrl: "https://example.com/episodes/4.mp3",
             imageUrl: "appicon"
         ),
@@ -93,6 +101,7 @@ extension Episode {
             author: "AI Lab",
             pubDate: Date(timeIntervalSince1970: 1_745_400_000),
             description: "Inteligencia artificial y su impacto real.",
+            duration: "58 min",
             streamUrl: "https://example.com/episodes/5.mp3",
             imageUrl: "appicon"
         )
