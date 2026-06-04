@@ -37,6 +37,9 @@ class AVPlayerViewModel {
     // MARK: - Private (no observable)
     
     @ObservationIgnored
+    private let bookmarkManager: BookMarkEpisodeManager
+    
+    @ObservationIgnored
     private let player: AVPlayerDataSource
     
     @ObservationIgnored
@@ -56,8 +59,9 @@ class AVPlayerViewModel {
     
     // MARK: - Init
     
-    init(player: AVPlayerDataSource = AVPlayerDataSource()) {
+    init(player: AVPlayerDataSource = AVPlayerDataSource(), bookmarkManager: BookMarkEpisodeManager = .shared) {
         self.player = player
+        self.bookmarkManager = bookmarkManager
         self.bind()
         self.configureAudioSession()
     }
@@ -137,6 +141,14 @@ class AVPlayerViewModel {
     
     func setVolume(_ value: Float) {
         player.setVolume(value)
+    }
+    
+    func toggleBookmark(for episode: Episode) {
+        bookmarkManager.toggle(episode)
+    }
+    
+    func isBookMarked(_ episode: Episode) -> Bool {
+        bookmarkManager.isBookMarked(episode)
     }
     
     // MARK: - Transcript API

@@ -30,6 +30,7 @@ class AVPlayerDataSource: PlayerDataSource {
         avPlayer.automaticallyWaitsToMinimizeStalling = false
         return avPlayer
     }()
+
     
     init() {
         observeTime()

@@ -26,10 +26,13 @@ final class PlayerManager {
     
     // MARK: - Public API
     
-    func play(_ episode: Episode) {
+    func play(_ episode: Episode, presentation: PlayerPresentation = .expanded) {
         currentEpisode = episode
         viewModel.playEpisode(episode)
-        expand()
+
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+            self.presentation = presentation
+        }
     }
     
     func expand() {
@@ -42,5 +45,18 @@ final class PlayerManager {
         withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
             presentation = .mini
         }
+    }
+    
+    func playOrToggle(_ episode: Episode, presentation: PlayerPresentation = .mini) {
+        if currentEpisode?.streamUrl == episode.streamUrl {
+            viewModel.togglePlayPause()
+            return
+        }
+
+        play(episode, presentation: presentation)
+    }
+
+    func togglePlayPause() {
+        viewModel.togglePlayPause()
     }
 }

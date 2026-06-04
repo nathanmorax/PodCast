@@ -96,7 +96,7 @@ struct EpisodeHeaderView: View {
             CircleIconButton(
                 systemName: isFavorite ? "bookmark.fill" : "bookmark",
                 isHighlighted: isFavorite,
-                action: { actions.send(.bookmark) }
+                action: { /*actions.send(.bookmark(podcast))*/ }
             )
             CircleIconButton(systemName: "arrow.down.to.line", action:{ actions.send(.download)})
         }

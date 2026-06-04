@@ -21,11 +21,12 @@ enum AppColor {
     static let burntOrange   = Color("burntOrange")
     static let charcoalBrown = Color("charcoalBrown")
     static let lavender      = Color("lavender")
+    static let background    = Color("background")
     
     // MARK: - Semantic roles
     
     enum Brand {
-        static let primary   = AppColor.lavender
+        static let primary   = AppColor.background
         static let secondary = AppColor.paleYellow
     }
     

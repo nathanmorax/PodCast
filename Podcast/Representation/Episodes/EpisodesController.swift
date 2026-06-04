@@ -208,7 +208,6 @@ class EpisodesController: UIViewController {
     }
     
     func listenerHeaderEvents() {
-        // ✅ Fix — prioridad mexplícita + cancellation point claro
         eventsTaks = Task(priority: .userInitiated) { [weak self] in
             guard let self else { return }
             for await event in self.headerActions.events {

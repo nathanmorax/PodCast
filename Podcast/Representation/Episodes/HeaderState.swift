@@ -23,7 +23,7 @@ struct HeaderState: Equatable {
 
 enum EpisodeHeaderEvent {
     case play
-    case bookmark
+    case bookmark(Episode)
     case download
 }
 
@@ -35,7 +35,6 @@ final class EpisodeHeaderActions {
     private let continuation: AsyncStream<EpisodeHeaderEvent>.Continuation
 
     init() {
-        // makeStream garantiza que continuation existe antes de cualquier send()
         (events, continuation) = AsyncStream.makeStream(of: EpisodeHeaderEvent.self)
     }
 
@@ -44,7 +43,21 @@ final class EpisodeHeaderActions {
     }
 
     deinit {
-        // Finaliza el stream para que el for await en el controller termine limpiamente
         continuation.finish()
+    }
+}
+
+// EnvironmentValues+HeaderActions.swift
+
+import SwiftUI
+
+private struct EpisodeHeaderActionsKey: EnvironmentKey {
+    static let defaultValue = EpisodeHeaderActions()
+}
+
+extension EnvironmentValues {
+    var episodeActions: EpisodeHeaderActions {
+        get { self[EpisodeHeaderActionsKey.self] }
+        set { self[EpisodeHeaderActionsKey.self] = newValue }
     }
 }
