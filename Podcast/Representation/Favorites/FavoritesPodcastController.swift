@@ -9,6 +9,14 @@ import UIKit
 import Combine
 import SwiftUI
 
+
+enum SavedEpisodeAction {
+    case playAndPause
+    case removeBookmark
+    case download
+}
+
+
 class FavoritesPodcastController: UIViewController {
     
     private var pendingDeleteIndexPath: IndexPath?
@@ -19,31 +27,55 @@ class FavoritesPodcastController: UIViewController {
         return cv
     }()
     
-    private let viewModel = FavoritesViewModel(favoritesManager: .shared)
+    private let viewModel = BookMarkEpisodeViewModel(bookmarkManagerEpisode: .shared)
     
-    private let favoritesPodcastCellRegistration = UICollectionView.hostingRegistration(backgroundStyle: .none) { (podcast: Podcast) in
-        FavoritesPodcastCellUI(podcast: podcast)
-    }
+    private var savedEpisodeCellRegistration: UICollectionView.CellRegistration<UICollectionViewCell, Episode>!
+
     
     private var cancellables = Set<AnyCancellable>()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        configureCellRegistration()
         self.configureCollection()
-        self.bindViewModel()
+        observeEpisodes()
         
         view.backgroundColor = AppColor.slateGray.uiColor
         collectionView.backgroundColor = .clear
+        
 
     }
     
-    fileprivate func bindViewModel() {
-        viewModel.$favorites
-            .receive(on: DispatchQueue.main)
-            .sink(receiveValue: { [weak self] favorites in
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        collectionView.reloadData()
+    }
+
+    
+    private func observeEpisodes() {
+        withObservationTracking {
+            _ = viewModel.episodes
+        } onChange: { [weak self] in
+            DispatchQueue.main.async {
                 self?.collectionView.reloadData()
-            })
-            .store(in: &cancellables)
+                self?.observeEpisodes()
+            }
+        }
+    }
+    
+    private func configureCellRegistration() {
+        savedEpisodeCellRegistration = UICollectionView.hostingRegistration(backgroundStyle: .none) { [weak self] (episode: Episode) in
+            SavedEpisodeRow(episode: episode) { action in
+                switch action {
+                case .playAndPause:
+                    self?.viewModel.playOrToggle(episode, presentation: .mini)
+                case .removeBookmark:
+                    self?.viewModel.remove(episode)
+                case .download:
+                    print("Download:", episode.title)
+                }
+            }
+        }
     }
     
     func configureCollection() {
@@ -67,71 +99,42 @@ class FavoritesPodcastController: UIViewController {
 
 extension FavoritesPodcastController: UICollectionViewDataSource, UICollectionViewDelegate ,  UICollectionViewDelegateFlowLayout{
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return viewModel.favorites.count
+        return viewModel.episodes.count
     }
     
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let item = viewModel.favorites[indexPath.item]
+    func collectionView(_ collectionView: UICollectionView,
+                        cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let episode = viewModel.episodes[indexPath.item]
+
         return collectionView.dequeueConfiguredReusableCell(
-            using: favoritesPodcastCellRegistration,
+            using: savedEpisodeCellRegistration,
             for: indexPath,
-            item: item)
+            item: episode
+        )
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         
-        let episodesController = EpisodesController()
-        let podcast = self.viewModel.favorites[indexPath.item]
-        episodesController.podcast = podcast
-        navigationController?.pushViewController(episodesController, animated: true)
+//        let episodesController = EpisodesController()
+//        let podcast = self.viewModel.episodes[indexPath.item]
+////        episodesController.podcast = podcast
+//        navigationController?.pushViewController(episodesController, animated: true)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         
-        let width = (view.frame.width - 3 * 16) / 2
-        
-        return CGSize(width: width, height: width + 42)
-        
+        let horizontalInset: CGFloat = 4
+        let width = collectionView.bounds.width - (horizontalInset * 2)
+
+        return CGSize(width: width, height: 88)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView,layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        24
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        return UIEdgeInsets(top: 42, left: 16, bottom: 16, right: 16)
+        return UIEdgeInsets(top: 42, left: 0, bottom: 16, right: 0)
     }
     
-    func collectionView(_ collectionView: UICollectionView,
-                        contextMenuConfigurationForItemAt indexPath: IndexPath,
-                        point: CGPoint) -> UIContextMenuConfiguration? {
-        
-        let selectedPodcast = viewModel.favorites[indexPath.item]
-        
-        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
-            
-            guard let self = self else { return nil }
-            
-            let playNext = UIAction(
-                title: "Reproducir a continuación",
-                image: UIImage(systemName: "text.insert")
-            ) { _ in
-                print("Play next: \(selectedPodcast.trackName ?? "")")
-            }
-            
-            let markPlayed = UIAction(
-                title: "Marcar como reproducido",
-                image: UIImage(systemName: "checkmark")
-            ) { _ in
-                print("Mark played")
-            }
-            
-            let delete = UIAction(
-                title: "Eliminar de favoritos",
-                image: UIImage(systemName: "trash"),
-                attributes: .destructive
-            ) { _ in
-                self.pendingDeleteIndexPath = indexPath
-                self.viewModel.remove(selectedPodcast)
-            }
-            
-            return UIMenu(title: "", children: [playNext, markPlayed, delete])
-        }
-    }
 }

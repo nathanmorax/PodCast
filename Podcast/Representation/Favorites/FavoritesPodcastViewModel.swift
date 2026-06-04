@@ -5,6 +5,7 @@
 //  Created by Jesus Mora on 20/03/26.
 //
 import Combine
+import Observation
 
 class FavoritesViewModel {
     
@@ -21,5 +22,35 @@ class FavoritesViewModel {
     
     func remove(_ podcast: Podcast) {
         favoritesManager.deleteFavorite(podcast)
+    }
+}
+
+@Observable
+class BookMarkEpisodeViewModel {
+    
+    private let bookmarkManager: BookMarkEpisodeManager
+    private let playerManager: PlayerManager
+    
+    var episodes: [Episode] { bookmarkManager.episodes }
+    
+    init(
+        bookmarkManagerEpisode: BookMarkEpisodeManager = .shared,
+        playerManager: PlayerManager = .shared
+    ) {
+        self.bookmarkManager = bookmarkManagerEpisode
+        self.playerManager = playerManager
+    }
+    
+    func remove(_ episode: Episode) {
+        bookmarkManager.delete(episode)
+    }
+    
+    func playOrToggle(_ episode: Episode, presentation: PlayerManager.PlayerPresentation = .mini) {
+        playerManager.playOrToggle(episode, presentation: presentation)
+    }
+    
+    func isPlaying(_ episode: Episode) -> Bool {
+        playerManager.currentEpisode?.streamUrl == episode.streamUrl &&
+        playerManager.viewModel.isPlaying
     }
 }
