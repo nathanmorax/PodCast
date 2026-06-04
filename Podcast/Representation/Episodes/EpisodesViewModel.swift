@@ -8,17 +8,19 @@
 import Combine
 import Foundation
 import FeedKit
+import Observation
 
+@Observable
 @MainActor
 class EpisodesViewModel {
     
-    @Published private(set) var favorites: [Podcast] = []
-    @Published private(set) var episodes: [Episode] = []
-    @Published private(set) var errorMessage: String?
+    private(set) var favorites: [Podcast] = []
+    private(set) var episodes: [Episode] = []
+    private(set) var errorMessage: String?
     
-    @Published private(set) var podcastDescription: String?
-    @Published private(set) var isLoadingDescription = false
-    @Published private(set) var isLoadingEpisodes = false
+    private(set) var podcastDescription: String?
+    private(set) var isLoadingDescription = false
+    private(set) var isLoadingEpisodes = false
     
     private var allEpisodes: [Episode] = []
     private var currentPage = 0
@@ -48,7 +50,11 @@ class EpisodesViewModel {
     
     private func bindFavorites() {
         favoritesManager.favoritesPublisher
-            .assign(to: &$favorites)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] favorites in
+                self?.favorites = favorites
+            }
+            .store(in: &cancellables)
     }
     
     func toggleFavorite(podcast: Podcast) {
@@ -162,8 +168,9 @@ class EpisodesViewModel {
             }
         }
     
-    deinit {
-        loadEpisodesTask?.cancel()
-        loadDescriptionTask?.cancel()
-    }
+//    deinit {
+//        loadEpisodesTask?.cancel()
+//        loadDescriptionTask?.cancel()
+//    }
 }
+

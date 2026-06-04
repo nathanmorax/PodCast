@@ -2,7 +2,7 @@
 //  GenresRepositoryImpl.swift
 //  Podcast
 //
-//  Created by Satori Tech 341 on 20/03/26.
+//  Created by Jonathan Mora on 20/03/26.
 //
 
 protocol GenresRepository {

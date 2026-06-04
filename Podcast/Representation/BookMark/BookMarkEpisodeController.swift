@@ -9,15 +9,7 @@ import UIKit
 import Combine
 import SwiftUI
 
-
-enum SavedEpisodeAction {
-    case playAndPause
-    case removeBookmark
-    case download
-}
-
-
-class FavoritesPodcastController: UIViewController {
+class BookMarkEpisodeController: UIViewController {
     
     private var pendingDeleteIndexPath: IndexPath?
     
@@ -27,7 +19,7 @@ class FavoritesPodcastController: UIViewController {
         return cv
     }()
     
-    private let viewModel = BookMarkEpisodeViewModel(bookmarkManagerEpisode: .shared)
+    private let viewModel = BookMarkEpisodeViewModel()
     
     private var savedEpisodeCellRegistration: UICollectionView.CellRegistration<UICollectionViewCell, Episode>!
 
@@ -55,6 +47,8 @@ class FavoritesPodcastController: UIViewController {
     private func observeEpisodes() {
         withObservationTracking {
             _ = viewModel.episodes
+            _ = PlayerManager.shared.viewModel.isPlaying
+            _ = PlayerManager.shared.currentEpisode
         } onChange: { [weak self] in
             DispatchQueue.main.async {
                 self?.collectionView.reloadData()
@@ -64,19 +58,10 @@ class FavoritesPodcastController: UIViewController {
     }
     
     private func configureCellRegistration() {
-        savedEpisodeCellRegistration = UICollectionView.hostingRegistration(backgroundStyle: .none) { [weak self] (episode: Episode) in
-            SavedEpisodeRow(episode: episode) { action in
-                switch action {
-                case .playAndPause:
-                    self?.viewModel.playOrToggle(episode, presentation: .mini)
-                case .removeBookmark:
-                    self?.viewModel.remove(episode)
-                case .download:
-                    print("Download:", episode.title)
-                }
-            }
-        }
-    }
+          savedEpisodeCellRegistration = UICollectionView.hostingRegistration(backgroundStyle: .none) { (episode: Episode) in
+              BookMarkView(viewModel: EpisodeActionViewModel(episode: episode))
+          }
+      }
     
     func configureCollection() {
         
@@ -97,7 +82,7 @@ class FavoritesPodcastController: UIViewController {
 }
 
 
-extension FavoritesPodcastController: UICollectionViewDataSource, UICollectionViewDelegate ,  UICollectionViewDelegateFlowLayout{
+extension BookMarkEpisodeController: UICollectionViewDataSource, UICollectionViewDelegate ,  UICollectionViewDelegateFlowLayout{
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return viewModel.episodes.count
     }

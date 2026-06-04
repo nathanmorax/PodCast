@@ -2,7 +2,7 @@
 //  HostingHeaderView.swift
 //  Podcast
 //
-//  Created by Satori Tech 341 on 11/05/26.
+//  Created by Jonathan Mora on 11/05/26.
 //
 import UIKit
 import SwiftUI
