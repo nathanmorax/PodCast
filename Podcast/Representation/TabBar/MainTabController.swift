@@ -21,12 +21,12 @@ class MainTabBarController: UITabBarController {
             UITab(title: "Favoritos",
                   image: UIImage(systemName: "heart"),
                   identifier: "workouts") { _ in
-                UINavigationController(rootViewController: FavoritesPodcastController())
+                UINavigationController(rootViewController: BookMarkEpisodeController())
             },
             UITab(title: "Descargas",
                   image: UIImage(systemName: "bookmark.fill"),
                   identifier: "exercises") { _ in
-                UINavigationController(rootViewController: FavoritesPodcastController())
+                UINavigationController(rootViewController: BookMarkEpisodeController())
             },
             UISearchTab { _ in
                 UINavigationController(rootViewController: PodcastSearchContainerController())

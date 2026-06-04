@@ -2,7 +2,7 @@
 //  RootView.swift
 //  Podcast
 //
-//  Created by Satori Tech 341 on 12/05/26.
+//  Created by Jonathan Mora on 12/05/26.
 //
 
 
@@ -11,6 +11,8 @@ import SwiftUI
 struct RootView: View {
     
     @State private var manager = PlayerManager.shared
+    let headerActions = EpisodeHeaderActions()
+
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -49,6 +51,7 @@ struct RootView: View {
                     .transition(.move(edge: .bottom))
                     .ignoresSafeArea()
                     .zIndex(1)
+                    .environment(\.episodeActions, headerActions)
             }
         }
     }

@@ -2,7 +2,7 @@
 //  CompactHeader.swift
 //  Podcast
 //
-//  Created by Satori Tech 341 on 13/05/26.
+//  Created by Jonathan Mora on 13/05/26.
 //
 import SwiftUI
 

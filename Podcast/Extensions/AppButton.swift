@@ -2,7 +2,7 @@
 //  AppButton.swift
 //  Podcast
 //
-//  Created by Satori Tech 341 on 12/05/26.
+//  Created by Jonathan Mora on 12/05/26.
 //
 import SwiftUI
 
@@ -79,10 +79,10 @@ public struct AppButton: View {
                 
             case .brand:
                 return ButtonPalette(
-                    activeBackground: AppColor.Brand.primary,
-                    activeForeground: AppColor.Text.inverse,
-                    inactiveBackground: AppColor.Brand.primary.opacity(0.15),
-                    inactiveForeground: AppColor.Brand.primary
+                    activeBackground: .yellow,
+                    activeForeground: .yellow,
+                    inactiveBackground: AppColor.slateGray,
+                    inactiveForeground: .black
                 )
                 
             case .critical:

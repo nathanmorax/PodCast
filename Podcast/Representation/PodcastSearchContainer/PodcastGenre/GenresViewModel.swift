@@ -2,7 +2,7 @@
 //  GenresViewModel.swift
 //  Podcast
 //
-//  Created by Satori Tech 341 on 25/02/26.
+//  Created by Jonathan MOra on 25/02/26.
 //
 import UIKit
 

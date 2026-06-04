@@ -9,7 +9,6 @@ import UIKit
 import Combine
 import SwiftUI
 
-
 private enum Layout {
     static let headerHeight: CGFloat = 720
     static let cellHeight: CGFloat   = 120
@@ -17,22 +16,21 @@ private enum Layout {
 }
 
 class EpisodesController: UIViewController {
-    
+
     private let perf = PerformanceLogger.scroll
-    
-    
-    private var cancellables = Set<AnyCancellable>()
+
     private var lastHeaderState: HeaderState?
     private var headerActions = EpisodeHeaderActions()
     private var eventsTaks: Task<Void, Never>?
-    
+    private var observationTask: Task<Void, Never>?   // ← reemplaza cancellables
+
     var podcast: Podcast? {
         didSet {
             loadEpisodes()
             viewModel.loadPodcastDescription(feedURL: podcast?.feedUrl)
         }
     }
-    
+
     private lazy var collectionView: UICollectionView = {
         let layout = StretchyHeaderLayout()
         layout.minimumLineSpacing      = 0
@@ -45,7 +43,7 @@ class EpisodesController: UIViewController {
         cv.dataSource = self
         return cv
     }()
-    
+
     private lazy var loaderView: UIActivityIndicatorView = {
         let indicator = UIActivityIndicatorView(style: .medium)
         indicator.translatesAutoresizingMaskIntoConstraints = false
@@ -53,78 +51,144 @@ class EpisodesController: UIViewController {
         indicator.hidesWhenStopped = true
         return indicator
     }()
-    
+
     private lazy var loaderContainerView: UIView = {
         let container = UIView()
         container.translatesAutoresizingMaskIntoConstraints = false
         container.backgroundColor = .clear
-        
         container.addSubview(loaderView)
         NSLayoutConstraint.activate([
             loaderView.centerXAnchor.constraint(equalTo: container.centerXAnchor),
             loaderView.centerYAnchor.constraint(equalTo: container.centerYAnchor),
             container.heightAnchor.constraint(equalToConstant: 200)
         ])
-        
         return container
     }()
-    
+
     private lazy var viewModel: EpisodesViewModel = {
         let remote = PodcastRemoteDataService()
         let repository = PodcastRepositoryImpl(remoteDataSource: remote)
         return EpisodesViewModel(repository: repository)
     }()
-    
+
     private let episodeCellRegistration = UICollectionView.hostingRegistration { (episode: Episode) in
         EpisodeCell(episode: episode)
     }
-    
+
     private var headerRegistration: UICollectionView.SupplementaryRegistration<HostingHeaderView>!
-    
+
+    // MARK: - Lifecycle
+
     override func viewDidLoad() {
         super.viewDidLoad()
         perf.measure("viewDidLoad") {
             setupHeaderRegistration()
             setupCollectionView()
-            setupBindings()
+            observeViewModel()          // ← reemplaza setupBindings()
             listenerHeaderEvents()
         }
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateCollectionViewInset()
         refreshVisibleHeader()
     }
-    
+
     deinit {
         eventsTaks?.cancel()
+        observationTask?.cancel()
     }
-    
+
+    // MARK: - Observation (reemplaza setupBindings con Combine)
+
+    private func observeViewModel() {
+        observeLoading()
+        observeEpisodes()
+        observeHeader()
+    }
+
+    private func observeLoading() {
+        withObservationTracking {
+            _ = viewModel.isLoadingEpisodes
+        } onChange: { [weak self] in
+            DispatchQueue.main.async {
+                guard let self else { return }
+                if self.viewModel.isLoadingEpisodes {
+                    self.loaderView.startAnimating()
+                    self.loaderContainerView.isHidden = false
+                } else {
+                    self.loaderView.stopAnimating()
+                    self.loaderContainerView.isHidden = true
+                }
+                self.observeLoading()   // re-observa para el siguiente cambio
+            }
+        }
+    }
+
+    private func observeEpisodes() {
+        withObservationTracking {
+            _ = viewModel.episodes
+        } onChange: { [weak self] in
+            DispatchQueue.main.async {
+                guard let self else { return }
+                if !self.viewModel.episodes.isEmpty {
+                    self.collectionView.reloadData()
+                    self.refreshVisibleHeader()
+                }
+                self.observeEpisodes()
+            }
+        }
+    }
+
+    private func observeHeader() {
+        withObservationTracking {
+            _ = viewModel.favorites
+            _ = viewModel.podcastDescription
+            _ = viewModel.isLoadingDescription
+        } onChange: { [weak self] in
+            DispatchQueue.main.async {
+                guard let self, let podcast = self.podcast else { return }
+                self.perf.measure("favorites pipeline") {
+                    let newState = HeaderState(
+                        isFavorite: self.viewModel.isFavorite(podcast),
+                        description: self.viewModel.podcastDescription,
+                        isLoadingDescription: self.viewModel.isLoadingDescription
+                    )
+                    guard newState != self.lastHeaderState else { return }
+                    self.lastHeaderState = newState
+                    self.refreshVisibleHeader()
+                }
+                self.observeHeader()
+            }
+        }
+    }
+
+    // MARK: - Setup
+
     private func updateCollectionViewInset() {
         let tabBarHeight = tabBarController?.tabBar.frame.height ?? 0
         collectionView.contentInset.bottom = tabBarHeight
         collectionView.verticalScrollIndicatorInsets.bottom = tabBarHeight
     }
-    
+
     private func setupCollectionView() {
         view.addSubview(collectionView)
-        collectionView.addSubview(loaderContainerView)    // ← dentro del collection
-        
+        collectionView.addSubview(loaderContainerView)
+
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: view.topAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
-            // El loader va justo debajo del header, dentro del collection (scrollea con él)
+
             loaderContainerView.topAnchor.constraint(equalTo: collectionView.topAnchor, constant: Layout.headerHeight),
             loaderContainerView.leadingAnchor.constraint(equalTo: collectionView.leadingAnchor),
             loaderContainerView.trailingAnchor.constraint(equalTo: collectionView.trailingAnchor),
             loaderContainerView.widthAnchor.constraint(equalTo: collectionView.widthAnchor)
         ])
     }
-    
+
     private func setupHeaderRegistration() {
         headerRegistration = UICollectionView.SupplementaryRegistration<HostingHeaderView>(
             elementKind: UICollectionView.elementKindSectionHeader
@@ -133,7 +197,7 @@ class EpisodesController: UIViewController {
             supplementaryView.host(self.makeHeaderView(for: podcast))
         }
     }
-    
+
     private func makeHeaderView(for podcast: Podcast) -> EpisodeHeaderView {
         perf.measure("makeHeaderView") {
             EpisodeHeaderView(
@@ -145,70 +209,17 @@ class EpisodesController: UIViewController {
             )
         }
     }
-    
-    private func setupBindings() {
-        
-        viewModel.$isLoadingEpisodes
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] isLoading in
-                if isLoading {
-                    self?.loaderView.startAnimating()
-                    self?.loaderContainerView.isHidden = false
-                } else {
-                    self?.loaderView.stopAnimating()
-                    self?.loaderContainerView.isHidden = true
-                }
-            }
-            .store(in: &cancellables)
-        
-        // ✅ Fix — elimina el async anidado, llama directo
-        viewModel.$episodes
-            .filter { !$0.isEmpty }
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                guard let self else { return }
-                self.collectionView.reloadData()
-                self.refreshVisibleHeader()   // sin DispatchQueue.main.async extra
-            }
-            .store(in: &cancellables)
-        
-        viewModel.$errorMessage
-            .compactMap { $0 }
-            .receive(on: DispatchQueue.main)
-            .sink { error in
-                print("Episodes error:", error)
-            }
-            .store(in: &cancellables)
-        
-        viewModel.$favorites
-            .combineLatest(viewModel.$podcastDescription, viewModel.$isLoadingDescription)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _, description, isLoadingDescription in
-                
-                guard let self, let podcast = self.podcast else { return }
-                
-                self.perf.measure("favorites pipeline") {
-                    let newState = HeaderState(
-                        isFavorite: self.viewModel.isFavorite(podcast),
-                        description: description,
-                        isLoadingDescription: isLoadingDescription
-                    )
-                    
-                    guard newState != self.lastHeaderState else { return }
-                    self.lastHeaderState = newState
-                    self.refreshVisibleHeader()
-                }
-            }
-            .store(in: &cancellables)
-    }
-    
+
+    // MARK: - Load
+
     fileprivate func loadEpisodes() {
         guard let feedUrl = podcast?.feedUrl else { return }
         viewModel.loadEpisodes(feedURL: feedUrl)
     }
-    
+
+    // MARK: - Header events
+
     func listenerHeaderEvents() {
-        // ✅ Fix — prioridad mexplícita + cancellation point claro
         eventsTaks = Task(priority: .userInitiated) { [weak self] in
             guard let self else { return }
             for await event in self.headerActions.events {
@@ -221,35 +232,32 @@ class EpisodesController: UIViewController {
             }
         }
     }
-    
+
     // MARK: - Actions
-    
+
     @objc fileprivate func handleFavoritePodcast() {
-        guard let podcast = podcast else { return }
+        guard let podcast else { return }
         viewModel.toggleFavorite(podcast: podcast)
     }
-    
+
     private func handlePlayPodcast() {
         guard let firstEpisode = viewModel.episodes.first else { return }
         PlayerManager.shared.play(firstEpisode)
-        
     }
-    
+
     private func handleDownloadPodcast() {
         print("Download tapped")
     }
-    
-    private func refreshVisibleHeader() {
-        guard let podcast = self.podcast else { return }
 
-        // Captura estado una sola vez, fuera del loop
+    private func refreshVisibleHeader() {
+        guard let podcast else { return }
         let headerView = makeHeaderView(for: podcast)
         let kind = UICollectionView.elementKindSectionHeader
 
         for indexPath in collectionView.indexPathsForVisibleSupplementaryElements(ofKind: kind) {
             guard let header = collectionView.supplementaryView(forElementKind: kind, at: indexPath)
                     as? HostingHeaderView else { continue }
-            header.host(headerView)   // misma instancia para todos los headers visibles
+            header.host(headerView)
         }
     }
 }

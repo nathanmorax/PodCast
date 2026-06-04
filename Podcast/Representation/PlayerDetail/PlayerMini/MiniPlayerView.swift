@@ -2,7 +2,7 @@
 //  MiniPlayerView.swift
 //  Podcast
 //
-//  Created by Satori Tech 341 on 12/05/26.
+//  Created by Jonathan Mora on 12/05/26.
 //
 import SwiftUI
 

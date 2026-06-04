@@ -2,7 +2,7 @@
 //  UIViewController.swift
 //  Podcast
 //
-//  Created by Satori Tech 341 on 05/05/26.
+//  Created by Jonathan Mora on 05/05/26.
 //
 import UIKit
 

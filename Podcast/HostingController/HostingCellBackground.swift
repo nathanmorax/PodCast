@@ -2,7 +2,7 @@
 //  HostingCellBackground.swift
 //  Podcast
 //
-//  Created by Satori Tech 341 on 30/04/26.
+//  Created by Jonathan Mora on 30/04/26.
 //
 import SwiftUI
 import UIKit

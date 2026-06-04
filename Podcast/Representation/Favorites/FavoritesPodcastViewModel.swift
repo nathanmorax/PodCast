@@ -5,11 +5,12 @@
 //  Created by Jesus Mora on 20/03/26.
 //
 import Combine
+import Observation
 
 class FavoritesViewModel {
     
     @Published private(set) var favorites: [Podcast] = []
-
+    
     private let favoritesManager: FavoritesPodcastManager
     private var cancellables = Set<AnyCancellable>()
     

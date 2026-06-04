@@ -12,15 +12,21 @@ enum PlayerMode {
 
 struct PlayerView: View {
     
-    var episode: Episode
+    let episode: Episode
     @State private var mode: PlayerMode = .normal
     @State private var showControls: Bool = true
     @State private var hideControlsTask: Task<Void, Never>?
     
-
-    
     private var viewModel: AVPlayerViewModel {
         PlayerManager.shared.viewModel
+    }
+    
+    private var transcript: TranscriptViewModel {
+        PlayerManager.shared.transcript
+    }
+    
+    private var actionViewModel: EpisodeActionViewModel {
+        EpisodeActionViewModel(episode: episode)
     }
     
     var body: some View {
@@ -28,58 +34,134 @@ struct PlayerView: View {
             Color.white
                 .edgesIgnoringSafeArea(.all)
             
-            VStack(spacing: 0) {
-                if mode == .normal {
-                    bigHeader
-                } else {
-                    CompactHeader(episode: episode, playerMode: $mode)
-                }
-                
-                if mode == .normal {
-                    normalPanel
-                } else {
-                    transcriptPanel
-                }
+            if mode == .normal {
+                normalView
+            } else {
+                transcriptView
             }
-            .edgesIgnoringSafeArea(.top)
         }
         .gesture(dismissGesture)
         .animation(.spring(response: 0.5, dampingFraction: 0.85), value: mode)
+        .onChange(of: viewModel.progress) { _, _ in
+            transcript.updateCurrentSegment(playbackSeconds: viewModel.currentPlaybackSeconds)
+        }
     }
     
-    // MARK: - Modo NORMAL
+    // MARK: - Normal View
     
-    private var bigHeader: some View {
-        PodcastImage(source: episode.imageUrl)
-            .frame(maxWidth: .infinity)
-            .frame(height: UIScreen.main.bounds.height * 0.5)
-            .clipped()
-    }
-    
-    private var normalPanel: some View {
-        VStack(spacing: 24) {
-            descriptionEpisode
-                .padding(.top, 32)
-            
-            waveForm
-            
-            buttonAction
-            
-            lyricsPreview
-            
+    private var normalView: some View {
+        VStack(spacing: 0) {
+            topBar
             Spacer()
+            episodeInfo
+            Spacer()
+            progressSection
+            Spacer(minLength: 24)
+            controlsSection
+            Spacer(minLength: 24)
+            lyricsPreview
+            Spacer(minLength: 40)
+        }
+        .padding(.horizontal, 24)
+    }
+    
+    // MARK: - Lyrics Preview
+    
+    private var lyricsPreview: some View {
+        VStack(spacing: 12) {
+            lyricsContent
         }
         .frame(maxWidth: .infinity)
-        .background(Color.white)
+        .padding(.top, 8)
     }
     
-    // MARK: - Modo TRANSCRIPT
+    @ViewBuilder
+    private var lyricsContent: some View {
+        if transcript.isLoading {
+            loadingView
+        } else if let error = transcript.error {
+            errorView(error)
+        } else if transcript.segments.isEmpty {
+//            emptyStateView
+        } else {
+            currentSegmentView
+        }
+    }
     
-
+    private var loadingView: some View {
+        VStack(spacing: 8) {
+            ProgressView()
+            Text(transcript.progress)
+                .font(.caption)
+                .foregroundStyle(.gray)
+        }
+        .padding()
+    }
     
-    private var transcriptPanel: some View {
-        ZStack(alignment: .bottom) {
+    private func errorView(_ error: String) -> some View {
+        VStack(spacing: 8) {
+            Text(error)
+                .font(.system(size: 13))
+                .foregroundStyle(.red.opacity(0.7))
+                .multilineTextAlignment(.center)
             
+            Button("Reintentar") {
+                Task { await runTranscription() }
+            }
+            .font(.caption)
+        }
+        .padding()
+    }
+    
+    private var emptyStateView: some View {
+        Button {
+            Task { await runTranscription() }
+        } label: {
+            Label("Generar transcripción", systemImage: "text.bubble")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(.white)
+                .padding(.vertical, 12)
+                .padding(.horizontal, 24)
+                .background(Capsule().fill(Color.black))
+        }
+        .padding(.top, 8)
+    }
+    
+    private var currentSegmentView: some View {
+        Button {
+            mode = .transcript
+        } label: {
+            VStack(spacing: 6) {
+                if let current = transcript.currentSegment {
+                    Text(current.text)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.black)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
+                }
+                Image(systemName: "chevron.up")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.gray.opacity(0.5))
+            }
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+    
+    // MARK: - Transcription
+    
+    private func runTranscription() async {
+        if #available(iOS 26.0, *) {
+            await transcript.generate(for: episode.streamUrl, episodeId: episode.streamUrl)
+        }
+    }
+    
+    // MARK: - Transcript View
+    
+    private var transcriptView: some View {
+        ZStack(alignment: .bottom) {
             transcriptScrollView
             
             if showControls {
@@ -106,108 +188,248 @@ struct PlayerView: View {
         }
     }
     
-    private var compactControls: some View {
-        VStack(spacing: 12) {
-            ProgressView(value: viewModel.progress)
-                .tint(AppColor.lavender)
+    // MARK: - Transcript Scroll
+    
+    private var transcriptScrollView: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    closeButton
+                    
+                    ForEach(transcript.segments) { segment in
+                        segmentRow(segment, proxy: proxy)
+                    }
+                }
                 .padding(.horizontal, 24)
-            
-            HStack {
-                Text(viewModel.currentTimeText)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.gray)
-                Spacer()
-                Text(viewModel.durationText)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.gray)
+                .padding(.bottom, 120)
             }
-            .padding(.horizontal, 24)
-            
-            buttonAction
+            .onChange(of: transcript.currentSegment?.id) { _, newId in
+                guard let newId else { return }
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    proxy.scrollTo(newId, anchor: .center)
+                }
+            }
+            .onAppear {
+                if let id = transcript.currentSegment?.id {
+                    proxy.scrollTo(id, anchor: .center)
+                }
+            }
         }
     }
     
-    // MARK: - Componentes compartidos
+    private var closeButton: some View {
+        Button {
+            mode = .normal
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 13, weight: .semibold))
+                Text("Player")
+                    .font(.system(size: 13, weight: .medium))
+            }
+            .foregroundStyle(.gray)
+            .padding(.top, 60)
+            .padding(.bottom, 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .buttonStyle(.plain)
+    }
     
-    private var descriptionEpisode: some View {
-        VStack(spacing: 12) {
-            Text(episode.title)
-                .font(.system(size: 29, weight: .bold, design: .serif))
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.black)
-                .lineLimit(4)
-                .padding(.horizontal, 24)
-                .frame(maxWidth: .infinity)
-            
+    private func segmentRow(_ segment: LocalTranscriptSegment, proxy: ScrollViewProxy) -> some View {
+        let isCurrent = transcript.currentSegment?.id == segment.id
+        return Text(segment.text)
+            .font(.system(
+                size: 19,
+                weight: isCurrent ? .semibold : .regular
+            ))
+            .foregroundStyle(isCurrent ? .black : .gray.opacity(0.4))
+            .lineSpacing(4)
+            .multilineTextAlignment(.leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .id(segment.id)
+            .animation(.easeInOut(duration: 0.3), value: isCurrent)
+            .onTapGesture {
+                seekToSegment(segment)
+                showControlsTemporarily()
+            }
+    }
+    
+    // MARK: - Top Bar
+    
+    private var topBar: some View {
+        HStack {
+            Text(formattedDate)
+                .font(.system(size: 13, weight: .regular))
+                .foregroundStyle(.gray)
+            Spacer()
+        }
+        .padding(.top, 60)
+        .padding(.bottom, 4)
+    }
+    
+    // MARK: - Episode Info
+    
+    private var episodeInfo: some View {
+        VStack(alignment: .leading, spacing: 6) {
             Text(episode.author)
-                .font(.system(size: 16, weight: .regular))
+                .font(.system(size: 13, weight: .regular))
+                .foregroundStyle(.gray)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            Text(episode.title)
+                .font(.system(size: 34, weight: .bold, design: .serif))
+                .foregroundStyle(.black)
+                .multilineTextAlignment(.leading)
+                .lineSpacing(2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+    
+    // MARK: - Progress
+    
+    private var progressSection: some View {
+        VStack(spacing: 6) {
+            progressBar
+            progressLabels
+        }
+    }
+    
+    private var progressBar: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(Color.black.opacity(0.08))
+                    .frame(height: 2)
+                
+                Capsule()
+                    .fill(Color.black)
+                    .frame(width: geo.size.width * CGFloat(viewModel.progress), height: 2)
+            }
+        }
+        .frame(height: 2)
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { value in
+                    let screenWidth = UIScreen.main.bounds.width - 48
+                    let percentage = Float(value.location.x / screenWidth)
+                    viewModel.seek(to: min(max(percentage, 0), 1))
+                }
+        )
+    }
+    
+    private var progressLabels: some View {
+        HStack {
+            Text(viewModel.currentTimeText)
+                .font(.system(size: 11, weight: .regular))
+                .foregroundStyle(.gray)
+            
+            Spacer()
+            
+            Text("-\(viewModel.durationText)")
+                .font(.system(size: 11, weight: .regular))
                 .foregroundStyle(.gray)
         }
     }
     
-    private var waveForm: some View {
-        VStack(spacing: 8) {
-            WaveformBars(
-                progress: viewModel.progress,
-                barCount: 60
-            ) { percentage in
-                viewModel.seek(to: percentage)
-            }
-            .frame(height: 40)
-            .padding(.horizontal, 42)
-            
-            HStack {
-                Text(viewModel.currentTimeText)
-                    .font(.system(size: 13))
-                    .foregroundStyle(.gray)
-                
-                Spacer()
-                
-                Text(viewModel.durationText)
-                    .font(.system(size: 13))
-                    .foregroundStyle(.gray)
-            }
-            .padding(.horizontal, 42)
+    // MARK: - Controls
+    
+    private var controlsSection: some View {
+        HStack(alignment: .center) {
+            bookmarkButton
+            Spacer()
+            seekBackwardButton
+            Spacer()
+            playPauseButton
+            Spacer()
+            seekForwardButton
+            Spacer()
+            transcriptButton
         }
     }
     
-    private var buttonAction: some View {
-        HStack(spacing: 48) {
-            AppButton(
-                style: .icon,
-                tone: .brand,
-                size: .compact,
-                icon: .only(Image(systemName: "gobackward.15")),
-                title: "Rewind"
-            ) {
-                viewModel.seekBackward()
-            }
-            
-            AppButton(
-                style: .icon,
-                tone: .brand,
-                size: .regular,
-                icon: .toggle(
-                    selected: Image(systemName: "pause.fill"),
-                    unselected: Image(systemName: "play.fill")
-                ),
-                title: "Play/Pause",
-                isSelected: viewModel.isPlaying
-            ) {
-                viewModel.togglePlayPause()
-            }
-            
-            AppButton(
-                style: .icon,
-                tone: .brand,
-                size: .compact,
-                icon: .only(Image(systemName: "goforward.15")),
-                title: "Forward"
-            ) {
-                viewModel.seekForward()
+    private var bookmarkButton: some View {
+        Button {
+            actionViewModel.toggleBookmark()
+        } label: {
+            Image(systemName: actionViewModel.isBookmarked ? "bookmark.fill" : "bookmark")
+                .font(.system(size: 20, weight: .regular))
+                .foregroundStyle(.black)
+                .animation(
+                    .spring(response: 0.3, dampingFraction: 0.6),
+                    value: actionViewModel.isBookmarked
+                )
+        }
+    }
+    
+    private var seekBackwardButton: some View {
+        Button {
+            viewModel.seekBackward()
+        } label: {
+            Image(systemName: "gobackward.15")
+                .font(.system(size: 26, weight: .regular))
+                .foregroundStyle(.black)
+        }
+    }
+    
+    private var playPauseButton: some View {
+        Button {
+            viewModel.togglePlayPause()
+        } label: {
+            ZStack {
+                Circle()
+                    .fill(Color.black)
+                    .frame(width: 56, height: 56)
+                
+                Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundStyle(.white)
+                    .offset(x: viewModel.isPlaying ? 0 : 2)
             }
         }
-        .padding(.vertical, 8)
+    }
+    
+    private var seekForwardButton: some View {
+        Button {
+            viewModel.seekForward()
+        } label: {
+            Image(systemName: "goforward.15")
+                .font(.system(size: 26, weight: .regular))
+                .foregroundStyle(.black)
+        }
+    }
+    
+    private var transcriptButton: some View {
+        Button {
+            Task { await runTranscription() }
+
+        } label: {
+            Image(systemName: "captions.bubble")
+                .font(.system(size: 20, weight: .regular))
+                .foregroundStyle(.black)
+        }
+    }
+    
+    // MARK: - Compact Controls (transcript)
+    
+    private var compactControls: some View {
+        VStack(spacing: 12) {
+            progressSection
+                .padding(.horizontal, 24)
+            
+            controlsSection
+                .padding(.horizontal, 24)
+                .padding(.bottom, 8)
+        }
+    }
+    
+    // MARK: - Helpers
+    
+    private var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM d"
+        formatter.locale = Locale(identifier: "en_US")
+        return formatter.string(from: Date())
     }
     
     private var dismissGesture: some Gesture {
@@ -219,145 +441,15 @@ struct PlayerView: View {
             }
     }
     
-    // MARK: - Lyrics preview (modo normal)
-    
-    private var lyricsPreview: some View {
-        VStack(spacing: 12) {
-            if viewModel.isLoadingTranscript {
-                VStack(spacing: 8) {
-                    ProgressView()
-                    Text(viewModel.transcriptProgress)
-                        .font(.caption)
-                        .foregroundStyle(.gray)
-                }
-                .padding()
-                
-            } else if let error = viewModel.transcriptError {
-                VStack(spacing: 8) {
-                    Text(error)
-                        .font(.system(size: 13))
-                        .foregroundStyle(.red.opacity(0.7))
-                        .multilineTextAlignment(.center)
-                    
-                    Button("Reintentar") {
-                        Task { await runTranscription() }
-                    }
-                    .font(.caption)
-                }
-                .padding()
-                
-            } else if viewModel.transcriptSegments.isEmpty {
-                Button {
-                    Task { await runTranscription() }
-                } label: {
-                    Label("Generar transcripción", systemImage: "text.bubble")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.white)
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 24)
-                        .background(Capsule().fill(AppColor.lavender))
-                }
-                .padding(.top, 8)
-                
-            } else {
-                Button {
-                    mode = .transcript
-                } label: {
-                    VStack(spacing: 6) {
-                        if let current = viewModel.currentSegment {
-                            Text(current.text)
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundStyle(.black)
-                                .lineLimit(2)
-                                .multilineTextAlignment(.center)
-                        }
-                        Image(systemName: "chevron.up")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(.gray.opacity(0.5))
-                    }
-                    .padding(.vertical, 12)
-                    .frame(maxWidth: .infinity)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, 24)
-        .padding(.top, 8)
-    }
-    
-    // MARK: - Transcript scroll
-    
-    private var transcriptScrollView: some View {
-        ScrollViewReader { proxy in
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    ForEach(viewModel.transcriptSegments) { segment in
-                        Text(segment.text)
-                            .font(.system(
-                                size: 19,
-                                weight: viewModel.currentSegment?.id == segment.id ? .semibold : .regular
-                            ))
-                            .foregroundStyle(
-                                viewModel.currentSegment?.id == segment.id
-                                ? .black
-                                : .gray.opacity(0.4)
-                            )
-                            .lineSpacing(4)
-                            .multilineTextAlignment(.leading)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .id(segment.id)
-                            .animation(.easeInOut(duration: 0.3), value: viewModel.currentSegment?.id == segment.id)
-                            .onTapGesture {
-                                seekToSegment(segment)
-                                showControlsTemporarily()
-                            }
-                    }
-                }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 24)
-                .padding(.bottom, 40)
-            }
-            .onChange(of: viewModel.currentSegment?.id) { _, newId in
-                guard let newId else { return }
-                withAnimation(.easeInOut(duration: 0.4)) {
-                    proxy.scrollTo(newId, anchor: .center)
-                }
-            }
-            .onAppear {
-                if let id = viewModel.currentSegment?.id {
-                    proxy.scrollTo(id, anchor: .center)
-                }
-            }
-        }
-    }
-    
-    // MARK: - Acciones
-    
-    private func runTranscription() async {
-        print("🚀 Botón presionado, llamando generateTranscript...")
-        if #available(iOS 26.0, *) {
-            await viewModel.generateTranscript(
-                for: episode.streamUrl,
-                episodeId: episode.streamUrl
-            )
-        }
-    }
-    
     private func seekToSegment(_ segment: LocalTranscriptSegment) {
-        guard let last = viewModel.transcriptSegments.last,
+        guard let last = transcript.segments.last,
               last.endTime > 0 else { return }
         let percentage = Float(segment.startTime / last.endTime)
         viewModel.seek(to: percentage)
     }
     
-    // MARK: - Auto-hide controls
-    
     private func showControlsTemporarily() {
-        withAnimation {
-            showControls = true
-        }
+        withAnimation { showControls = true }
         scheduleHideControls()
     }
     
@@ -365,18 +457,14 @@ struct PlayerView: View {
         hideControlsTask?.cancel()
         hideControlsTask = Task {
             try? await Task.sleep(for: .seconds(3))
-            
             guard !Task.isCancelled else { return }
-            
             await MainActor.run {
-                withAnimation {
-                    showControls = false
-                }
+                withAnimation { showControls = false }
             }
         }
     }
 }
 
-//#Preview {
-//    PlayerView(episode: .mock)
-//}
+#Preview {
+    PlayerView(episode: .mock)
+}
