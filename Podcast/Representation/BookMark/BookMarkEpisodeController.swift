@@ -35,7 +35,6 @@ class BookMarkEpisodeController: UIViewController {
         
         view.backgroundColor = AppColor.slateGray.uiColor
         collectionView.backgroundColor = .clear
-        
 
     }
     
@@ -55,7 +54,6 @@ class BookMarkEpisodeController: UIViewController {
             }
         }
     }
-    
 
     private func observePlayback() {
         withObservationTracking {
@@ -78,11 +76,11 @@ class BookMarkEpisodeController: UIViewController {
     
     private func configureCellRegistration() {
           savedEpisodeCellRegistration = UICollectionView.hostingRegistration(backgroundStyle: .none) { (episode: Episode) in
-              BookMarkView(viewModel: EpisodeActionViewModel(episode: episode))
+              BookMarkView(viewModel: EpisodeActionViewModel(episode: episode), state: .idle)
           }
       }
     
-    func configureCollection() {
+    private func configureCollection() {
         
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.delegate = self
@@ -115,14 +113,6 @@ extension BookMarkEpisodeController: UICollectionViewDataSource, UICollectionVie
             for: indexPath,
             item: episode
         )
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        
-//        let episodesController = EpisodesController()
-//        let podcast = self.viewModel.episodes[indexPath.item]
-////        episodesController.podcast = podcast
-//        navigationController?.pushViewController(episodesController, animated: true)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {

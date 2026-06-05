@@ -11,6 +11,18 @@ import SwiftUI
 struct BookMarkView: View {
     
     let viewModel: EpisodeActionViewModel
+    
+    let state: DownloadState
+
+    
+    private var iconName: String {
+        switch state {
+        case .idle:         return "arrow.down"
+        case .downloading:  return "pause.fill"
+        case .downloaded:    return "play.fill"
+        case .failed:        return "checkmark"
+        }
+    }
 
 
     var body: some View {
@@ -72,8 +84,21 @@ struct BookMarkView: View {
 
                     Button {
                         
+                        switch viewModel.downloadState {
+                        case .idle:
+                            viewModel.download()
+                        case .downloading:
+                            viewModel.cancelDownload()
+                        case .downloaded:
+                            viewModel.deleteDownload()
+                        case .failed:
+                            viewModel.download()
+
+                        }
+                        
                     } label: {
-                        Image(systemName: "arrow.down.app.fill")
+                        
+                        Image(systemName: viewModel.downloadState.iconName)
                     }
                     .foregroundStyle(.black)
 

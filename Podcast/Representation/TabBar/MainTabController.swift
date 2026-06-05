@@ -21,7 +21,7 @@ class MainTabBarController: UITabBarController {
             UITab(title: "Favoritos",
                   image: UIImage(systemName: "heart"),
                   identifier: "workouts") { _ in
-                UINavigationController(rootViewController: BookMarkEpisodeController())
+                UINavigationController(rootViewController: DownloadEpisodeViewController())
             },
             UITab(title: "Descargas",
                   image: UIImage(systemName: "bookmark.fill"),
