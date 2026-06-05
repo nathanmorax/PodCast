@@ -46,7 +46,7 @@ class DownloadEpisodeViewController: UIViewController {
     
     private func observeEpisodes() {
         withObservationTracking {
-            _ = viewModel.episodes
+            _ = viewModel.episode
         } onChange: { [weak self] in
             DispatchQueue.main.async {
                 self?.collectionView.reloadData()
@@ -76,7 +76,7 @@ class DownloadEpisodeViewController: UIViewController {
     
     private func configureCellRegistration() {
           savedEpisodeCellRegistration = UICollectionView.hostingRegistration(backgroundStyle: .none) { (episode: Episode) in
-              DownloadEpisodeRowView(episode: episode)
+              DownloadEpisodeRowView(viewModel: EpisodeActionViewModel(episode: episode))
           }
       }
     
@@ -101,12 +101,12 @@ class DownloadEpisodeViewController: UIViewController {
 
 extension DownloadEpisodeViewController: UICollectionViewDataSource, UICollectionViewDelegate ,  UICollectionViewDelegateFlowLayout{
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return viewModel.episodes.count
+        return viewModel.episode.count
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let episode = viewModel.episodes[indexPath.item]
+        let episode = viewModel.episode[indexPath.item]
 
         return collectionView.dequeueConfiguredReusableCell(
             using: savedEpisodeCellRegistration,

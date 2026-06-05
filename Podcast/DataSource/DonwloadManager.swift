@@ -77,10 +77,14 @@ final class DownloadManager {
                 DispatchQueue.main.async {
                     self.states[episode.streamUrl] = .downloaded(localURL: localURL)
                     self.persistEpisode(episode)
+                    
+                    print("Suceess Episode: \(episode.title)")
                 }
             } catch {
                 DispatchQueue.main.async {
                     self.states[episode.streamUrl] = .failed(error.localizedDescription)
+                    
+                    print("Error Download Episode: \(error.localizedDescription)")
                 }
             }
         }

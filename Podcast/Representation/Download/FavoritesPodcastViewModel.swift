@@ -9,15 +9,12 @@ import Observation
 
 class DownloadEpisodeViewModel {
     
-    var episodes: [Episode] { downloadManager.downloadedEpisodes }
+    var episode: [Episode] { downloadManager.downloadedEpisodes }
 
     private let downloadManager: DownloadManager
-    private var cancellables = Set<AnyCancellable>()
     
     init(downloadManager: DownloadManager = .shared) {
         self.downloadManager = downloadManager
-//        favoritesManager.favoritesPublisher
-//            .assign(to: &$favorites)
     }
     
 }

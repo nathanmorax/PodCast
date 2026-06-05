@@ -7,11 +7,13 @@
 import SwiftUI
 
 struct DownloadEpisodeRowView: View {
-    var episode: Episode
+    let viewModel: EpisodeActionViewModel
+
+//    var episode: Episode
     
     var body: some View {
         HStack(spacing: 12) {
-            PodcastImage(source: episode.imageUrl)
+            PodcastImage(source: viewModel.episode.imageUrl)
                 .frame(width: 95, height: 95)
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .rotationEffect(.degrees(-4))
@@ -20,14 +22,36 @@ struct DownloadEpisodeRowView: View {
                 .padding(.bottom, -50)
              
             VStack {
-                Text(episode.title)
+                Text(viewModel.episode.title)
                     .font(.system(size: 14, weight: .semibold))
                     .multilineTextAlignment(.center)
                 
-                Text(episode.author)
+                Text(viewModel.episode.author)
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
+                
+                Button {
+                    
+                    viewModel.playOrPause()
+                    
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
+                            .font(.system(size: 10, weight: .semibold))
+
+                        Text(viewModel.episode.durationDisplayText)
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    .foregroundStyle(.black)
+                    .padding(.horizontal, 10)
+                    .frame(height: 28)
+                    .background(
+                        Capsule()
+                            .fill(Color.black.opacity(0.08))
+                    )
+                }
+                .buttonStyle(.plain)
             }
 
             
