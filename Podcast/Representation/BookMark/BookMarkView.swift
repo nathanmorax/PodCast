@@ -17,7 +17,6 @@ struct BookMarkView: View {
         HStack(spacing: 12) {
             
             PodcastImage(source: viewModel.episode.imageUrl)
-//                .saturation(0)
                 .frame(width: 95, height: 95)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             

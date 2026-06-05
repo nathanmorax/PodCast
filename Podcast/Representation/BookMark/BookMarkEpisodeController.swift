@@ -29,8 +29,9 @@ class BookMarkEpisodeController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configureCellRegistration()
-        self.configureCollection()
+        configureCollection()
         observeEpisodes()
+        observePlayback()
         
         view.backgroundColor = AppColor.slateGray.uiColor
         collectionView.backgroundColor = .clear
@@ -47,8 +48,6 @@ class BookMarkEpisodeController: UIViewController {
     private func observeEpisodes() {
         withObservationTracking {
             _ = viewModel.episodes
-            _ = PlayerManager.shared.viewModel.isPlaying
-            _ = PlayerManager.shared.currentEpisode
         } onChange: { [weak self] in
             DispatchQueue.main.async {
                 self?.collectionView.reloadData()
@@ -56,6 +55,26 @@ class BookMarkEpisodeController: UIViewController {
             }
         }
     }
+    
+
+    private func observePlayback() {
+        withObservationTracking {
+            _ = PlayerManager.shared.viewModel.isPlaying
+            _ = PlayerManager.shared.currentEpisode
+        } onChange: { [weak self] in
+            DispatchQueue.main.async {
+                self?.observePlayback()
+            }
+        }
+    }
+    
+    private func reloadVisibleCells() {
+        let visibleIndexPaths = collectionView.indexPathsForVisibleItems
+        visibleIndexPaths.forEach { indexPath in
+            collectionView.reloadItems(at: [indexPath])
+        }
+    }
+
     
     private func configureCellRegistration() {
           savedEpisodeCellRegistration = UICollectionView.hostingRegistration(backgroundStyle: .none) { (episode: Episode) in

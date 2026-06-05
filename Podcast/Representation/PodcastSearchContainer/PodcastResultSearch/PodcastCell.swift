@@ -12,8 +12,10 @@ struct PodcastCellUI: View {
     
     let podcast: Podcast?
     
+    @State var isFollow: Bool = false
+    
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .center, spacing: 12) {
             
             PodcastImage(source: podcast?.artworkUrl600)
                 .frame(width: 80, height: 80)
@@ -37,7 +39,17 @@ struct PodcastCellUI: View {
                     .foregroundStyle(.tertiary)
             }
             
-            Spacer(minLength: 0)
+            Spacer()
+
+            
+            Button {
+                print("Follow")
+                isFollow.toggle()
+            } label: {
+                Image(systemName: isFollow ? "checkmark.circle.fill" : "plus")
+                    .foregroundStyle(.black)
+            }
+            
         }
         .background(Color.clear)
         .padding(.vertical, 8)
