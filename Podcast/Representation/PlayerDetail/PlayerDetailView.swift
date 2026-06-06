@@ -58,9 +58,9 @@ struct PlayerView: View {
             progressSection
             Spacer(minLength: 24)
             controlsSection
-            Spacer(minLength: 24)
-            lyricsPreview
-            Spacer(minLength: 40)
+            Spacer(minLength: 8)
+//            lyricsPreview
+//            Spacer(minLength: 40)
         }
         .padding(.horizontal, 24)
     }
@@ -258,7 +258,7 @@ struct PlayerView: View {
     
     private var topBar: some View {
         HStack {
-            Text(formattedDate)
+            Text(episode.pubDate.formattedDate())
                 .font(.system(size: 13, weight: .regular))
                 .foregroundStyle(.gray)
             Spacer()
@@ -379,7 +379,7 @@ struct PlayerView: View {
             ZStack {
                 Circle()
                     .fill(Color.black)
-                    .frame(width: 56, height: 56)
+                    .frame(width: 66, height: 66)
                 
                 Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
                     .font(.system(size: 22, weight: .medium))
