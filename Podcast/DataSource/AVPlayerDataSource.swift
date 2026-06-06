@@ -50,7 +50,20 @@ class AVPlayerDataSource: PlayerDataSource {
     }
     
     func play(url: URL) {
-        let playerItem = AVPlayerItem(url: url)
+//        let playerItem = AVPlayerItem(url: url)
+        
+        let playerItem: AVPlayerItem
+        
+        if url.isFileURL {
+            playerItem = AVPlayerItem(url: url)
+        } else {
+            // Remoto — configura para streaming
+            let asset = AVURLAsset(url: url, options: [
+                "AVURLAssetHTTPHeaderFieldsKey": ["Range": "bytes=0-"]
+            ])
+            playerItem = AVPlayerItem(asset: asset)
+        }
+        
         player.replaceCurrentItem(with: playerItem)
         player.play()
         onStateChange?(true)

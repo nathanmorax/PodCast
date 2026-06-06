@@ -1,5 +1,5 @@
 //
-//  FavoritesPodcastController.swift
+//  DownloadEpisodeViewController.swift
 //  Podcast
 //
 //  Created by Jesus Mora on 30/01/26.
@@ -9,7 +9,7 @@ import UIKit
 import Combine
 import SwiftUI
 
-class BookMarkEpisodeController: UIViewController {
+class DownloadEpisodeViewController: UIViewController {
     
     private var pendingDeleteIndexPath: IndexPath?
     
@@ -19,7 +19,7 @@ class BookMarkEpisodeController: UIViewController {
         return cv
     }()
     
-    private let viewModel = BookMarkEpisodeViewModel()
+    private let viewModel = DownloadEpisodeViewModel()
     
     private var savedEpisodeCellRegistration: UICollectionView.CellRegistration<UICollectionViewCell, Episode>!
 
@@ -31,7 +31,7 @@ class BookMarkEpisodeController: UIViewController {
         configureCellRegistration()
         configureCollection()
         observeEpisodes()
-        observePlayback()
+//        observePlayback()
         
         view.backgroundColor = AppColor.slateGray.uiColor
         collectionView.backgroundColor = .clear
@@ -46,7 +46,7 @@ class BookMarkEpisodeController: UIViewController {
     
     private func observeEpisodes() {
         withObservationTracking {
-            _ = viewModel.episodes
+            _ = viewModel.episode
         } onChange: { [weak self] in
             DispatchQueue.main.async {
                 self?.collectionView.reloadData()
@@ -55,16 +55,16 @@ class BookMarkEpisodeController: UIViewController {
         }
     }
 
-    private func observePlayback() {
-        withObservationTracking {
-            _ = PlayerManager.shared.viewModel.isPlaying
-            _ = PlayerManager.shared.currentEpisode
-        } onChange: { [weak self] in
-            DispatchQueue.main.async {
-                self?.observePlayback()
-            }
-        }
-    }
+//    private func observePlayback() {
+//        withObservationTracking {
+//            _ = PlayerManager.shared.viewModel.isPlaying
+//            _ = PlayerManager.shared.currentEpisode
+//        } onChange: { [weak self] in
+//            DispatchQueue.main.async {
+//                self?.observePlayback()
+//            }
+//        }
+//    }
     
     private func reloadVisibleCells() {
         let visibleIndexPaths = collectionView.indexPathsForVisibleItems
@@ -76,7 +76,7 @@ class BookMarkEpisodeController: UIViewController {
     
     private func configureCellRegistration() {
           savedEpisodeCellRegistration = UICollectionView.hostingRegistration(backgroundStyle: .none) { (episode: Episode) in
-              BookMarkView(viewModel: EpisodeActionViewModel(episode: episode), state: .idle)
+              DownloadEpisodeRowView(viewModel: EpisodeActionViewModel(episode: episode))
           }
       }
     
@@ -99,14 +99,14 @@ class BookMarkEpisodeController: UIViewController {
 }
 
 
-extension BookMarkEpisodeController: UICollectionViewDataSource, UICollectionViewDelegate ,  UICollectionViewDelegateFlowLayout{
+extension DownloadEpisodeViewController: UICollectionViewDataSource, UICollectionViewDelegate ,  UICollectionViewDelegateFlowLayout{
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return viewModel.episodes.count
+        return viewModel.episode.count
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let episode = viewModel.episodes[indexPath.item]
+        let episode = viewModel.episode[indexPath.item]
 
         return collectionView.dequeueConfiguredReusableCell(
             using: savedEpisodeCellRegistration,

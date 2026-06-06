@@ -12,18 +12,16 @@ class MainTabBarController: UITabBarController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-//        self.tabBarMinimizeBehavior = .onScrollDown
         
         tabBar.tintColor = AppColor.lavender.uiColor
 
         self.tabs = [
-            UITab(title: "Favoritos",
-                  image: UIImage(systemName: "heart"),
-                  identifier: "workouts") { _ in
-                UINavigationController(rootViewController: BookMarkEpisodeController())
-            },
             UITab(title: "Descargas",
+                  image: UIImage(systemName: "arrow.down.circle"),
+                  identifier: "workouts") { _ in
+                UINavigationController(rootViewController: DownloadEpisodeViewController())
+            },
+            UITab(title: "Guardados",
                   image: UIImage(systemName: "bookmark.fill"),
                   identifier: "exercises") { _ in
                 UINavigationController(rootViewController: BookMarkEpisodeController())

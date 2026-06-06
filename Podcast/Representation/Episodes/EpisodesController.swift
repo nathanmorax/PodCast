@@ -22,7 +22,7 @@ class EpisodesController: UIViewController {
     private var lastHeaderState: HeaderState?
     private var headerActions = EpisodeHeaderActions()
     private var eventsTaks: Task<Void, Never>?
-    private var observationTask: Task<Void, Never>?   // ← reemplaza cancellables
+    private var observationTask: Task<Void, Never>?
 
     var podcast: Podcast? {
         didSet {
@@ -84,7 +84,7 @@ class EpisodesController: UIViewController {
         perf.measure("viewDidLoad") {
             setupHeaderRegistration()
             setupCollectionView()
-            observeViewModel()          // ← reemplaza setupBindings()
+            observeViewModel()
             listenerHeaderEvents()
         }
     }
@@ -121,7 +121,7 @@ class EpisodesController: UIViewController {
                     self.loaderView.stopAnimating()
                     self.loaderContainerView.isHidden = true
                 }
-                self.observeLoading()   // re-observa para el siguiente cambio
+                self.observeLoading()
             }
         }
     }

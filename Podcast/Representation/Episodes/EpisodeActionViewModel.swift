@@ -58,4 +58,12 @@ final class EpisodeActionViewModel {
     func download() {
         downloadManager.download(episode)
     }
+    
+    func cancelDownload() {
+        downloadManager.cancelDownload(episode)
+    }
+    
+    func deleteDownload() {
+        downloadManager.deleteDownload(episode)
+    }
 }
