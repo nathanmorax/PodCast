@@ -11,7 +11,7 @@ import SwiftUI
 
 private enum Layout {
     static let headerHeight: CGFloat = 720
-    static let cellHeight: CGFloat   = 120
+    static let cellHeight: CGFloat   = 150  // ← sube un poco
     static let sectionInset          = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
 }
 
@@ -72,7 +72,7 @@ class EpisodesController: UIViewController {
     }()
 
     private let episodeCellRegistration = UICollectionView.hostingRegistration { (episode: Episode) in
-        EpisodeCell(episode: episode)
+        EpisodeCell(viewModel: EpisodeActionViewModel(episode: episode))
     }
 
     private var headerRegistration: UICollectionView.SupplementaryRegistration<HostingHeaderView>!
