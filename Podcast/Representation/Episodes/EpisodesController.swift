@@ -72,7 +72,7 @@ class EpisodesController: UIViewController {
     }()
 
     private let episodeCellRegistration = UICollectionView.hostingRegistration { (episode: Episode) in
-        EpisodeCell(episode: episode)
+        EpisodeCell(viewModel: EpisodeActionViewModel(episode: episode))
     }
 
     private var headerRegistration: UICollectionView.SupplementaryRegistration<HostingHeaderView>!

@@ -135,8 +135,8 @@ struct DownloadButton: View {
                 }
             
         case .downloading(let progress):
-            Circle()
-                .stroke(Color.black.opacity(0.15), style: StrokeStyle(lineWidth: 3, dash: [4, 4]))
+//            Circle()
+//                .stroke(Color.black.opacity(0.15), style: StrokeStyle(lineWidth: 3, dash: [4, 4]))
             Circle()
                 .trim(from: 0, to: progress)
                 .stroke(Color.black, style: StrokeStyle(lineWidth: 3, lineCap: .butt, dash: [4, 4]))
