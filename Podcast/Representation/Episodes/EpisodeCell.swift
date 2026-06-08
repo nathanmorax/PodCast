@@ -49,7 +49,7 @@ struct EpisodeCell: View {
             }
             .frame(maxHeight: .infinity)
 
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .trailing, spacing: 0) {
                 PodcastImage(source: viewModel.episode.imageUrl)
                     .frame(width: 100, height: 100)
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
