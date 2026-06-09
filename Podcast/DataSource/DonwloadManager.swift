@@ -7,6 +7,7 @@
 
 import Foundation
 import Observation
+
 enum DownloadState: Equatable {
     case idle
     case waiting
@@ -33,10 +34,7 @@ final class DownloadManager {
         loadPersistedEpisodes()
     }
 
-    // episodeStreamUrl -> estado
     private(set) var states: [String: DownloadState] = [:]
-
-    // episodios descargados (para mostrar en una pantalla de descargas)
     var downloadedEpisodes: [Episode] = []
 
     @ObservationIgnored
@@ -77,26 +75,21 @@ final class DownloadManager {
                 DispatchQueue.main.async {
                     self.states[episode.streamUrl] = .downloaded(localURL: localURL)
                     self.persistEpisode(episode)
-                    
-                    print("Suceess Episode: \(episode.title)")
+                    print("Success Episode: \(episode.title)")
                 }
             } catch {
                 DispatchQueue.main.async {
                     self.states[episode.streamUrl] = .failed(error.localizedDescription)
-                    
                     print("Error Download Episode: \(error.localizedDescription)")
                 }
             }
         }
 
-        // Progreso
         let observation = task.progress.observe(\.fractionCompleted) { [weak self] progress, _ in
             DispatchQueue.main.async {
                 self?.states[episode.streamUrl] = .downloading(progress: progress.fractionCompleted)
             }
         }
-
-        // Guardar observation para no perderla (ARC)
         objc_setAssociatedObject(task, "observation", observation, .OBJC_ASSOCIATION_RETAIN)
 
         activeTasks[episode.streamUrl] = task
@@ -129,18 +122,24 @@ final class DownloadManager {
 
     // MARK: - File management
 
+    private func safeFileName(for episode: Episode) -> String {
+        let allowed = CharacterSet.alphanumerics
+        let safe = episode.streamUrl
+            .unicodeScalars
+            .map { allowed.contains($0) ? Character($0) : "_" }
+            .map(String.init)
+            .joined()
+        // limita a 100 chars para evitar paths demasiado largos
+        return String(safe.prefix(100))
+    }
+
     private func moveToDocuments(tempURL: URL, episode: Episode) throws -> URL {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let folder = docs.appendingPathComponent("Downloads", isDirectory: true)
-
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
 
-        let safeId = episode.streamUrl
-            .replacingOccurrences(of: "/", with: "_")
-            .replacingOccurrences(of: ":", with: "_")
-        let destination = folder.appendingPathComponent("\(safeId).mp3")
+        let destination = folder.appendingPathComponent("\(safeFileName(for: episode)).mp3")
 
-        // Si ya existe uno previo lo borra
         if FileManager.default.fileExists(atPath: destination.path) {
             try FileManager.default.removeItem(at: destination)
         }
@@ -165,7 +164,6 @@ final class DownloadManager {
         episodes.removeAll { $0.streamUrl == episode.streamUrl }
         saveEpisodeMetadata(episodes)
         downloadedEpisodes = episodes
-        
         print("Remove episode: \(episode.streamUrl)")
     }
 
@@ -173,18 +171,13 @@ final class DownloadManager {
         let episodes = loadEpisodeMetadata()
         downloadedEpisodes = episodes
 
-        // Reconstruye estados solo si el archivo sigue existiendo
         for episode in episodes {
             let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            let safeId = episode.streamUrl
-                .replacingOccurrences(of: "/", with: "_")
-                .replacingOccurrences(of: ":", with: "_")
-            let url = docs.appendingPathComponent("Downloads/\(safeId).mp3")
+            let url = docs.appendingPathComponent("Downloads/\(safeFileName(for: episode)).mp3")
 
             if FileManager.default.fileExists(atPath: url.path) {
                 states[episode.streamUrl] = .downloaded(localURL: url)
             }
-            // Si el archivo no existe, queda .idle — el usuario puede re-descargar
         }
     }
 
@@ -194,16 +187,12 @@ final class DownloadManager {
             return []
         }
         print("Load metadata: \(episodes.count)")
-        print("Metadata: \(episodes.first?.streamUrl)")
-
-        
         return episodes
     }
 
     private func saveEpisodeMetadata(_ episodes: [Episode]) {
         guard let data = try? JSONEncoder().encode(episodes) else { return }
         userDefaults.set(data, forKey: episodesKey)
-        
         print("Save metadata: \(episodes.count)")
     }
 }
