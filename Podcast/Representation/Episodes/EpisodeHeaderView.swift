@@ -10,10 +10,10 @@ import SwiftUI
 // MARK: - Style Constants
 
 private enum HeaderStyle {
-    static let yellow = Color(red: 0.96, green: 0.96, blue: 0.40)
-    static let cardCornerRadius: CGFloat = 16
+    static let artworkSize: CGFloat = 260
+    static let artworkCornerRadius: CGFloat = 12
+    static let heroHeight: CGFloat = 420
     static let horizontalPadding: CGFloat = 24
-    static let cardOverlap: CGFloat = 80
     static let collapsedLineLimit = 2
 }
 
@@ -30,6 +30,7 @@ struct EpisodeHeaderView: View {
     var body: some View {
         VStack(spacing: 0) {
             heroSection
+                .ignoresSafeArea(edges: .top)
             actionsRow
             metaRow
             aboutSection
@@ -38,39 +39,31 @@ struct EpisodeHeaderView: View {
     
     // MARK: - Hero
     
-    private var heroSection: some View {
-        ZStack(alignment: .bottom) {
-            PodcastImage(source: podcast.artworkUrl600)
-                .aspectRatio(1, contentMode: .fill)
-                .frame(maxWidth: .infinity)
-                .clipped()
-            
-            yellowCard
-                .offset(y: HeaderStyle.cardOverlap)
-                .aspectRatio(1, contentMode: .fit)
 
-        }
-        .padding(.bottom, HeaderStyle.cardOverlap)
+    private var artworkURL: String? {
+        podcast.artworkURL?.absoluteString ?? podcast.artworkUrl600
     }
-    
-    private var yellowCard: some View {
-        VStack(spacing: 10) {
-            Text(podcast.trackName ?? "")
-                .font(.system(size: 32, weight: .bold, design: .serif))
-                .foregroundStyle(.black)
-                .multilineTextAlignment(.center)
-                .minimumScaleFactor(0.8)
-            
-            Text(podcast.artistName ?? "")
-                .font(.system(size: 16, weight: .regular))
-                .foregroundStyle(.black.opacity(0.75))
-                .multilineTextAlignment(.center)
+
+    private var heroSection: some View {
+        ZStack {
+            DynamicPodcastHeroBackground(imageURL: artworkURL)
+
+            VStack(spacing: 14) {
+                PodcastImage(source: artworkURL)
+                    .frame(width: HeaderStyle.artworkSize, height: HeaderStyle.artworkSize)
+                    .clipShape(RoundedRectangle(cornerRadius: HeaderStyle.artworkCornerRadius))
+                    .shadow(color: .black.opacity(0.3), radius: 20, y: 10)
+
+                Text(podcast.artistName ?? "")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.9))
+            }
+            .padding(.top, 56)
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 24)
+        .frame(height: HeaderStyle.heroHeight)
         .frame(maxWidth: .infinity)
-        .background(HeaderStyle.yellow)
-        .clipShape(RoundedRectangle(cornerRadius: HeaderStyle.cardCornerRadius))
+        .clipped()
+        .ignoresSafeArea(edges: .top)
     }
     
     // MARK: - Acciones
@@ -88,7 +81,6 @@ struct EpisodeHeaderView: View {
                 .padding(.vertical, 10)
                 .padding(.leading, 8)
                 .padding(.trailing, 24)
-                .background(HeaderStyle.yellow, in: Capsule())
             }
             
             Spacer(minLength: 8)
@@ -174,19 +166,6 @@ struct EpisodeHeaderView: View {
     }
 }
 
-// MARK: - Preview
-
-//#Preview("Header — mock") {
-//    ScrollView {
-//        EpisodeHeaderView(
-//            podcast: .mock,
-//            podcastDescription: "Este es un podcast de prueba con una descripción larga para ver cómo se ve el botón de leer más cuando hay mucho texto que mostrar al usuario.",
-//            actions: EpisodeHeaderActions()
-//        )
-//    }
-//    .ignoresSafeArea(edges: .top)
-//}
-
 struct WaveformIcon: View {
     @State private var animate = false
     
@@ -214,5 +193,28 @@ struct WaveformIcon: View {
         .frame(width: 42, height: 42)
         .background(Color.green.opacity(0.1), in: Circle())
         .onAppear { animate = true }
+    }
+}
+
+
+struct DynamicPodcastHeroBackground: View {
+    let imageURL: String?
+
+    var body: some View {
+        ZStack {
+            PodcastImage(source: imageURL)
+                .scaledToFill()
+                .blur(radius: 55)
+                .scaleEffect(1.5)
+                .saturation(1.5)
+                .brightness(-0.08)
+
+            LinearGradient(
+                colors: [.black.opacity(0.1), .clear, .black.opacity(0.25)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        }
+        .clipped()
     }
 }

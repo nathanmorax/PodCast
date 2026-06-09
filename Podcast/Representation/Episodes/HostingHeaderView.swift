@@ -11,20 +11,25 @@ import SwiftUI
 final class HostingHeaderView: UICollectionReusableView {
     
     private var hostingController: UIHostingController<AnyView>?
+    weak var parentViewController: UIViewController?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
     }
     
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    required init?(coder: NSCoder) { fatalError() }
     
-    func host<Content: View>(_ view: Content) {
-        hostingController?.view.removeFromSuperview()
-        hostingController = nil
+    func host<Content: View>(_ view: Content, parent: UIViewController) {
+        if let existing = hostingController {
+            existing.rootView = AnyView(view)
+            return
+        }
         
         let hosting = UIHostingController(rootView: AnyView(view))
         hosting.view.translatesAutoresizingMaskIntoConstraints = false
         hosting.view.backgroundColor = .clear
+        
+        parent.addChild(hosting)
         addSubview(hosting.view)
         
         NSLayoutConstraint.activate([
@@ -34,12 +39,16 @@ final class HostingHeaderView: UICollectionReusableView {
             hosting.view.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
         
+        hosting.didMove(toParent: parent)
         self.hostingController = hosting
+        self.parentViewController = parent
     }
     
     override func prepareForReuse() {
         super.prepareForReuse()
+        hostingController?.willMove(toParent: nil)
         hostingController?.view.removeFromSuperview()
+        hostingController?.removeFromParent()
         hostingController = nil
     }
 }

@@ -16,15 +16,20 @@ class MainTabBarController: UITabBarController {
         tabBar.tintColor = AppColor.lavender.uiColor
 
         self.tabs = [
-            UITab(title: "Descargas",
-                  image: UIImage(systemName: "arrow.down.circle"),
-                  identifier: "workouts") { _ in
-                UINavigationController(rootViewController: DownloadEpisodeViewController())
-            },
-            UITab(title: "Guardados",
-                  image: UIImage(systemName: "bookmark.fill"),
-                  identifier: "exercises") { _ in
-                UINavigationController(rootViewController: BookMarkEpisodeController())
+//            UITab(title: "Descargas",
+//                  image: UIImage(systemName: "arrow.down.circle"),
+//                  identifier: "workouts") { _ in
+//                UINavigationController(rootViewController: DownloadEpisodeViewController())
+//            },
+//            UITab(title: "Guardados",
+//                  image: UIImage(systemName: "bookmark.fill"),
+//                  identifier: "exercises") { _ in
+//                UINavigationController(rootViewController: BookMarkEpisodeController())
+//            },
+            UITab(title: "Biblioteca",
+                  image: UIImage(systemName: "square.stack"),
+                  identifier: "biblioteca") { _ in
+                UINavigationController(rootViewController: LibraryController())
             },
             UISearchTab { _ in
                 UINavigationController(rootViewController: PodcastSearchContainerController())

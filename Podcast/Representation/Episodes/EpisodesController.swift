@@ -167,10 +167,11 @@ class EpisodesController: UIViewController {
     // MARK: - Setup
 
     private func updateCollectionViewInset() {
-        let tabBarHeight = tabBarController?.tabBar.frame.height ?? 0
-        collectionView.contentInset.bottom = tabBarHeight
-        collectionView.verticalScrollIndicatorInsets.bottom = tabBarHeight
-    }
+           let tabBarHeight = tabBarController?.tabBar.frame.height ?? 0
+           collectionView.contentInset.bottom = tabBarHeight
+           collectionView.verticalScrollIndicatorInsets.bottom = tabBarHeight
+       }
+
 
     private func setupCollectionView() {
         view.addSubview(collectionView)
@@ -194,7 +195,7 @@ class EpisodesController: UIViewController {
             elementKind: UICollectionView.elementKindSectionHeader
         ) { [weak self] supplementaryView, _, _ in
             guard let self, let podcast = self.podcast else { return }
-            supplementaryView.host(self.makeHeaderView(for: podcast))
+            supplementaryView.host(self.makeHeaderView(for: podcast), parent: self)
         }
     }
 
@@ -257,7 +258,7 @@ class EpisodesController: UIViewController {
         for indexPath in collectionView.indexPathsForVisibleSupplementaryElements(ofKind: kind) {
             guard let header = collectionView.supplementaryView(forElementKind: kind, at: indexPath)
                     as? HostingHeaderView else { continue }
-            header.host(headerView)
+            header.host(headerView, parent: self)
         }
     }
 }
