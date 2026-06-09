@@ -129,7 +129,6 @@ final class DownloadManager {
             .map { allowed.contains($0) ? Character($0) : "_" }
             .map(String.init)
             .joined()
-        // limita a 100 chars para evitar paths demasiado largos
         return String(safe.prefix(100))
     }
 
