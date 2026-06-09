@@ -167,10 +167,11 @@ class EpisodesController: UIViewController {
     // MARK: - Setup
 
     private func updateCollectionViewInset() {
-        let tabBarHeight = tabBarController?.tabBar.frame.height ?? 0
-        collectionView.contentInset.bottom = tabBarHeight
-        collectionView.verticalScrollIndicatorInsets.bottom = tabBarHeight
-    }
+           let tabBarHeight = tabBarController?.tabBar.frame.height ?? 0
+           collectionView.contentInset.bottom = tabBarHeight
+           collectionView.verticalScrollIndicatorInsets.bottom = tabBarHeight
+       }
+
 
     private func setupCollectionView() {
         view.addSubview(collectionView)

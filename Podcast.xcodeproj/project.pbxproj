@@ -36,6 +36,9 @@
 		9418C4112FAA8DCC00729079 /* PodcastGenreController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9418C40E2FAA8DCC00729079 /* PodcastGenreController.swift */; };
 		9418C4132FAA98F300729079 /* UIViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9418C4122FAA98E900729079 /* UIViewController.swift */; };
 		9418C4172FAA9A1C00729079 /* PodcastResultSearchController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9418C4162FAA9A1C00729079 /* PodcastResultSearchController.swift */; };
+		942E80D02FD8944D00FC7003 /* EpisodeContextMenuButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 942E80CF2FD8944C00FC7003 /* EpisodeContextMenuButton.swift */; };
+		942E80D32FD8A1C400FC7003 /* LibraryController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 942E80D22FD8A1C400FC7003 /* LibraryController.swift */; };
+		942E80D52FD8A1E500FC7003 /* LibraryMenuItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 942E80D42FD8A1E500FC7003 /* LibraryMenuItem.swift */; };
 		945DCE3D2FA3E75F00256995 /* HostingCellBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 945DCE3C2FA3E75F00256995 /* HostingCellBackground.swift */; };
 		948B4BE92FD355A8004539E9 /* DownloadEpisodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 948B4BE82FD355A5004539E9 /* DownloadEpisodeViewController.swift */; };
 		9490FA4A2FB2422000378ED5 /* CircleIconButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9490FA492FB2422000378ED5 /* CircleIconButton.swift */; };
@@ -108,6 +111,9 @@
 		9418C40E2FAA8DCC00729079 /* PodcastGenreController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastGenreController.swift; sourceTree = "<group>"; };
 		9418C4122FAA98E900729079 /* UIViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIViewController.swift; sourceTree = "<group>"; };
 		9418C4162FAA9A1C00729079 /* PodcastResultSearchController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastResultSearchController.swift; sourceTree = "<group>"; };
+		942E80CF2FD8944C00FC7003 /* EpisodeContextMenuButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeContextMenuButton.swift; sourceTree = "<group>"; };
+		942E80D22FD8A1C400FC7003 /* LibraryController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryController.swift; sourceTree = "<group>"; };
+		942E80D42FD8A1E500FC7003 /* LibraryMenuItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryMenuItem.swift; sourceTree = "<group>"; };
 		945DCE3C2FA3E75F00256995 /* HostingCellBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostingCellBackground.swift; sourceTree = "<group>"; };
 		948B4BE82FD355A5004539E9 /* DownloadEpisodeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadEpisodeViewController.swift; sourceTree = "<group>"; };
 		9490FA492FB2422000378ED5 /* CircleIconButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircleIconButton.swift; sourceTree = "<group>"; };
@@ -190,6 +196,7 @@
 		0B6B1F202B06AC7600FB0EFE /* Representation */ = {
 			isa = PBXGroup;
 			children = (
+				942E80D12FD8A1A600FC7003 /* Library */,
 				9414EDE02FD241D500A016A4 /* Transcript */,
 				9414EDD72FD2408200A016A4 /* BookMark */,
 				9490FA5B2FB3EA2800378ED5 /* Download */,
@@ -286,6 +293,15 @@
 			path = PodcastGenre;
 			sourceTree = "<group>";
 		};
+		942E80D12FD8A1A600FC7003 /* Library */ = {
+			isa = PBXGroup;
+			children = (
+				942E80D42FD8A1E500FC7003 /* LibraryMenuItem.swift */,
+				942E80D22FD8A1C400FC7003 /* LibraryController.swift */,
+			);
+			path = Library;
+			sourceTree = "<group>";
+		};
 		943FC3E42F4F7B60004C84A0 /* PodcastSearch */ = {
 			isa = PBXGroup;
 			children = (
@@ -306,6 +322,7 @@
 		945DCE3B2FA3E74E00256995 /* HostingController */ = {
 			isa = PBXGroup;
 			children = (
+				942E80CF2FD8944C00FC7003 /* EpisodeContextMenuButton.swift */,
 				945DCE3C2FA3E75F00256995 /* HostingCellBackground.swift */,
 			);
 			path = HostingController;
@@ -517,10 +534,12 @@
 				9418C4172FAA9A1C00729079 /* PodcastResultSearchController.swift in Sources */,
 				94F4E5BB2F6C8D1E00DC1130 /* FavoritesPodcastManager.swift in Sources */,
 				94F4E5F82F6DFEB600DC1130 /* GenresRepositoryImpl.swift in Sources */,
+				942E80D32FD8A1C400FC7003 /* LibraryController.swift in Sources */,
 				0B6094302AFC82B700D9A0DC /* PodcastSearchContainerController.swift in Sources */,
 				BAF855342F2D8C8000D6DA90 /* BookMarkEpisodeController.swift in Sources */,
 				9490FA502FB38DE300378ED5 /* HeaderState.swift in Sources */,
 				9414EDD92FD2409100A016A4 /* BookMarkView.swift in Sources */,
+				942E80D52FD8A1E500FC7003 /* LibraryMenuItem.swift in Sources */,
 				94F4E5F62F6DDBC200DC1130 /* FavoritesPodcastViewModel.swift in Sources */,
 				94F4E5B92F6C86C100DC1130 /* DownloadEpisodeRowView.swift in Sources */,
 				0B6094302AFC82B700D9A0DC /* PodcastSearchContainerController.swift in Sources */,
@@ -538,6 +557,7 @@
 				9490FA5D2FB4F6A100378ED5 /* LocalTranscriptionService.swift in Sources */,
 				7C9D91FC2B07075D00E5AABC /* Episode.swift in Sources */,
 				BA4D2F642F2AE4E6008A036F /* AVPlayerDataSource.swift in Sources */,
+				942E80D02FD8944D00FC7003 /* EpisodeContextMenuButton.swift in Sources */,
 				94F4E5BD2F6CA21A00DC1130 /* EpisodesViewModel.swift in Sources */,
 				9418C40F2FAA8DCC00729079 /* GenrePodcastCell.swift in Sources */,
 				9490FA4E2FB2713D00378ED5 /* PodcastImage.swift in Sources */,
