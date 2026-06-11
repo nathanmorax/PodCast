@@ -29,9 +29,7 @@ final class PlayerManager {
     
     func play(_ episode: Episode, presentation: PlayerPresentation = .expanded) {
         currentEpisode = episode
-//        guard let url = URL(string: episode.streamUrl) else { return }
         
-        // Prefiere URL local si está descargado
         let url: URL
         if let localURL = DownloadManager.shared.localURL(for: episode) {
             url = localURL

@@ -30,7 +30,7 @@
 		9414ED9F2FD202C000A016A4 /* EpisodeActionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9414ED9E2FD202C000A016A4 /* EpisodeActionViewModel.swift */; };
 		9414EDD92FD2409100A016A4 /* BookMarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9414EDD82FD2409100A016A4 /* BookMarkView.swift */; };
 		9414EDDB2FD240B700A016A4 /* BookMarkEpisodeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9414EDDA2FD240B700A016A4 /* BookMarkEpisodeViewModel.swift */; };
-		9414EDDF2FD2419C00A016A4 /* KeysFavoriteEpisode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9414EDDE2FD2419C00A016A4 /* KeysFavoriteEpisode.swift */; };
+		9414EDDF2FD2419C00A016A4 /* BookMarkEpisodeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9414EDDE2FD2419C00A016A4 /* BookMarkEpisodeManager.swift */; };
 		9418C40F2FAA8DCC00729079 /* GenrePodcastCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9418C40C2FAA8DCC00729079 /* GenrePodcastCell.swift */; };
 		9418C4102FAA8DCC00729079 /* GenresViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9418C40D2FAA8DCC00729079 /* GenresViewModel.swift */; };
 		9418C4112FAA8DCC00729079 /* PodcastGenreController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9418C40E2FAA8DCC00729079 /* PodcastGenreController.swift */; };
@@ -105,7 +105,7 @@
 		9414ED9E2FD202C000A016A4 /* EpisodeActionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeActionViewModel.swift; sourceTree = "<group>"; };
 		9414EDD82FD2409100A016A4 /* BookMarkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookMarkView.swift; sourceTree = "<group>"; };
 		9414EDDA2FD240B700A016A4 /* BookMarkEpisodeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookMarkEpisodeViewModel.swift; sourceTree = "<group>"; };
-		9414EDDE2FD2419C00A016A4 /* KeysFavoriteEpisode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeysFavoriteEpisode.swift; sourceTree = "<group>"; };
+		9414EDDE2FD2419C00A016A4 /* BookMarkEpisodeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookMarkEpisodeManager.swift; sourceTree = "<group>"; };
 		9418C40C2FAA8DCC00729079 /* GenrePodcastCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenrePodcastCell.swift; sourceTree = "<group>"; };
 		9418C40D2FAA8DCC00729079 /* GenresViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenresViewModel.swift; sourceTree = "<group>"; };
 		9418C40E2FAA8DCC00729079 /* PodcastGenreController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastGenreController.swift; sourceTree = "<group>"; };
@@ -181,7 +181,7 @@
 		0B6B1F1D2B06A68A00FB0EFE /* DataSource */ = {
 			isa = PBXGroup;
 			children = (
-				9414EDDE2FD2419C00A016A4 /* KeysFavoriteEpisode.swift */,
+				9414EDDE2FD2419C00A016A4 /* BookMarkEpisodeManager.swift */,
 				9414ED9C2FD2011600A016A4 /* DonwloadManager.swift */,
 				9490FA922FB63B5800378ED5 /* ImageMemoryCache.swift */,
 				9490FA5C2FB4F6A100378ED5 /* LocalTranscriptionService.swift */,
@@ -575,7 +575,7 @@
 				94F4E5FA2F6E001500DC1130 /* GenreResponse.swift in Sources */,
 				9414ED9F2FD202C000A016A4 /* EpisodeActionViewModel.swift in Sources */,
 				9414ED9D2FD2011B00A016A4 /* DonwloadManager.swift in Sources */,
-				9414EDDF2FD2419C00A016A4 /* KeysFavoriteEpisode.swift in Sources */,
+				9414EDDF2FD2419C00A016A4 /* BookMarkEpisodeManager.swift in Sources */,
 				94F4E5B42F6C815900DC1130 /* EpisodeHeaderView.swift in Sources */,
 				9490FA952FB63B8F00378ED5 /* UIImage+Decode.swift in Sources */,
 				9490FA912FB6202900378ED5 /* PerformanceCategories.swift in Sources */,
