@@ -201,7 +201,6 @@
 				9414EDD72FD2408200A016A4 /* BookMark */,
 				9490FA5B2FB3EA2800378ED5 /* Download */,
 				9490FA582FB3E27200378ED5 /* TabBar */,
-				BAF855322F2D8AD700D6DA90 /* Favorites */,
 				BA4D2F622F2AE2A9008A036F /* PlayerDetail */,
 				BA4D2F612F2AE287008A036F /* Episodes */,
 				9418C4152FAA99B900729079 /* PodcastSearchContainer */,
@@ -433,13 +432,6 @@
 				7C3C21D22B07E89300FDBA4A /* PlayerDetailView.swift */,
 			);
 			path = PlayerDetail;
-			sourceTree = "<group>";
-		};
-		BAF855322F2D8AD700D6DA90 /* Favorites */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Favorites;
 			sourceTree = "<group>";
 		};
 		CEC8FBBADD40A644A927A4B4 /* Frameworks */ = {
