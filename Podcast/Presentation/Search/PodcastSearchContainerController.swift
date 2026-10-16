@@ -36,7 +36,7 @@ class PodcastSearchContainerController: UIViewController {
         self.showGenres()
         self.setupBindings()
         
-        view.backgroundColor = AppColor.slateGray.uiColor
+        view.backgroundColor = AppColor.screenBackground.uiColor
         
     }
     
@@ -93,6 +93,12 @@ class PodcastSearchContainerController: UIViewController {
     
     private func setupChildControllers() {
         
+        // Tapping a category searches its name (until categories get their own
+        // top-podcasts screen).
+        genreController.onSelectGenre = { [weak self] genre in
+            self?.search(for: genre.name)
+        }
+        
         addChild(genreController)
         view.addSubview(genreController.view)
         genreController.view.translatesAutoresizingMaskIntoConstraints = false
@@ -113,6 +119,14 @@ class PodcastSearchContainerController: UIViewController {
         }
     }
     
+    
+    /// Fills the field with `text` and shows its results.
+    private func search(for text: String) {
+        searchController.isActive = true
+        searchController.searchBar.text = text
+        viewModel.search(text)
+        showResults()
+    }
     
     private func showGenres() {
         genreController.view.isHidden = false
