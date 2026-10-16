@@ -16,8 +16,15 @@ final class PlayerManager {
     @ObservationIgnored
     private let downloadManager: DownloadManager
 
-    init(downloadManager: DownloadManager = .shared) {
+    @ObservationIgnored
+    private let recentlyPlayed: RecentlyPlayedManager
+
+    init(
+        downloadManager: DownloadManager = .shared,
+        recentlyPlayed: RecentlyPlayedManager = .shared
+    ) {
         self.downloadManager = downloadManager
+        self.recentlyPlayed = recentlyPlayed
     }
     
     var currentEpisode: Episode?
@@ -35,6 +42,25 @@ final class PlayerManager {
     // MARK: - Public API
     
     func play(_ episode: Episode, presentation: PlayerPresentation = .expanded) {
+        // Same episode that's already loaded: don't reload it from 0:00.
+        // Just make sure it's playing and show the player.
+        if currentEpisode?.streamUrl == episode.streamUrl {
+            if !viewModel.isPlaying {
+                viewModel.togglePlayPause()
+            }
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                self.presentation = presentation
+            }
+            return
+        }
+        
+        // Save how far the listener got in the episode they're leaving,
+        // then put the new one at the top of "recently played".
+        if let previous = currentEpisode, previous.streamUrl != episode.streamUrl {
+            recentlyPlayed.updateProgress(for: previous, progress: Double(viewModel.progress))
+        }
+        recentlyPlayed.record(episode)
+        
         currentEpisode = episode
         
         let url: URL

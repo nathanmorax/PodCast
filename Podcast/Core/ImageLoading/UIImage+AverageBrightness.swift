@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  UIImage+AverageBrightness.swift
 //  Podcast
 //
 //  Created by Nathan Mora on 19/03/26.
@@ -38,13 +38,5 @@ extension UIImage {
         }
 
         return totalBrightness / CGFloat(pixelCount)
-    }
-}
-
-extension UIView {
-    
-    var cornerRadius: Void {
-        layer.cornerRadius = 8
-        clipsToBounds = true
     }
 }

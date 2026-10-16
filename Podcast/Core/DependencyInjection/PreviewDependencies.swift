@@ -17,9 +17,20 @@ extension DownloadManager {
     }
 }
 
+extension RecentlyPlayedManager {
+    /// Pre-filled with the mock episodes so the Library preview has content.
+    static var preview: RecentlyPlayedManager {
+        let manager = RecentlyPlayedManager(userDefaults: UserDefaults(suiteName: "preview.recent") ?? .standard)
+        for (offset, episode) in Episode.mocks.enumerated().reversed() {
+            manager.record(episode, at: Date.now.addingTimeInterval(Double(-offset) * 3_600 * 5))
+        }
+        return manager
+    }
+}
+
 extension PlayerManager {
     static var preview: PlayerManager {
-        PlayerManager(downloadManager: .preview)
+        PlayerManager(downloadManager: .preview, recentlyPlayed: .preview)
     }
 }
 #endif

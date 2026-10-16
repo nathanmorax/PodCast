@@ -1,5 +1,5 @@
 //
-//  PlayerDetailViewModel.swift
+//  AVPlayerViewModel.swift
 //  Podcast
 //
 //  Created by Jesus Mora on 30/01/26.
@@ -18,6 +18,8 @@ class AVPlayerViewModel {
     var isPlaying: Bool = false
     var currentTimeText: String = "00:00"
     var durationText: String = "00:00"
+    /// Time left, shown big in the player's top-right corner ("43:20").
+    var remainingTimeText: String = ""
     var progress: Float = 0
 
     // MARK: - Private
@@ -60,9 +62,17 @@ class AVPlayerViewModel {
 
             currentDurationSeconds = total
             progress = Float(current / total)
+            remainingTimeText = Self.shortTime(max(total - current, 0))
         }
         player.onStateChange = { [weak self] in self?.isPlaying = $0 }
         player.onEpisodeStarted = { [weak self] in }
+    }
+
+    /// "43:20" under an hour, "1:02:05" above.
+    static func shortTime(_ seconds: Double) -> String {
+        let total = Int(seconds.rounded())
+        let h = total / 3600, m = (total % 3600) / 60, s = total % 60
+        return h > 0 ? String(format: "%d:%02d:%02d", h, m, s) : String(format: "%d:%02d", m, s)
     }
 
     // MARK: - Playback API

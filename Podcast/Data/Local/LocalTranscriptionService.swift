@@ -5,34 +5,9 @@
 //  Created by Jonathan Mora on 13/05/26.
 //
 
-
 import Foundation
 import Speech
 import AVFoundation
-
-enum TranscriptionError: LocalizedError {
-    case localeNotSupported
-    case modelNotInstalled
-    case audioFileLoadFailed
-    case transcriptionFailed
-    
-    var errorDescription: String? {
-        switch self {
-        case .localeNotSupported: return "Idioma no soportado por SpeechAnalyzer"
-        case .modelNotInstalled: return "Modelo no se pudo descargar"
-        case .audioFileLoadFailed: return "No se pudo cargar el audio"
-        case .transcriptionFailed: return "Falló la transcripción"
-        }
-    }
-}
-
-/// Segmento de transcripción con timestamps
-struct LocalTranscriptSegment: Identifiable, Codable {
-    let id = UUID()
-    let text: String
-    let startTime: Double
-    let endTime: Double
-}
 
 @available(iOS 26.0, *)
 final class LocalTranscriptionService {
@@ -156,24 +131,5 @@ final class LocalTranscriptionService {
         ) {
             try await downloader.downloadAndInstall()
         }
-    }
-}
-
-import Foundation
-
-final class AudioDownloader {
-    
-    static let shared = AudioDownloader()
-    private init() {}
-    
-    func download(from url: URL) async throws -> URL {
-        let (tempURL, _) = try await URLSession.shared.download(from: url)
-        
-        let destination = FileManager.default.temporaryDirectory
-            .appendingPathComponent(UUID().uuidString)
-            .appendingPathExtension("mp3")
-        
-        try FileManager.default.moveItem(at: tempURL, to: destination)
-        return destination
     }
 }

@@ -1,5 +1,5 @@
 //
-//  FavoritesPodcastViewModel.swift
+//  DownloadEpisodeViewModel.swift
 //  Podcast
 //
 //  Created by Jesus Mora on 20/03/26.

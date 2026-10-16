@@ -1,5 +1,5 @@
 //
-//  PodcastCell.swift
+//  PodcastCellUI.swift
 //  Podcast
 //
 //  Created by Nathan Mora on 16/11/23.
@@ -80,22 +80,6 @@ struct PodcastCellUI: View {
         }
     }
 }
-
-
-#if DEBUG
-extension Podcast {
-    static let mock = Podcast(
-        trackId: 1200361736,
-        trackName: "The Daily",
-        artistName: "The New York Times",
-        artworkUrl600: "appicon",
-        primaryGenreName: "News",
-        trackCount: 1234,
-        feedUrl: "https://feeds.simplecast.com/54nAGcIl"
-    )
-}
-#endif
-
 
 //#Preview(traits: .sizeThatFitsLayout) {
 //    PodcastCellUI(podcast: .mock)

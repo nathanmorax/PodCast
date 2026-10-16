@@ -1,5 +1,5 @@
 //
-//  APIService.swift
+//  PodcastRemoteDataService.swift
 //  Podcast
 //
 //  Created by Nathan Mora on 16/11/23.
@@ -8,69 +8,6 @@
 import Foundation
 import Alamofire
 import FeedKit
-
-enum PodcastServiceError: Error {
-    case invalidURL
-    case decodingFailed(Error)
-    case networkFailed(Error)
-    case emptyResponse
-}
-
-enum PodcastEndpoint {
-    case search(query: String)
-    case genres
-    var url: String {
-        switch self {
-        case .search, .genres:
-            return baseURL
-        }
-    }
-    
-    private var baseURL: String {
-        switch self {
-        case .search:
-            return "https://itunes.apple.com/search"
-        case .genres:
-            return "https://itunes.apple.com/WebObjects/MZStoreServices.woa/ws/genres"
-        }
-    }
-    
-    var parameters: [String: Any] {
-        switch self {
-        case .search(let query):
-            return ["term": query, "media": "podcast"]
-        case .genres:
-            return ["id": "26", "l": "en"]
-        }
-    }
-    
-    var methotHttp: HTTPMethod {
-        switch self {
-        case .search, .genres: .post
-        }
-    }
-}
-
-protocol PodcastRemoteDataSource {
-    func searchPodcasts(
-        seacrhPodcast: String,
-        completion: @escaping (Result<[Podcast], Error>) -> Void
-    )
-    
-    func fetchEpisodes(
-        feedURL: String,
-        completion: @escaping (Result<[Episode], Error>) -> Void
-    )
-    
-    func fetchGenresPodcast(completion: @escaping (Result<[Genre], Error>) -> Void)
-    
-//    func fecthGenresPodcast() async throws -> [Genre]
-    
-    func searchPodcast(query: String) async throws -> [Podcast]
-    
-    func fetchEpisodes(feedURL: String) async throws -> [Episode]
-    
-}
 
 class PodcastRemoteDataService: PodcastRemoteDataSource {
     
@@ -203,58 +140,5 @@ class PodcastRemoteDataService: PodcastRemoteDataSource {
                 completion(.failure(decodeErr))
             }
         }
-    }
-}
-
-
-enum NetworkingError: Error {
-    case encodingFailed(innerError: EncodingError)
-    case decodingFailed(innerError: DecodingError)
-    case invalidStatusCode(innerError: Int)
-    case requestFailed(innerError: URLError)
-    case otherError(innerError: Error)
-}
-
-
-protocol EndpointProvider {
-    var schema: String { get }
-    var baseURL: String { get }
-    var path: String { get }
-    var method: HTTPMethod { get }
-    var token: String { get }
-    var queryItems: [URLQueryItem]? { get }
-    var body: [String: Any]? { get }
-    
-}
-
-enum TimeoutError: Error {
-    case timedOut
-}
-
-/// Ejecuta una operación async con un timeout.
-/// Si pasa el tiempo límite, lanza TimeoutError.timedOut.
-func withTimeout<T: Sendable>(
-    seconds: TimeInterval,
-    operation: @escaping @Sendable () async throws -> T
-) async throws -> T {
-    try await withThrowingTaskGroup(of: T.self) { group in
-        // Tarea principal
-        group.addTask {
-            try await operation()
-        }
-        
-        // Tarea del timer
-        group.addTask {
-            try await Task.sleep(for: .seconds(seconds))
-            throw TimeoutError.timedOut
-        }
-        
-        // La primera que termine gana
-        guard let result = try await group.next() else {
-            throw TimeoutError.timedOut
-        }
-        
-        group.cancelAll()
-        return result
     }
 }

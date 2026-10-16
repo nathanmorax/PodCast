@@ -1,5 +1,5 @@
 //
-//  GenrePodcastController.swift
+//  PodcastGenreController.swift
 //  Podcast
 //
 //  Created by Jonathan Mora on 25/02/26.

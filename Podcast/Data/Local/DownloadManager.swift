@@ -1,5 +1,5 @@
 //
-//  DonwloadManager.swift
+//  DownloadManager.swift
 //  Podcast
 //
 //  Created by Jonathan Mora on 04/06/26.
@@ -7,24 +7,6 @@
 
 import Foundation
 import Observation
-
-enum DownloadState: Equatable {
-    case idle
-    case waiting
-    case downloading(progress: Double)
-    case downloaded(localURL: URL)
-    case failed(String)
-
-    var iconName: String {
-        switch self {
-        case .idle:        return "arrow.down"
-        case .waiting:     return "arrow.down"
-        case .downloaded:  return "checkmark"
-        case .downloading: return "circle.dashed"
-        case .failed:      return "arrow.down"
-        }
-    }
-}
 
 @MainActor
 @Observable

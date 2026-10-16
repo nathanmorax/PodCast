@@ -21,6 +21,8 @@ final class TranscriptViewModel {
     var error: String?
     var progress: String = ""
     var currentSegment: LocalTranscriptSegment?
+    /// Index of `currentSegment` in `segments` (for the previous/next lines).
+    private(set) var currentIndex: Int?
 
     // MARK: - Private
     @ObservationIgnored private var currentEpisodeId: String?
@@ -28,9 +30,14 @@ final class TranscriptViewModel {
     // MARK: - API pública
 
     func updateCurrentSegment(playbackSeconds: Double) {
-        currentSegment = segments.first {
+        let index = segments.firstIndex {
             playbackSeconds >= $0.startTime && playbackSeconds <= $0.endTime
         }
+        // Between two sentences there's a tiny gap: keep the last line instead
+        // of blinking back to the title.
+        guard let index, index != currentIndex else { return }
+        currentIndex = index
+        currentSegment = segments[index]
     }
 
     func loadIfCached(for episodeId: String) {
@@ -43,6 +50,7 @@ final class TranscriptViewModel {
         segments = []
         error = nil
         currentSegment = nil
+        currentIndex = nil
     }
 
     @available(iOS 26.0, *)

@@ -1,5 +1,5 @@
 //
-//  PodcastSearchController.swift
+//  PodcastSearchContainerController.swift
 //  Podcast
 //
 //  Created by Nathan Mora on 08/11/23.
@@ -10,6 +10,10 @@ import Alamofire
 
 class PodcastSearchContainerController: UIViewController {
     let searchController = UISearchController(searchResultsController: nil)
+    
+    /// Set by AppNavigator when the search button opens this screen:
+    /// the keyboard comes up right away.
+    var focusesSearchOnAppear = false
     
     private let genreController = PodcastGenreController()
 
@@ -36,6 +40,27 @@ class PodcastSearchContainerController: UIViewController {
         
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if focusesSearchOnAppear {
+            focusesSearchOnAppear = false
+            focusSearchField()
+        }
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        // Leaving with the keyboard up must not keep the bottom bar hidden.
+        AppNavigator.shared.isSearching = false
+    }
+    
+    func focusSearchField() {
+        searchController.isActive = true
+        Task { @MainActor in
+            self.searchController.searchBar.becomeFirstResponder()
+        }
+    }
+    
     private func setupBindings() {
         withObservationTracking {
             _ = viewModel.error
@@ -54,12 +79,13 @@ class PodcastSearchContainerController: UIViewController {
     private func setupSearchBar() {
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.delegate = self
-        searchController.searchBar.placeholder = "Search Podcasts"
+        searchController.searchBar.placeholder = "Buscar podcasts"
+        title = "Buscar"
         
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
         // Keep the field at the top, under the title (iOS 26 would otherwise
-        // move it to a bottom toolbar, next to the tab bar).
+        // move it to a bottom toolbar, where our bottom bar lives).
         navigationItem.preferredSearchBarPlacement = .stacked
         navigationItem.searchBarPlacementAllowsToolbarIntegration = false
         definesPresentationContext = true
@@ -114,14 +140,14 @@ extension PodcastSearchContainerController: UISearchBarDelegate {
         }
     }
     
-    // Typing → hide tab bar + mini player. Keyboard gone (Cancel, Search key,
-    // or scrolling the results) → bring them back.
+    // Typing → the bottom bar steps aside. Keyboard gone (Cancel, Search key,
+    // or scrolling the results) → it comes back.
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
-        (tabBarController as? MainTabBarController)?.setSearching(true)
+        AppNavigator.shared.isSearching = true
     }
     
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
-        (tabBarController as? MainTabBarController)?.setSearching(false)
+        AppNavigator.shared.isSearching = false
     }
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
