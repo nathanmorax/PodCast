@@ -5,29 +5,42 @@
 
 import UIKit
 
-/// One navigation stack per tab (Inicio, Biblioteca). Only the selected one is
-/// on screen; the other keeps its history for when you come back. There is no
-/// UITabBar: the bottom of the screen belongs to RootView's BottomBar.
+/// One navigation stack per tab (Inicio, Biblioteca) plus one for Search.
+/// Only one is on screen; the others keep their history for when you come
+/// back. There is no UITabBar: the bottom of the screen belongs to RootView's
+/// BottomBar.
+///
+/// Search is the *root* of its own stack instead of being pushed on top of a
+/// tab, so it has no back arrow. Opening a podcast from the results still
+/// pushes (with its back arrow) inside Search's stack.
 final class MainContainerController: UIViewController {
 
     private let stacks: [AppTab: UINavigationController]
+    let searchController = PodcastSearchContainerController()
+    let searchStack: UINavigationController
     private let scrollTracker = BottomBarScrollTracker(navigator: .shared)
     private weak var current: UINavigationController?
 
     init() {
         var stacks: [AppTab: UINavigationController] = [:]
         for tab in AppTab.allCases {
-            let navigation = UINavigationController(rootViewController: Self.makeRoot(for: tab))
-            navigation.navigationBar.tintColor = .label
-            stacks[tab] = navigation
+            stacks[tab] = Self.makeStack(root: Self.makeRoot(for: tab))
         }
         self.stacks = stacks
+        self.searchStack = Self.makeStack(root: searchController)
         super.init(nibName: nil, bundle: nil)
         stacks.values.forEach { $0.delegate = self }
+        searchStack.delegate = self
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    private static func makeStack(root: UIViewController) -> UINavigationController {
+        let navigation = UINavigationController(rootViewController: root)
+        navigation.navigationBar.tintColor = .label
+        return navigation
     }
 
     private static func makeRoot(for tab: AppTab) -> UIViewController {
@@ -48,7 +61,18 @@ final class MainContainerController: UIViewController {
     }
 
     func show(_ tab: AppTab) {
-        guard let next = stacks[tab], next !== current else { return }
+        guard let next = stacks[tab] else { return }
+        display(next)
+    }
+
+    /// Shows Search's stack; the keyboard comes up once it's on screen.
+    func showSearch() {
+        searchController.focusesSearchOnAppear = true
+        display(searchStack)
+    }
+
+    private func display(_ next: UINavigationController) {
+        guard next !== current else { return }
 
         if let current {
             current.willMove(toParent: nil)
