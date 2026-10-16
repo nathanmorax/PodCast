@@ -12,37 +12,44 @@ struct RootView: View {
     
     @Environment(\.playerManager) private var manager
     let headerActions = EpisodeHeaderActions()
-
+    
+    private var navigator: AppNavigator { .shared }
+    
+    /// Bar height + the gap under it + breathing room above it.
+    private static let reservedBottomSpace: CGFloat = BottomBar.height + 8 + 12
+    
+    /// Hidden while typing in Search and while the full player is open.
+    private var showsBottomBar: Bool {
+        !navigator.isSearching && manager.presentation != .expanded
+    }
     
     var body: some View {
         ZStack(alignment: .bottom) {
             
-            MainTabBarRepresentable()
-                // Same as the old edgesIgnoringSafeArea(.all): container only.
-                // UIKit handles the keyboard itself inside the tab controller.
+            MainNavigationRepresentable(bottomInset: showsBottomBar ? Self.reservedBottomSpace : 0)
                 .ignoresSafeArea(.container)
+            
+            if showsBottomBar {
+                BottomBar(onSearch: { navigator.showSearch() })
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 8)
+                    .ignoresSafeArea(.keyboard)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
             
             playerOverlay
         }
+        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: showsBottomBar)
     }
     
     @ViewBuilder
     private var playerOverlay: some View {
-        switch manager.presentation {
-            
-        case .hidden, .mini:
-            // The mini player lives in the tab bar's bottom accessory
-            // (MainTabBarController), so nothing is overlaid here.
-            EmptyView()
-            
-        case .expanded:
-            if let episode = manager.currentEpisode {
-                PlayerView(episode: episode)
-                    .transition(.move(edge: .bottom))
-                    .ignoresSafeArea()
-                    .zIndex(1)
-                    .environment(\.episodeActions, headerActions)
-            }
+        if manager.presentation == .expanded, let episode = manager.currentEpisode {
+            PlayerView(episode: episode)
+                .transition(.move(edge: .bottom))
+                .ignoresSafeArea()
+                .zIndex(1)
+                .environment(\.episodeActions, headerActions)
         }
     }
 }
@@ -51,5 +58,3 @@ struct RootView: View {
     RootView()
         .environment(\.playerManager, .preview)
 }
-
-

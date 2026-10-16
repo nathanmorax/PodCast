@@ -50,7 +50,7 @@ struct LibraryView: View {
                         .padding(.top, 28)
                 }
                 .padding(.horizontal, 20)
-                .padding(.bottom, 120)
+                .padding(.bottom, 24) // the bottom bar's space comes from the safe area
             }
             .background(Color.libraryBackground.ignoresSafeArea())
 
@@ -85,7 +85,7 @@ struct LibraryView: View {
     /// The episodes the listener played, most recent first (RecentlyPlayedManager).
     private var recentUpdatesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Actualizaciones recientes")
+            Text("Escuchado recientemente")
                 .font(.system(size: 22, weight: .bold))
                 .foregroundStyle(.black)
 

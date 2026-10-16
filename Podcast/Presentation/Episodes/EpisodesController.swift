@@ -169,10 +169,12 @@ class EpisodesController: UIViewController {
     // MARK: - Setup
 
     private func updateCollectionViewInset() {
-           let tabBarHeight = tabBarController?.tabBar.frame.height ?? 0
-           collectionView.contentInset.bottom = tabBarHeight
-           collectionView.verticalScrollIndicatorInsets.bottom = tabBarHeight
-       }
+        // Nothing extra: contentInsetAdjustmentBehavior = .automatic already adds
+        // the safe area, which includes the space reserved for the bottom bar.
+        // (Adding the tab bar height here used to count that space twice.)
+        collectionView.contentInset.bottom = 0
+        collectionView.verticalScrollIndicatorInsets.bottom = 0
+    }
 
 
     private func setupCollectionView() {

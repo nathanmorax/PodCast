@@ -71,22 +71,6 @@ struct MiniPlayerView: View {
     }
 }
 
-/// Reads the current episode from PlayerManager, so the accessory updates by
-/// itself (Observation) when another episode starts. No rootView swapping needed.
-struct MiniPlayerAccessory: View {
-    @Environment(\.playerManager) private var manager
-    
-    var body: some View {
-        if let episode = manager.currentEpisode {
-            MiniPlayerView(
-                episode: episode,
-                viewModel: manager.viewModel,
-                onExpand: { manager.expand() }
-            )
-        }
-    }
-}
-
 //#Preview {
 //    MiniPlayerView(episode: Episode.mock, viewModel: AVPlayerViewModel())
 //}
