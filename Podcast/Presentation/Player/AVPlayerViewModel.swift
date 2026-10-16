@@ -11,6 +11,8 @@ import Speech
 
 
 
+/// Playback state shown by the player and the mini player: main actor.
+@MainActor
 @Observable
 class AVPlayerViewModel {
 
@@ -69,7 +71,7 @@ class AVPlayerViewModel {
     }
 
     /// "43:20" under an hour, "1:02:05" above.
-    static func shortTime(_ seconds: Double) -> String {
+    nonisolated static func shortTime(_ seconds: Double) -> String {
         let total = Int(seconds.rounded())
         let h = total / 3600, m = (total % 3600) / 60, s = total % 60
         return h > 0 ? String(format: "%d:%02d:%02d", h, m, s) : String(format: "%d:%02d", m, s)

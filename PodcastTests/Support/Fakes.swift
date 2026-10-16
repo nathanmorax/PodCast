@@ -10,6 +10,7 @@ import AVFoundation
 // MARK: - Player
 
 /// Records what the view model asks the player to do. No audio, no network.
+@MainActor
 final class FakePlayerDataSource: PlayerDataSource {
     var onTimeUpdate: ((CMTime, CMTime?) -> Void)?
     var onStateChange: ((Bool) -> Void)?

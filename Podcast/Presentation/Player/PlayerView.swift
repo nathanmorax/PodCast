@@ -591,9 +591,8 @@ struct PlayerView: View {
         hideControlsTask = Task {
             try? await Task.sleep(for: .seconds(3))
             guard !Task.isCancelled else { return }
-            await MainActor.run {
-                withAnimation(AppAnimation.controlsVisibility) { showControls = false }
-            }
+            // Inherits the view's main actor: no MainActor.run needed.
+            withAnimation(AppAnimation.controlsVisibility) { showControls = false }
         }
     }
 }

@@ -7,6 +7,7 @@
 import UIKit
 import AVFoundation
 
+@MainActor
 class AVPlayerDataSource: PlayerDataSource {
     
     let player: AVPlayer = {
@@ -27,9 +28,13 @@ class AVPlayerDataSource: PlayerDataSource {
     
     private func observeTime() {
         let interval = CMTimeMake(value: 1, timescale: 2)
+        // queue: .main → this closure runs on the main thread, so it can
+        // safely enter the main actor without hopping.
         player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
-            let duration = self?.player.currentItem?.duration
-            self?.onTimeUpdate?(time, duration)
+            MainActor.assumeIsolated {
+                let duration = self?.player.currentItem?.duration
+                self?.onTimeUpdate?(time, duration)
+            }
         }
     }
     
