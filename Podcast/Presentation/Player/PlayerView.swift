@@ -55,7 +55,7 @@ struct PlayerView: View {
             }
         }
         .gesture(dismissGesture)
-        .animation(.spring(response: 0.5, dampingFraction: 0.85), value: mode)
+        .animation(AppAnimation.transcriptMode, value: mode)
         .onChange(of: viewModel.progress) { _, _ in
             transcript.updateCurrentSegment(playbackSeconds: viewModel.currentPlaybackSeconds)
         }
@@ -187,16 +187,13 @@ struct PlayerView: View {
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity)
             .id(lines.id)
-            .transition(.asymmetric(
-                insertion: .move(edge: .bottom).combined(with: .opacity),
-                removal: .move(edge: .top).combined(with: .opacity)
-            ))
+            .transition(.wheelLine)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .frame(height: 132)
         .clipped()
-        .animation(.spring(response: 0.5, dampingFraction: 0.9), value: lines.id)
+        .animation(AppAnimation.lineWheel, value: lines.id)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(lines.current)
         .accessibilityHint("Opens the transcript")
@@ -246,10 +243,10 @@ struct PlayerView: View {
                             )
                             .ignoresSafeArea()
                     )
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .transition(.floatingControls)
             }
         }
-        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showControls)
+        .animation(AppAnimation.controlsVisibility, value: showControls)
         .onAppear {
             showControls = true
             scheduleHideControls()
@@ -276,7 +273,7 @@ struct PlayerView: View {
             }
             .onChange(of: transcript.currentSegment?.id) { _, newId in
                 guard let newId else { return }
-                withAnimation(.easeInOut(duration: 0.4)) {
+                withAnimation(AppAnimation.transcriptFollow) {
                     proxy.scrollTo(newId, anchor: .center)
                 }
             }
@@ -352,7 +349,7 @@ struct PlayerView: View {
             .multilineTextAlignment(.leading)
             .frame(maxWidth: .infinity, alignment: .leading)
             .id(segment.id)
-            .animation(.easeInOut(duration: 0.3), value: isCurrent)
+            .animation(AppAnimation.lineHighlight, value: isCurrent)
             .onTapGesture {
                 seekToSegment(segment)
                 showControlsTemporarily()
@@ -585,7 +582,7 @@ struct PlayerView: View {
     }
     
     private func showControlsTemporarily() {
-        withAnimation { showControls = true }
+        withAnimation(AppAnimation.controlsVisibility) { showControls = true }
         scheduleHideControls()
     }
     
@@ -595,7 +592,7 @@ struct PlayerView: View {
             try? await Task.sleep(for: .seconds(3))
             guard !Task.isCancelled else { return }
             await MainActor.run {
-                withAnimation { showControls = false }
+                withAnimation(AppAnimation.controlsVisibility) { showControls = false }
             }
         }
     }

@@ -50,7 +50,7 @@ final class PlayerManager {
             if !viewModel.isPlaying {
                 viewModel.togglePlayPause()
             }
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+            withAnimation(AppAnimation.playerPresentation) {
                 self.presentation = presentation
             }
             return
@@ -77,19 +77,19 @@ final class PlayerManager {
         viewModel.playEpisode(url: url)
         transcript.loadIfCached(for: episode.streamUrl)
         
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+        withAnimation(AppAnimation.playerPresentation) {
             self.presentation = presentation
         }
     }
     
     func expand() {
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+        withAnimation(AppAnimation.playerPresentation) {
             presentation = .expanded
         }
     }
     
     func collapse() {
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+        withAnimation(AppAnimation.playerPresentation) {
             presentation = .mini
         }
     }

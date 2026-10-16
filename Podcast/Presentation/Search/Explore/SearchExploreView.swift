@@ -25,7 +25,7 @@ struct SearchExploreView: View {
             VStack(alignment: .leading, spacing: 28) {
                 if !recentSearches.items.isEmpty {
                     recentSection
-                        .transition(.opacity.combined(with: .move(edge: .top)))
+                        .transition(.sectionReveal)
                 }
                 categoriesSection
             }
@@ -35,7 +35,7 @@ struct SearchExploreView: View {
         .scrollIndicators(.hidden)
         .scrollDismissesKeyboard(.immediately)
         .background(AppColor.screenBackground)
-        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: recentSearches.items.map(\.trackId))
+        .animation(AppAnimation.listChange, value: recentSearches.items.map(\.trackId))
     }
 
     // MARK: - Buscado recientemente
@@ -46,7 +46,7 @@ struct SearchExploreView: View {
                 sectionTitle("Recently searched")
                 Spacer()
                 Button("Clear") {
-                    withAnimation { recentSearches.clear() }
+                    withAnimation(AppAnimation.listChange) { recentSearches.clear() }
                 }
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(AppColor.lavenderInk)
@@ -65,7 +65,7 @@ struct SearchExploreView: View {
                         .buttonStyle(.plain)
                         .contextMenu {
                             Button("Remove from recents", systemImage: "minus.circle", role: .destructive) {
-                                withAnimation { recentSearches.remove(podcast) }
+                                withAnimation(AppAnimation.listChange) { recentSearches.remove(podcast) }
                             }
                         }
                     }

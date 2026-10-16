@@ -172,7 +172,7 @@ struct EpisodeHeaderView: View {
                 .lineLimit(isAboutExpanded ? nil : HeaderStyle.collapsedLineLimit)
             
             Button {
-                withAnimation(.easeInOut(duration: 0.25)) {
+                withAnimation(AppAnimation.disclosure) {
                     isAboutExpanded.toggle()
                 }
             } label: {
@@ -183,7 +183,7 @@ struct EpisodeHeaderView: View {
         }
         .contentShape(Rectangle())
         .onTapGesture {
-            withAnimation(.easeInOut(duration: 0.25)) {
+            withAnimation(AppAnimation.disclosure) {
                 isAboutExpanded.toggle()
             }
         }

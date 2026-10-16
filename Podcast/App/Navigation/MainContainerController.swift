@@ -135,13 +135,7 @@ final class MainContainerController: UIViewController, NavigationContainer {
     }
 
     private func animateStacks(_ changes: @escaping () -> Void, completion: @escaping () -> Void) {
-        UIView.animate(
-            withDuration: 0.42, delay: 0,
-            usingSpringWithDamping: 0.9, initialSpringVelocity: 0,
-            options: [.allowUserInteraction, .beginFromCurrentState],
-            animations: changes,
-            completion: { _ in completion() }
-        )
+        UIView.animate(AppAnimation.screenSlide, changes: changes, completion: completion)
     }
 
     /// After an animation, the stack that left is taken out (unless it came
@@ -243,13 +237,9 @@ final class MainContainerController: UIViewController, NavigationContainer {
     private func finish(_ swipe: TabSwipe, completes: Bool) {
         let width = view.bounds.width
         let target: CGFloat = completes ? (swipe.towardNext ? -width : width) : 0
-        UIView.animate(
-            withDuration: 0.35, delay: 0,
-            usingSpringWithDamping: 0.92, initialSpringVelocity: 0,
-            options: [.allowUserInteraction, .beginFromCurrentState]
-        ) {
+        UIView.animate(AppAnimation.gestureRelease) {
             self.move(swipe, by: target)
-        } completion: { _ in
+        } completion: {
             swipe.outgoing.view.transform = .identity
             swipe.incoming.view.transform = .identity
             guard completes else {
@@ -309,15 +299,11 @@ final class MainContainerController: UIViewController, NavigationContainer {
             tabUnderSearch = nil
             let y = pan.translation(in: view).y
             let completes = pan.state == .ended && (y > height * 0.25 || pan.velocity(in: view).y > 800)
-            UIView.animate(
-                withDuration: 0.35, delay: 0,
-                usingSpringWithDamping: 0.92, initialSpringVelocity: 0,
-                options: [.allowUserInteraction, .beginFromCurrentState]
-            ) {
+            UIView.animate(AppAnimation.gestureRelease) {
                 self.searchStack.view.transform = completes
                     ? CGAffineTransform(translationX: 0, y: height)
                     : .identity
-            } completion: { _ in
+            } completion: {
                 guard completes else {
                     self.searchStack.view.transform = .identity
                     self.removeIfHidden(under)

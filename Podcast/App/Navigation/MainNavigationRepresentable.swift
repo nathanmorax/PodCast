@@ -21,7 +21,9 @@ struct MainNavigationRepresentable: UIViewControllerRepresentable {
 
     func updateUIViewController(_ container: MainContainerController, context: Context) {
         guard container.additionalSafeAreaInsets.bottom != bottomInset else { return }
-        UIView.animate(withDuration: 0.3) {
+        // Same curve as the bar itself (iOS 18 UIKit API with a SwiftUI
+        // Animation), so lists resize in step with it.
+        UIView.animate(AppAnimation.barVisibility) {
             // Propagates to both stacks and every pushed screen.
             container.additionalSafeAreaInsets.bottom = bottomInset
             container.view.layoutIfNeeded()

@@ -24,7 +24,7 @@ struct CircleIconButton: View {
                         : Color(.systemGray6),
                     in: Circle()
                 )
-                .animation(.easeInOut(duration: 0.2), value: isHighlighted)
+                .animation(AppAnimation.stateChange, value: isHighlighted)
         }
     }
 }

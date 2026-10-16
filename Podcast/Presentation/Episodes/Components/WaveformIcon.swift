@@ -21,12 +21,7 @@ struct WaveformIcon: View {
                         y: animate ? heights[i] : 0.35,
                         anchor: .center
                     )
-                    .animation(
-                        .easeInOut(duration: 0.6)
-                        .repeatForever(autoreverses: true)
-                        .delay(delays[i]),
-                        value: animate
-                    )
+                    .animation(AppAnimation.equalizerBar(delay: delays[i]), value: animate)
             }
         }
         .frame(width: 42, height: 42)

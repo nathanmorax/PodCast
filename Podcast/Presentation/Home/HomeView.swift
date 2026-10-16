@@ -61,7 +61,7 @@ struct HomeView: View {
         .scrollIndicators(.hidden)
         .background(AppColor.screenBackground.ignoresSafeArea())
         .onReceive(favoritesPublisher) { favorites = $0 }
-        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: recentlyPlayed.items.map(\.id))
+        .animation(AppAnimation.listChange, value: recentlyPlayed.items.map(\.id))
     }
 
     // MARK: - Header
@@ -123,7 +123,7 @@ struct HomeView: View {
                     .buttonStyle(.plain)
                     .contextMenu {
                         Button("Remove from recents", systemImage: "minus.circle", role: .destructive) {
-                            withAnimation { recentlyPlayed.remove(item) }
+                            withAnimation(AppAnimation.listChange) { recentlyPlayed.remove(item) }
                         }
                     }
                 }

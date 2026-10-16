@@ -49,8 +49,6 @@ struct BottomBar: View {
         isCompact ? Metrics.compactHeight : Metrics.rowHeight
     }
 
-    private static let spring = Animation.spring(response: 0.38, dampingFraction: 0.86)
-
     // The search element always sits at the same place in this structure, so
     // the field keeps its identity (and the keyboard) while the bar changes.
     var body: some View {
@@ -58,7 +56,7 @@ struct BottomBar: View {
             if showsMiniPlayer, let episode = manager.currentEpisode {
                 MiniPlayerCapsule(episode: episode, showsSubtitle: !isCompact)
                     .matchedGeometryEffect(id: "player", in: namespace)
-                    .transition(.move(edge: .leading).combined(with: .opacity))
+                    .transition(.barLeadingItem)
             }
 
             searchElement
@@ -66,14 +64,14 @@ struct BottomBar: View {
 
             if inSearch {
                 trailingSearchButton
-                    .transition(.scale.combined(with: .opacity))
+                    .transition(.barAccessory)
             }
         }
         .frame(height: height)
-        .animation(Self.spring, value: isCompact)
-        .animation(Self.spring, value: inSearch)
-        .animation(Self.spring, value: navigator.isSearching)
-        .animation(Self.spring, value: manager.currentEpisode?.streamUrl)
+        .animation(AppAnimation.bar, value: isCompact)
+        .animation(AppAnimation.bar, value: inSearch)
+        .animation(AppAnimation.bar, value: navigator.isSearching)
+        .animation(AppAnimation.bar, value: manager.currentEpisode?.streamUrl)
         .sensoryFeedback(.selection, trigger: navigator.selectedTab)
         // Keep the keyboard and the navigator in sync, both ways.
         .onChange(of: isFieldFocused) { _, focused in

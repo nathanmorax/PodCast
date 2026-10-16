@@ -42,20 +42,20 @@ struct RootView: View {
                     .padding(.bottom, 8)
                     // Respects the keyboard: while typing, the search field
                     // sits right above it.
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .transition(.bottomBar)
             }
             
             playerOverlay
         }
-        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: showsBottomBar)
-        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: navigator.isSearching)
+        .animation(AppAnimation.barVisibility, value: showsBottomBar)
+        .animation(AppAnimation.barVisibility, value: navigator.isSearching)
     }
     
     @ViewBuilder
     private var playerOverlay: some View {
         if manager.presentation == .expanded, let episode = manager.currentEpisode {
             PlayerView(episode: episode)
-                .transition(.move(edge: .bottom))
+                .transition(.playerSheet)
                 .ignoresSafeArea()
                 .zIndex(1)
                 .environment(\.episodeActions, headerActions)
