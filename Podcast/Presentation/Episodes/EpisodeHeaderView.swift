@@ -30,7 +30,6 @@ struct EpisodeHeaderView: View {
     var body: some View {
         VStack(spacing: 0) {
             heroSection
-                .ignoresSafeArea(edges: .top)
             actionsRow
             metaRow
             aboutSection
@@ -44,26 +43,51 @@ struct EpisodeHeaderView: View {
         podcast.artworkURL?.absoluteString ?? podcast.artworkUrl600
     }
 
+    /// The cover, edge to edge and under the status bar. It fades into the
+    /// page at the bottom, where the podcast's name sits. It's the only
+    /// flexible part, so pulling down past the top stretches it.
     private var heroSection: some View {
-        ZStack {
-            DynamicPodcastHeroBackground(imageURL: artworkURL)
-
-            VStack(spacing: 14) {
-                PodcastImage(source: artworkURL)
-                    .frame(width: HeaderStyle.artworkSize, height: HeaderStyle.artworkSize)
-                    .clipShape(RoundedRectangle(cornerRadius: HeaderStyle.artworkCornerRadius))
-                    .shadow(color: .black.opacity(0.3), radius: 20, y: 10)
-
-                Text(podcast.artistName ?? "")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.9))
+        Color.clear
+            .frame(maxWidth: .infinity, minHeight: HeaderStyle.heroHeight, maxHeight: .infinity)
+            .overlay {
+                PodcastImage(source: artworkURL, contentMode: .fill)
             }
-            .padding(.top, 56)
-        }
-        .frame(height: HeaderStyle.heroHeight)
-        .frame(maxWidth: .infinity)
-        .clipped()
-        .ignoresSafeArea(edges: .top)
+            // Keeps the status bar and the back button readable on any cover.
+            .overlay(alignment: .top) {
+                LinearGradient(
+                    colors: [Color(.systemBackground).opacity(0.55), .clear],
+                    startPoint: .top, endPoint: .bottom
+                )
+                .frame(height: 130)
+            }
+            .overlay(alignment: .bottom) {
+                LinearGradient(
+                    colors: [.clear, Color(.systemBackground)],
+                    startPoint: .top, endPoint: .bottom
+                )
+                .frame(height: 190)
+            }
+            .overlay(alignment: .bottomLeading) {
+                VStack(alignment: .leading, spacing: 2) {
+                    if let artist = podcast.artistName, !artist.isEmpty {
+                        Text(artist)
+                            .font(.system(size: 13, weight: .bold))
+                            .textCase(.uppercase)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                    Text(podcast.trackName ?? "")
+                        .font(.system(size: 32, weight: .heavy))
+                        .foregroundStyle(.primary)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.8)
+                }
+                .padding(.horizontal, HeaderStyle.horizontalPadding)
+                .padding(.bottom, 4)
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isHeader)
+            }
+            .clipped()
     }
     
     // MARK: - Acciones

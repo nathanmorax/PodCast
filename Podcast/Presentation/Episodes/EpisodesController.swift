@@ -11,6 +11,9 @@ import SwiftUI
 
 private enum Layout {
     static let headerHeight: CGFloat = 720
+    /// The cover part of the header (EpisodeHeaderView's hero). Past it, the
+    /// navigation bar becomes solid and shows the podcast's name.
+    static let heroHeight: CGFloat = 420
     // Content needs ~160pt: date + 2-line title + 2-line description + 32pt button + 16pt padding.
     // At 150 the 100pt artwork + 36pt menu button column overflowed into the next row.
     static let cellHeight: CGFloat   = 164
@@ -40,7 +43,9 @@ class EpisodesController: UIViewController {
         layout.sectionInset            = Layout.sectionInset
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
         cv.translatesAutoresizingMaskIntoConstraints = false
-        cv.contentInsetAdjustmentBehavior = .automatic
+        // The cover goes all the way up, under the status bar and the
+        // (transparent) navigation bar; the bottom inset is set by hand.
+        cv.contentInsetAdjustmentBehavior = .never
         cv.delegate   = self
         cv.dataSource = self
         return cv
@@ -94,7 +99,43 @@ class EpisodesController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateCollectionViewInset()
+        updateNavigationBar()
         refreshVisibleHeader()
+    }
+
+    override func viewSafeAreaInsetsDidChange() {
+        super.viewSafeAreaInsetsDidChange()
+        updateCollectionViewInset()
+    }
+
+    // MARK: - Navigation bar over the cover
+
+    private var isHeaderCollapsed = false
+
+    private lazy var transparentBarAppearance: UINavigationBarAppearance = {
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithTransparentBackground()
+        return appearance
+    }()
+
+    private lazy var solidBarAppearance: UINavigationBarAppearance = {
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithDefaultBackground()
+        return appearance
+    }()
+
+    /// Transparent over the cover; solid with the podcast's name once the
+    /// cover has scrolled away.
+    private func updateNavigationBar() {
+        let threshold = Layout.heroHeight - view.safeAreaInsets.top - 60
+        let collapsed = collectionView.contentOffset.y > threshold
+        guard collapsed != isHeaderCollapsed || navigationItem.standardAppearance == nil else { return }
+        isHeaderCollapsed = collapsed
+        let appearance = collapsed ? solidBarAppearance : transparentBarAppearance
+        navigationItem.standardAppearance = appearance
+        navigationItem.scrollEdgeAppearance = appearance
+        navigationItem.compactAppearance = appearance
+        navigationItem.title = collapsed ? podcast?.trackName : nil
     }
 
     deinit {
@@ -169,11 +210,14 @@ class EpisodesController: UIViewController {
     // MARK: - Setup
 
     private func updateCollectionViewInset() {
-        // Nothing extra: contentInsetAdjustmentBehavior = .automatic already adds
-        // the safe area, which includes the space reserved for the bottom bar.
-        // (Adding the tab bar height here used to count that space twice.)
-        collectionView.contentInset.bottom = 0
-        collectionView.verticalScrollIndicatorInsets.bottom = 0
+        // .never adjustment: add the bottom safe area (home indicator + the
+        // space RootView reserves for the bar) ourselves. The top stays 0 so
+        // the cover reaches the top of the screen.
+        let bottom = view.safeAreaInsets.bottom
+        collectionView.contentInset.bottom = bottom
+        collectionView.verticalScrollIndicatorInsets = UIEdgeInsets(
+            top: view.safeAreaInsets.top, left: 0, bottom: bottom, right: 0
+        )
     }
 
 
@@ -329,6 +373,7 @@ extension EpisodesController: UICollectionViewDelegateFlowLayout {
 extension EpisodesController: UIScrollViewDelegate {
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        updateNavigationBar()
         
         let offsetY = scrollView.contentOffset.y
         let contentHeight = scrollView.contentSize.height

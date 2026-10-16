@@ -161,4 +161,53 @@ struct AppNavigatorTests {
         #expect(!sut.isSearching)
         #expect(sut.isShowingSearch)
     }
+
+    // MARK: - Tab pill
+
+    @Test("Tapping the pill on Inicio goes to Biblioteca, and back")
+    func pillAlternates() {
+        sut.showOtherTab()
+        #expect(sut.selectedTab == .library)
+
+        sut.showOtherTab()
+        #expect(sut.selectedTab == .home)
+        #expect(container.shownTabs == [.library, .home])
+    }
+
+    @Test("Tapping the pill from Search goes back to the tab you came from")
+    func pillLeavesSearch() {
+        sut.select(.library)
+        sut.showSearch()
+
+        sut.showOtherTab()
+
+        #expect(!sut.isShowingSearch)
+        #expect(sut.selectedTab == .library)
+        #expect(container.shownTabs == [.library, .library])
+    }
+
+    // MARK: - Closing Search
+
+    @Test("Closing Search goes back to the tab you came from and drops the keyboard")
+    func closeSearch() {
+        sut.select(.library)
+        sut.showSearch()
+        sut.isSearching = true
+
+        sut.closeSearch()
+
+        #expect(!sut.isShowingSearch)
+        #expect(!sut.isSearching)
+        #expect(sut.selectedTab == .library)
+        #expect(container.shownTabs == [.library, .library])
+        #expect(sut.currentNavigationController === container.stacks[.library])
+    }
+
+    @Test("Closing Search when it isn't open does nothing")
+    func closeSearchOutsideSearch() {
+        sut.closeSearch()
+
+        #expect(container.shownTabs.isEmpty)
+        #expect(sut.selectedTab == .home)
+    }
 }

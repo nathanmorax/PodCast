@@ -8,6 +8,7 @@
 
     },
     "%@, current tab" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -73,6 +74,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld min"
+          }
+        }
+      }
+    },
+    "%lld of %lld" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld de %2$lld"
           }
         }
       }
@@ -143,6 +155,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Borrar texto"
+          }
+        }
+      }
+    },
+    "Close search" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cerrar búsqueda"
           }
         }
       }
@@ -247,6 +269,17 @@
         }
       }
     },
+    "Goes to %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Va a %@"
+          }
+        }
+      }
+    },
     "Home" : {
       "localizations" : {
         "es" : {
@@ -317,6 +350,16 @@
         }
       }
     },
+    "Next tab" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siguiente pestaña"
+          }
+        }
+      }
+    },
     "Opens the player" : {
       "localizations" : {
         "es" : {
@@ -383,6 +426,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Preparando transcripción"
+          }
+        }
+      }
+    },
+    "Previous tab" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pestaña anterior"
           }
         }
       }
@@ -558,6 +611,7 @@
       }
     },
     "Shows all tabs" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {

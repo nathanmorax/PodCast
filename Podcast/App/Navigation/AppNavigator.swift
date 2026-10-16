@@ -78,7 +78,25 @@ final class AppNavigator {
         return true
     }
 
+    /// Tapping the tab pill: the other tab. From Search, back to the tab you
+    /// came from.
+    func showOtherTab() {
+        if isShowingSearch {
+            select(selectedTab)
+            return
+        }
+        let hasNext = selectedTab.neighbor(towardNext: true) != nil
+        swipeTab(towardNext: hasNext)
+    }
+
     // MARK: - Search field
+
+    /// Leaves Search (it drops back down) to the tab you came from.
+    func closeSearch() {
+        guard isShowingSearch else { return }
+        isSearching = false
+        select(selectedTab)
+    }
 
     /// The ✕ next to the field while typing: clears it and drops the keyboard.
     func cancelSearchEditing() {

@@ -72,37 +72,45 @@ struct PlayerView: View {
     }
     
     // MARK: - Normal View
-    
+
     private var normalView: some View {
         VStack(spacing: 0) {
-            topBar
-            // The artwork is the only flexible element: it takes whatever height
-            // is left, so nothing gets pushed off screen on small iPhones.
-            artwork
-                .padding(.top, 8)
-                .padding(.bottom, 26)
-            progressBar
-            controlsSection
-                .padding(.top, 26)
-            lineWheel
-                .padding(.top, 22)
-            secondaryActions
-                .padding(.bottom, 24)
+            // The cover goes edge to edge, under the status bar; the top
+            // controls float on it.
+            heroArtwork
+                .overlay(alignment: .top) {
+                    topBar
+                        .padding(.horizontal, 20)
+                }
+
+            VStack(spacing: 0) {
+                progressBar
+                controlsSection
+                    .padding(.top, 22)
+                lineWheel
+                    .padding(.top, 18)
+                Spacer(minLength: 8)
+                secondaryActions
+                    .padding(.bottom, 30)
+            }
+            .padding(.horizontal, 28)
+            .padding(.top, 4)
         }
-        .padding(.horizontal, 28)
+        .ignoresSafeArea(.container, edges: .top)
     }
-    
+
     // MARK: - Artwork
-    
+
     private var hasArtwork: Bool {
         !(episode.imageUrl ?? "").isEmpty
     }
-    
-    private var artwork: some View {
-        // A clear square defines the box; the image fills it via overlay, so any
-        // aspect ratio is center-cropped to the same square.
+
+    /// About half the screen, full width. It fades into the paper at the
+    /// bottom so the controls sit on a clean background.
+    private var heroArtwork: some View {
         Color.clear
-            .aspectRatio(1, contentMode: .fit)
+            .frame(maxWidth: .infinity)
+            .containerRelativeFrame(.vertical) { height, _ in height * 0.5 }
             .overlay {
                 PodcastImage(source: episode.imageUrl, contentMode: .fill)
             }
@@ -113,15 +121,19 @@ struct PlayerView: View {
                         .foregroundStyle(Self.ink.opacity(0.25))
                 }
             }
-            .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-            .shadow(color: .black.opacity(0.10), radius: 20, x: 0, y: 10)
-            .scaleEffect(viewModel.isPlaying ? 1 : 0.92)
-            .animation(.spring(response: 0.45, dampingFraction: 0.75), value: viewModel.isPlaying)
-            .frame(maxWidth: 320, maxHeight: .infinity)
-            .frame(maxWidth: .infinity)
+            // Keeps the status bar readable on any cover.
+            .overlay(alignment: .top) {
+                LinearGradient(colors: [.black.opacity(0.25), .clear], startPoint: .top, endPoint: .bottom)
+                    .frame(height: 120)
+            }
+            .overlay(alignment: .bottom) {
+                LinearGradient(colors: [Self.paper.opacity(0), Self.paper], startPoint: .top, endPoint: .bottom)
+                    .frame(height: 150)
+            }
+            .clipped()
             .accessibilityHidden(true)
     }
-    
+
     // MARK: - Line wheel
     
     private struct WheelLines {
@@ -356,23 +368,28 @@ struct PlayerView: View {
             } label: {
                 Image(systemName: "chevron.down")
                     .font(.system(size: 17, weight: .semibold))
-                    .frame(width: 44, height: 44, alignment: .leading)
+                    .frame(width: 44, height: 44)
+                    .background(.ultraThinMaterial, in: Circle())
             }
             .accessibilityLabel("Minimize player")
-            
+
             Spacer()
-            
-            // Time left, big and calm in the corner.
+
+            // Time left, floating on the cover.
             Text(viewModel.remainingTimeText)
-                .font(rounded(20))
+                .font(rounded(20, .semibold))
                 .monospacedDigit()
                 .contentTransition(.numericText(countsDown: true))
+                .padding(.horizontal, 16)
+                .frame(height: 44)
+                .background(.ultraThinMaterial, in: Capsule())
+                .opacity(viewModel.remainingTimeText.isEmpty ? 0 : 1)
                 .accessibilityLabel("Time remaining \(viewModel.remainingTimeText)")
         }
         .foregroundStyle(Self.ink)
-        .padding(.top, 52)
+        .padding(.top, 54)
     }
-    
+
     // MARK: - Progress
     
     private var progressSection: some View {

@@ -5,15 +5,14 @@
 
 import SwiftUI
 
-/// The app's bottom bar:
-/// - At rest: the mini player on top; below it the [Inicio | Biblioteca]
-///   capsule next to the search field.
-/// - Swiping sideways on the tabs capsule switches tab (the buttons still work;
-///   swiping on the screen itself is handled by MainContainerController).
-/// - Scrolling down: everything folds into one row with the current tab's icon,
-///   the mini player and a search circle. Scrolling up brings it back.
-/// - In Search, the field is the real search field. While typing it's the only
-///   thing left (plus ✕), right above the keyboard.
+/// The app's bottom bar. One row that changes with where you are:
+/// - Inicio / Biblioteca: the mini player and, next to it, a search circle.
+///   (Nothing playing: just the search field.) Tabs change by swiping the
+///   screen sideways (MainContainerController), so they aren't listed here.
+/// - Search: only the search field, plus a button to close Search (or ✕ to
+///   cancel while typing). Swiping down on the field closes Search too.
+/// - Scrolling down a list makes the row a little smaller.
+/// - Swiping up on the search circle/field opens Search, rising from below.
 struct BottomBar: View {
 
     @Environment(\.playerManager) private var manager
@@ -21,70 +20,58 @@ struct BottomBar: View {
 
     @Namespace private var namespace
     @FocusState private var isFieldFocused: Bool
-    /// How far the finger has moved sideways on the tabs capsule.
-    @State private var tabDrag: CGFloat = 0
 
     enum Metrics {
-        static let miniPlayerHeight: CGFloat = 56
         static let rowHeight: CGFloat = 62
         static let compactHeight: CGFloat = 52
         static let spacing: CGFloat = 10
-        /// A swipe has to (be thrown) this far to switch tab.
-        static let swipeDistance: CGFloat = 60
     }
 
-    /// Height of the bar at rest. RootView reserves it so lists end above it.
+    /// Height of the bar at rest (always one row). RootView reserves it so
+    /// lists end above it.
     static func restingHeight(isPlaying: Bool) -> CGFloat {
-        isPlaying
-            ? Metrics.miniPlayerHeight + Metrics.spacing + Metrics.rowHeight
-            : Metrics.rowHeight
+        Metrics.rowHeight
+    }
+
+    private var inSearch: Bool {
+        navigator.isShowingSearch || navigator.isSearching
+    }
+
+    private var showsMiniPlayer: Bool {
+        manager.currentEpisode != nil && !inSearch
     }
 
     private var isCompact: Bool {
-        navigator.isBarCompact && manager.currentEpisode != nil && !navigator.isSearching
+        navigator.isBarCompact && showsMiniPlayer
     }
 
-    private var showsMiniPlayerRow: Bool {
-        manager.currentEpisode != nil && !isCompact && !navigator.isSearching
+    private var height: CGFloat {
+        isCompact ? Metrics.compactHeight : Metrics.rowHeight
     }
 
     private static let spring = Animation.spring(response: 0.38, dampingFraction: 0.86)
 
-    // The search field always sits at the same place in this structure, so it
-    // keeps its identity (and the keyboard) while the rest of the bar changes.
+    // The search element always sits at the same place in this structure, so
+    // the field keeps its identity (and the keyboard) while the bar changes.
     var body: some View {
-        VStack(spacing: Metrics.spacing) {
-            if showsMiniPlayerRow, let episode = manager.currentEpisode {
-                MiniPlayerCapsule(episode: episode, showsSubtitle: true)
-                    .frame(height: Metrics.miniPlayerHeight)
+        HStack(spacing: Metrics.spacing) {
+            if showsMiniPlayer, let episode = manager.currentEpisode {
+                MiniPlayerCapsule(episode: episode, showsSubtitle: !isCompact)
                     .matchedGeometryEffect(id: "player", in: namespace)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .transition(.move(edge: .leading).combined(with: .opacity))
             }
 
-            HStack(spacing: Metrics.spacing) {
-                if isCompact, let episode = manager.currentEpisode {
-                    compactTabButton
-                        .matchedGeometryEffect(id: "tabs", in: namespace)
-                    MiniPlayerCapsule(episode: episode, showsSubtitle: false)
-                        .frame(height: Metrics.compactHeight)
-                        .matchedGeometryEffect(id: "player", in: namespace)
-                } else if !navigator.isSearching {
-                    tabsCapsule
-                        .matchedGeometryEffect(id: "tabs", in: namespace)
-                        .transition(.move(edge: .leading).combined(with: .opacity))
-                }
+            searchElement
+                .matchedGeometryEffect(id: "search", in: namespace)
 
-                searchElement
-                    .matchedGeometryEffect(id: "search", in: namespace)
-
-                if navigator.isSearching {
-                    cancelButton
-                        .transition(.scale.combined(with: .opacity))
-                }
+            if inSearch {
+                trailingSearchButton
+                    .transition(.scale.combined(with: .opacity))
             }
-            .frame(height: isCompact ? Metrics.compactHeight : Metrics.rowHeight)
         }
+        .frame(height: height)
         .animation(Self.spring, value: isCompact)
+        .animation(Self.spring, value: inSearch)
         .animation(Self.spring, value: navigator.isSearching)
         .animation(Self.spring, value: manager.currentEpisode?.streamUrl)
         .sensoryFeedback(.selection, trigger: navigator.selectedTab)
@@ -95,96 +82,26 @@ struct BottomBar: View {
         .onChange(of: navigator.isSearching) { _, searching in
             if isFieldFocused != searching { isFieldFocused = searching }
         }
-    }
-
-    // MARK: - Tabs
-
-    private var tabsCapsule: some View {
-        HStack(spacing: 2) {
-            ForEach(AppTab.allCases) { tab in
-                tabButton(tab)
-            }
-        }
-        .offset(x: Self.rubberBand(tabDrag))
-        .padding(.horizontal, 6)
-        .frame(height: Metrics.rowHeight)
-        .glassCapsule()
-        .contentShape(Capsule())
-        .highPriorityGesture(tabSwipe)
-        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: navigator.selectedTab)
-    }
-
-    private func tabButton(_ tab: AppTab) -> some View {
-        // While Search is on screen no tab is highlighted: the search field is.
-        let isSelected = !navigator.isShowingSearch && navigator.selectedTab == tab
-        return Button {
-            navigator.select(tab)
-        } label: {
-            VStack(spacing: 2) {
-                Image(systemName: isSelected ? tab.selectedSystemImage : tab.systemImage)
-                    .font(.system(size: 19, weight: .semibold))
-                    .frame(height: 24)
-                Text(tab.title)
-                    .font(.system(size: 10, weight: .semibold))
-                    .lineLimit(1)
-            }
-            .foregroundStyle(isSelected ? AppColor.lavenderInk : .black.opacity(0.6))
-            .padding(.horizontal, 14)
-            .frame(height: 50)
-            .background {
-                if isSelected {
-                    Capsule()
-                        .fill(AppColor.lavender.opacity(0.3))
-                        .matchedGeometryEffect(id: "selection", in: namespace)
-                }
-            }
-            .contentShape(Capsule())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(tab.title)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
-    }
-
-    /// Sideways swipe on the tabs: the capsule follows the finger a little
-    /// (live feedback) and a long or quick enough swipe switches tab.
-    private var tabSwipe: some Gesture {
-        DragGesture(minimumDistance: 14)
-            .onChanged { value in
-                guard abs(value.translation.width) > abs(value.translation.height) else { return }
-                tabDrag = value.translation.width
-            }
-            .onEnded { value in
-                let isHorizontal = abs(value.translation.width) > abs(value.translation.height)
-                let thrown = value.predictedEndTranslation.width
-                if isHorizontal, abs(thrown) > Metrics.swipeDistance {
-                    // Finger to the left → the tab on the right.
-                    navigator.swipeTab(towardNext: thrown < 0)
-                }
-                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                    tabDrag = 0
-                }
-            }
-    }
-
-    /// Follows the finger but resists, up to 18 pt either way.
-    private static func rubberBand(_ x: CGFloat) -> CGFloat {
-        CGFloat(18 * tanh(Double(x) / 60))
+        // VoiceOver can't swipe the screen like a finger: offer the tabs here.
+        .accessibilityElement(children: .contain)
+        .accessibilityAction(named: Text("Next tab")) { navigator.swipeTab(towardNext: true) }
+        .accessibilityAction(named: Text("Previous tab")) { navigator.swipeTab(towardNext: false) }
     }
 
     // MARK: - Search
 
     @ViewBuilder
     private var searchElement: some View {
-        if isCompact {
-            searchCircle
-        } else if navigator.isShowingSearch {
+        if navigator.isShowingSearch {
             searchTextField
+        } else if showsMiniPlayer {
+            searchCircle
         } else {
             searchButton
         }
     }
 
-    /// Outside Search: looks like the field, opens Search with the keyboard up.
+    /// Nothing playing, outside Search: a field-looking button, full width.
     private var searchButton: some View {
         Button {
             navigator.showSearch()
@@ -205,7 +122,24 @@ struct BottomBar: View {
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
+        .highPriorityGesture(swipeUpToSearch)
         .accessibilityLabel("Search podcasts")
+    }
+
+    /// Next to the mini player.
+    private var searchCircle: some View {
+        Button {
+            navigator.showSearch()
+        } label: {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 19, weight: .semibold))
+                .foregroundStyle(.black)
+                .frame(width: height, height: height)
+                .glassCapsule()
+        }
+        .buttonStyle(.plain)
+        .highPriorityGesture(swipeUpToSearch)
+        .accessibilityLabel("Search")
     }
 
     /// In Search: the real field. Typing here filters the Search screen.
@@ -252,61 +186,51 @@ struct BottomBar: View {
         .glassCapsule()
         .contentShape(Capsule())
         .onTapGesture { isFieldFocused = true }
+        .gesture(swipeDownToClose)
     }
 
-    private var cancelButton: some View {
+    /// ✕ while typing (clears and drops the keyboard); otherwise ⌄ closes Search.
+    private var trailingSearchButton: some View {
         Button {
-            navigator.cancelSearchEditing()
+            if navigator.isSearching {
+                navigator.cancelSearchEditing()
+            } else {
+                navigator.closeSearch()
+            }
         } label: {
-            Image(systemName: "xmark")
+            Image(systemName: navigator.isSearching ? "xmark" : "chevron.down")
                 .font(.system(size: 17, weight: .semibold))
                 .foregroundStyle(.black)
+                .contentTransition(.symbolEffect(.replace))
                 .frame(width: Metrics.rowHeight, height: Metrics.rowHeight)
                 .glassCapsule()
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Cancel search")
+        .accessibilityLabel(navigator.isSearching ? Text("Cancel search") : Text("Close search"))
     }
 
-    // MARK: - Folded (while scrolling down)
+    // MARK: - Gestures
 
-    private var compactTabButton: some View {
-        Button {
-            navigator.expandBar()
-        } label: {
-            Image(systemName: navigator.isShowingSearch
-                  ? navigator.selectedTab.systemImage
-                  : navigator.selectedTab.selectedSystemImage)
-                .font(.system(size: 19, weight: .semibold))
-                .foregroundStyle(navigator.isShowingSearch ? Color.black.opacity(0.6) : AppColor.lavenderInk)
-                .frame(width: Metrics.compactHeight, height: Metrics.compactHeight)
-                .glassCapsule()
-        }
-        .buttonStyle(.plain)
-        .highPriorityGesture(tabSwipe)
-        .accessibilityLabel(navigator.isShowingSearch
-                            ? navigator.selectedTab.title
-                            : String(localized: "\(navigator.selectedTab.title), current tab"))
-        .accessibilityHint("Shows all tabs")
-    }
-
-    private var searchCircle: some View {
-        Button {
-            navigator.showSearch()
-        } label: {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(navigator.isShowingSearch ? AppColor.lavenderInk : .black)
-                .frame(width: Metrics.compactHeight, height: Metrics.compactHeight)
-                .background {
-                    if navigator.isShowingSearch {
-                        Circle().fill(AppColor.lavender.opacity(0.3))
-                    }
+    /// Swiping up on the search circle/field opens Search. A tap still works.
+    private var swipeUpToSearch: some Gesture {
+        DragGesture(minimumDistance: 14)
+            .onEnded { value in
+                let isVertical = abs(value.translation.height) > abs(value.translation.width)
+                if isVertical, value.predictedEndTranslation.height < -60 {
+                    navigator.showSearch()
                 }
-                .glassCapsule()
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Search")
+            }
+    }
+
+    /// Swiping down on the field closes Search (it drops back down).
+    private var swipeDownToClose: some Gesture {
+        DragGesture(minimumDistance: 14)
+            .onEnded { value in
+                let isVertical = abs(value.translation.height) > abs(value.translation.width)
+                if isVertical, value.predictedEndTranslation.height > 60 {
+                    navigator.closeSearch()
+                }
+            }
     }
 }
 

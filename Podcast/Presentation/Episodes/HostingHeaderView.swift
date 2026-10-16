@@ -28,6 +28,9 @@ final class HostingHeaderView: UICollectionReusableView {
         let hosting = UIHostingController(rootView: AnyView(view))
         hosting.view.translatesAutoresizingMaskIntoConstraints = false
         hosting.view.backgroundColor = .clear
+        // The header starts under the status bar on purpose: don't let SwiftUI
+        // push its content down by the safe area.
+        hosting.safeAreaRegions = []
         
         parent.addChild(hosting)
         addSubview(hosting.view)

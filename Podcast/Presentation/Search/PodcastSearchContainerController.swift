@@ -94,12 +94,6 @@ class PodcastSearchContainerController: UIViewController {
         }
     }
 
-    /// Tapping a category searches its name (until categories get their own
-    /// top-podcasts screen). No keyboard: the results are what you want.
-    private func search(for text: String) {
-        navigator.searchQuery = text
-    }
-
     // MARK: - Setup
 
     private func setupBindings() {
@@ -117,8 +111,9 @@ class PodcastSearchContainerController: UIViewController {
     }
 
     private func setupChildControllers() {
+        // A category opens its own screen: its name centered, with back.
         genreController.onSelectGenre = { [weak self] genre in
-            self?.search(for: genre.name)
+            self?.navigationController?.pushViewController(GenrePodcastsController(genre: genre), animated: true)
         }
 
         for child in [genreController, resultsController] as [UIViewController] {
