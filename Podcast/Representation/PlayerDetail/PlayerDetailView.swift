@@ -25,8 +25,12 @@ struct PlayerView: View {
         PlayerManager.shared.transcript
     }
     
-    private var actionViewModel: EpisodeActionViewModel {
-        EpisodeActionViewModel(episode: episode)
+    /// Owned by the view: created once per episode and kept across body re-evaluations.
+    @State private var actionViewModel: EpisodeActionViewModel
+
+    init(episode: Episode) {
+        self.episode = episode
+        _actionViewModel = State(initialValue: EpisodeActionViewModel(episode: episode))
     }
     
     var body: some View {
@@ -44,6 +48,10 @@ struct PlayerView: View {
         .animation(.spring(response: 0.5, dampingFraction: 0.85), value: mode)
         .onChange(of: viewModel.progress) { _, _ in
             transcript.updateCurrentSegment(playbackSeconds: viewModel.currentPlaybackSeconds)
+        }
+        .onChange(of: episode.streamUrl) { _, _ in
+            // @State ignores new init values, so rebuild the VM when the episode changes.
+            actionViewModel = EpisodeActionViewModel(episode: episode)
         }
     }
     
@@ -306,16 +314,18 @@ struct PlayerView: View {
                     .fill(Color.black)
                     .frame(width: geo.size.width * CGFloat(viewModel.progress), height: 2)
             }
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        // Use the bar's real width, not the screen's.
+                        guard geo.size.width > 0 else { return }
+                        let percentage = Float(value.location.x / geo.size.width)
+                        viewModel.seek(to: min(max(percentage, 0), 1))
+                    }
+            )
         }
         .frame(height: 2)
-        .gesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { value in
-                    let screenWidth = UIScreen.main.bounds.width - 48
-                    let percentage = Float(value.location.x / screenWidth)
-                    viewModel.seek(to: min(max(percentage, 0), 1))
-                }
-        )
     }
     
     private var progressLabels: some View {

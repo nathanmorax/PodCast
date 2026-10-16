@@ -31,7 +31,6 @@ class BookMarkEpisodeController: UIViewController {
         configureCellRegistration()
         configureCollection()
         observeEpisodes()
-        observePlayback()
         
         view.backgroundColor = AppColor.slateGray.uiColor
         collectionView.backgroundColor = .clear
@@ -55,23 +54,10 @@ class BookMarkEpisodeController: UIViewController {
         }
     }
 
-    private func observePlayback() {
-        withObservationTracking {
-            _ = PlayerManager.shared.viewModel.isPlaying
-            _ = PlayerManager.shared.currentEpisode
-        } onChange: { [weak self] in
-            DispatchQueue.main.async {
-                self?.observePlayback()
-            }
-        }
-    }
-    
-    private func reloadVisibleCells() {
-        let visibleIndexPaths = collectionView.indexPathsForVisibleItems
-        visibleIndexPaths.forEach { indexPath in
-            collectionView.reloadItems(at: [indexPath])
-        }
-    }
+    // Playback state (play/pause icon) is NOT observed here on purpose:
+    // BookMarkView reads `viewModel.isPlaying` inside its body, and
+    // UIHostingConfiguration tracks @Observable reads, so each cell
+    // refreshes itself without reloading the collection view.
 
     
     private func configureCellRegistration() {

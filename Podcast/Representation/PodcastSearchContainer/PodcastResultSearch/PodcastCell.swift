@@ -12,7 +12,7 @@ struct PodcastCellUI: View {
     
     let podcast: Podcast?
     
-    @State var isFollow: Bool = false
+    @State private var isFollow: Bool = false
     
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
@@ -53,6 +53,9 @@ struct PodcastCellUI: View {
         }
         .background(Color.clear)
         .padding(.vertical, 8)
+        // Cells are reused: a new identity per podcast resets @State
+        // so the follow state doesn't leak to another row.
+        .id(podcast?.trackId)
     }
     
     @ViewBuilder
