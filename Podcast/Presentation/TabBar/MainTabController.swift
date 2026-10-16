@@ -32,6 +32,10 @@ class MainTabBarController: UITabBarController {
                 .environment(\.playerManager, playerManager)
         )
         hosting.view.backgroundColor = .clear
+        // The accessory sits next to the home indicator; without this the hosting
+        // controller added that bottom safe-area inset and pushed the content up,
+        // clipping the buttons.
+        hosting.safeAreaRegions = []
         addChild(hosting)
         hosting.didMove(toParent: self)
         return UITabAccessory(contentView: hosting.view)

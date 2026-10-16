@@ -12,7 +12,7 @@ enum AppColor {
     
     static let limeGreen     = Color("limeGreen")
     static let dustyRose     = Color("dustyRose")
-    static let coralRed      = Color("coralRed")    // OJO: tu asset tiene typo "colarRed"
+    static let coralRed      = Color("coralRed")
     static let slateGray     = Color("slateGray")
     static let warmOrange    = Color("warmOrange")
     static let paleYellow    = Color("paleYellow")
@@ -49,10 +49,12 @@ enum AppColor {
         static let inverse   = Color.white
     }
     
+    /// Tile colors for genres.
+    /// - slateGray is NOT here: it's the screen background, so those tiles looked empty.
+    /// - charcoalBrown is NOT here: it's the text color, so labels on it were unreadable.
     static let palette: [Color] = [
-        limeGreen, dustyRose, coralRed, slateGray,
-        warmOrange, paleYellow, dustyBlue, oliveGreen,
-        burntOrange, charcoalBrown, lavender
+        limeGreen, dustyRose, coralRed, warmOrange,
+        paleYellow, dustyBlue, oliveGreen, burntOrange, lavender
     ]
 }
 

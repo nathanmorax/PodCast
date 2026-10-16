@@ -66,6 +66,8 @@ struct MiniPlayerView: View {
         .foregroundStyle(.black)
         .padding(.leading, 10)
         .padding(.trailing, 6)
+        // Fill the accessory's height so the row is vertically centered in the capsule.
+        .frame(maxHeight: .infinity)
     }
 }
 
