@@ -6,40 +6,49 @@
 //
 
 import UIKit
-import Alamofire
 
+/// The Search screen. It has no search bar of its own: the field lives in the
+/// bottom bar (right above the keyboard while typing) and its text arrives
+/// through `AppNavigator.searchQuery`. Empty → categories; text → results.
 class PodcastSearchContainerController: UIViewController {
-    let searchController = UISearchController(searchResultsController: nil)
-    
-    /// Set by AppNavigator when the search button opens this screen:
-    /// the keyboard comes up right away.
+
+    /// Set when the bar's search field opens this screen: the keyboard comes
+    /// up as soon as it's visible.
     var focusesSearchOnAppear = false
-    
+
+    private let navigator: AppNavigator
     private let genreController = PodcastGenreController()
 
-    
     private lazy var viewModel: PodcastSearchViewModel = {
         let remote = PodcastRemoteDataService()
         let repository = PodcastRepositoryImpl(remoteDataSource: remote)
         return PodcastSearchViewModel(repository: repository)
     }()
-    
+
     private lazy var resultsController: PodcastResultSearchController = {
-        return PodcastResultSearchController(viewModel: self.viewModel)
+        PodcastResultSearchController(viewModel: self.viewModel)
     }()
-    
+
+    init(navigator: AppNavigator = .shared) {
+        self.navigator = navigator
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        self.setupSearchBar()
-        self.setupChildControllers()
-        self.showGenres()
-        self.setupBindings()
-        
+        title = String(localized: "Search")
         view.backgroundColor = AppColor.screenBackground.uiColor
-        
+
+        setupChildControllers()
+        setupBindings()
+        apply(query: navigator.searchQuery)
+        observeQuery()
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if focusesSearchOnAppear {
@@ -47,20 +56,52 @@ class PodcastSearchContainerController: UIViewController {
             focusSearchField()
         }
     }
-    
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        // Leaving with the keyboard up must not keep the bottom bar hidden.
-        AppNavigator.shared.isSearching = false
+        // Leaving with the keyboard up must not leave the bar in typing mode.
+        navigator.isSearching = false
     }
-    
+
+    /// Brings up the keyboard on the bar's search field.
     func focusSearchField() {
-        searchController.isActive = true
-        Task { @MainActor in
-            self.searchController.searchBar.becomeFirstResponder()
+        navigator.isSearching = true
+    }
+
+    // MARK: - Query
+
+    /// Follows what's typed in the bar.
+    private func observeQuery() {
+        withObservationTracking {
+            _ = navigator.searchQuery
+        } onChange: { [weak self] in
+            // onChange fires before the new value is stored: read it next turn.
+            Task { @MainActor in
+                guard let self else { return }
+                self.apply(query: self.navigator.searchQuery)
+                self.observeQuery()
+            }
         }
     }
-    
+
+    private func apply(query: String) {
+        // Always forward the text: an empty string cancels a pending search.
+        viewModel.search(query)
+        if query.isEmpty {
+            showGenres()
+        } else {
+            showResults()
+        }
+    }
+
+    /// Tapping a category searches its name (until categories get their own
+    /// top-podcasts screen). No keyboard: the results are what you want.
+    private func search(for text: String) {
+        navigator.searchQuery = text
+    }
+
+    // MARK: - Setup
+
     private func setupBindings() {
         withObservationTracking {
             _ = viewModel.error
@@ -75,100 +116,32 @@ class PodcastSearchContainerController: UIViewController {
         }
     }
 
-    
-    private func setupSearchBar() {
-        searchController.obscuresBackgroundDuringPresentation = false
-        searchController.searchBar.delegate = self
-        searchController.searchBar.placeholder = "Buscar podcasts"
-        title = "Buscar"
-        
-        navigationItem.searchController = searchController
-        navigationItem.hidesSearchBarWhenScrolling = false
-        // Keep the field at the top, under the title (iOS 26 would otherwise
-        // move it to a bottom toolbar, where our bottom bar lives).
-        navigationItem.preferredSearchBarPlacement = .stacked
-        navigationItem.searchBarPlacementAllowsToolbarIntegration = false
-        definesPresentationContext = true
-    }
-    
     private func setupChildControllers() {
-        
-        // Tapping a category searches its name (until categories get their own
-        // top-podcasts screen).
         genreController.onSelectGenre = { [weak self] genre in
             self?.search(for: genre.name)
         }
-        
-        addChild(genreController)
-        view.addSubview(genreController.view)
-        genreController.view.translatesAutoresizingMaskIntoConstraints = false
-        genreController.didMove(toParent: self)
-        
-        addChild(resultsController)
-        view.addSubview(resultsController.view)
-        resultsController.view.translatesAutoresizingMaskIntoConstraints = false
-        resultsController.didMove(toParent: self)
-        
-        for childView in [genreController.view, resultsController.view].compactMap({ $0 }) {
+
+        for child in [genreController, resultsController] as [UIViewController] {
+            addChild(child)
+            view.addSubview(child.view)
+            child.view.translatesAutoresizingMaskIntoConstraints = false
             NSLayoutConstraint.activate([
-                childView.topAnchor.constraint(equalTo: view.topAnchor),
-                childView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-                childView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-                childView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+                child.view.topAnchor.constraint(equalTo: view.topAnchor),
+                child.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                child.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                child.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
             ])
+            child.didMove(toParent: self)
         }
     }
-    
-    
-    /// Fills the field with `text` and shows its results.
-    private func search(for text: String) {
-        searchController.isActive = true
-        searchController.searchBar.text = text
-        viewModel.search(text)
-        showResults()
-    }
-    
+
     private func showGenres() {
         genreController.view.isHidden = false
         resultsController.view.isHidden = true
     }
-    
+
     private func showResults() {
         genreController.view.isHidden = true
         resultsController.view.isHidden = false
-    }
-    
-}
-
-extension PodcastSearchContainerController: UISearchBarDelegate {
-    
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        
-        // Always forward the text: an empty string cancels a pending search.
-        viewModel.search(searchText)
-        
-        if searchText.isEmpty {
-            showGenres()
-        } else {
-            showResults()
-        }
-    }
-    
-    // Typing → the bottom bar steps aside. Keyboard gone (Cancel, Search key,
-    // or scrolling the results) → it comes back.
-    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
-        AppNavigator.shared.isSearching = true
-    }
-    
-    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
-        AppNavigator.shared.isSearching = false
-    }
-    
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        searchBar.resignFirstResponder()
-    }
-    
-    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-        showGenres()
     }
 }

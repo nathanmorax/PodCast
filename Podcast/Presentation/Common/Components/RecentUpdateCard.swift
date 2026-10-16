@@ -28,7 +28,7 @@ struct RecentUpdateCard: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .overlay(alignment: .bottomLeading) {
                     if isCurrent {
-                        Label("Sonando", systemImage: "waveform")
+                        Label("Playing", systemImage: "waveform")
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundStyle(.black)
                             .padding(.horizontal, 8)
@@ -56,7 +56,7 @@ struct RecentUpdateCard: View {
             if progress > 0.01 {
                 ProgressView(value: min(progress, 1))
                     .tint(AppColor.lavender)
-                    .accessibilityLabel(progress >= 0.98 ? "Terminado" : "Escuchado \(Int(progress * 100)) por ciento")
+                    .accessibilityLabel(progress >= 0.98 ? Text("Finished") : Text("Listened \(Int(progress * 100)) percent"))
             }
         }
         .accessibilityElement(children: .combine)

@@ -60,7 +60,7 @@ final class TranscriptViewModel {
 
         isLoading = true
         error = nil
-        progress = "Descargando audio..."
+        progress = String(localized: "Downloading audio…")
         currentEpisodeId = episodeId
 
         defer {
@@ -71,12 +71,12 @@ final class TranscriptViewModel {
         do {
             let hasPermission = await requestSpeechPermission()
             guard hasPermission else {
-                error = "Se necesita permiso de reconocimiento de voz"
+                error = String(localized: "Speech recognition permission is needed")
                 return
             }
 
             let localURL = try await AudioDownloader.shared.download(from: url)
-            progress = "Transcribiendo... (puede tardar varios minutos)"
+            progress = String(localized: "Transcribing… (this can take a few minutes)")
             print("📥 ✅ Audio descargado en: \(localURL.path)")
 
             let result = try await LocalTranscriptionService.shared.transcribe(

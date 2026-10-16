@@ -37,13 +37,13 @@ struct EpisodeContextMenuButton: UIViewRepresentable {
 
         @MainActor func makeMenu() -> UIMenu {
             let download = UIAction(
-                title: "Descargar",
+                title: String(localized: "Download"),
                 image: UIImage(systemName: "arrow.down.circle")
             ) { [weak self] _ in
                 self?.viewModel.download()
             }
 
-            let bookmarkTitle = viewModel.isBookmarked ? "Quitar guardado" : "Guardar"
+            let bookmarkTitle = viewModel.isBookmarked ? String(localized: "Remove bookmark") : String(localized: "Save")
             let bookmarkIcon  = viewModel.isBookmarked ? "bookmark.slash.fill" : "bookmark.fill"
             let bookmark = UIAction(
                 title: bookmarkTitle,

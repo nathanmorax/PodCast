@@ -6,7 +6,8 @@
 import UIKit
 import AVFoundation
 
-protocol PlayerDataSource {
+/// Class-bound so AVPlayerViewModel can set its callbacks; tests use a fake.
+protocol PlayerDataSource: AnyObject {
     
     var onTimeUpdate: ((CMTime, CMTime?) -> Void)? { get set }
     var onStateChange: ((Bool) -> Void)? { get set }

@@ -42,7 +42,7 @@ struct MiniPlayerCapsule: View {
             }
             .buttonStyle(.plain)
             .accessibilityElement(children: .combine)
-            .accessibilityHint("Abre el reproductor")
+            .accessibilityHint("Opens the player")
 
             Button {
                 manager.togglePlayPause()
@@ -55,7 +55,7 @@ struct MiniPlayerCapsule: View {
                     .contentShape(Circle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(manager.viewModel.isPlaying ? "Pausar" : "Reproducir")
+            .accessibilityLabel(manager.viewModel.isPlaying ? Text("Pause") : Text("Play"))
         }
         .padding(.leading, 9)
         .padding(.trailing, 6)

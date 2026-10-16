@@ -101,7 +101,7 @@ struct EpisodeHeaderView: View {
     private var metaRow: some View {
         HStack {
             if let count = podcast.trackCount {
-                Text("\(count) episodios")
+                Text("\(count) episodes")
             }
             Spacer()
             if let genre = podcast.primaryGenreName {
@@ -125,7 +125,7 @@ struct EpisodeHeaderView: View {
             if isLoadingDescription {
                 HStack(spacing: 8) {
                     ProgressView()
-                    Text("Cargando descripción...")
+                    Text("Loading description…")
                         .font(.system(size: 13))
                         .foregroundStyle(.secondary)
                 }
@@ -152,7 +152,7 @@ struct EpisodeHeaderView: View {
                     isAboutExpanded.toggle()
                 }
             } label: {
-                Text(isAboutExpanded ? "Show less" : "Read more")
+                (isAboutExpanded ? Text("Show less") : Text("Read more"))
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(Color(AppColor.lavender))
             }

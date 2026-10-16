@@ -34,7 +34,7 @@ struct PodcastCellUI: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                 
-                Text("\(podcast?.trackCount ?? 0) episodios")
+                Text("\(podcast?.trackCount ?? 0) episodes")
                     .font(.system(size: 12))
                     .foregroundStyle(.tertiary)
             }

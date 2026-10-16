@@ -70,10 +70,10 @@ struct Episode: Codable {
         let minutes = totalMinutes % 60
         
         if hours > 0 {
-            return "\(hours) h \(minutes) min"
+            return String(localized: "\(hours) h \(minutes) min")
         }
         
-        return "\(totalMinutes) min"
+        return String(localized: "\(totalMinutes) min")
     }
 }
 

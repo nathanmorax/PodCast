@@ -37,18 +37,18 @@ struct HomeView: View {
                 header
 
                 if let item = continueItem {
-                    section("Continuar escuchando") {
+                    section("Continue listening") {
                         ContinueListeningCard(item: item)
                             .padding(.horizontal, 20)
                     }
                 }
 
                 if !favorites.isEmpty {
-                    section("Tus podcasts") { favoritesRow }
+                    section("Your podcasts") { favoritesRow }
                 }
 
                 if !otherRecents.isEmpty {
-                    section("Escuchado recientemente") { recentsRow }
+                    section("Recently played") { recentsRow }
                 }
 
                 if isEmpty {
@@ -72,7 +72,7 @@ struct HomeView: View {
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(.black.opacity(0.45))
                 .textCase(.uppercase)
-            Text("Inicio")
+            Text("Home")
                 .font(.system(size: 34, weight: .bold))
                 .foregroundStyle(.black)
                 .accessibilityAddTraits(.isHeader)
@@ -80,7 +80,7 @@ struct HomeView: View {
         .padding(.horizontal, 20)
     }
 
-    private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+    private func section<Content: View>(_ title: LocalizedStringKey, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             Text(title)
                 .font(.system(size: 22, weight: .bold))
@@ -122,7 +122,7 @@ struct HomeView: View {
                     }
                     .buttonStyle(.plain)
                     .contextMenu {
-                        Button("Quitar de recientes", systemImage: "minus.circle", role: .destructive) {
+                        Button("Remove from recents", systemImage: "minus.circle", role: .destructive) {
                             withAnimation { recentlyPlayed.remove(item) }
                         }
                     }
@@ -141,15 +141,15 @@ struct HomeView: View {
                 .font(.system(size: 40, weight: .semibold))
                 .foregroundStyle(AppColor.lavenderInk)
                 .accessibilityHidden(true)
-            Text("Tu inicio está vacío")
+            Text("Your home is empty")
                 .font(.system(size: 20, weight: .bold))
                 .foregroundStyle(.black)
-            Text("Busca un podcast y empieza a escuchar. Aquí podrás retomarlo donde lo dejaste.")
+            Text("Search for a podcast and start listening. You'll pick it up here right where you left off.")
                 .font(.system(size: 15))
                 .foregroundStyle(.black.opacity(0.55))
                 .multilineTextAlignment(.center)
             Button(action: onSearch) {
-                Label("Buscar podcasts", systemImage: "magnifyingglass")
+                Label("Search podcasts", systemImage: "magnifyingglass")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(.black)
                     .padding(.horizontal, 20)

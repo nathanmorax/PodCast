@@ -21,16 +21,18 @@ final class PlayerManager {
 
     init(
         downloadManager: DownloadManager = .shared,
-        recentlyPlayed: RecentlyPlayedManager = .shared
+        recentlyPlayed: RecentlyPlayedManager = .shared,
+        viewModel: AVPlayerViewModel = AVPlayerViewModel()
     ) {
         self.downloadManager = downloadManager
         self.recentlyPlayed = recentlyPlayed
+        self.viewModel = viewModel
     }
     
     var currentEpisode: Episode?
     var presentation: PlayerPresentation = .hidden
     
-    let viewModel   = AVPlayerViewModel()
+    let viewModel: AVPlayerViewModel
     let transcript  = TranscriptViewModel()
     
     enum PlayerPresentation {

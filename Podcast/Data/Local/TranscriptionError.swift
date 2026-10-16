@@ -13,10 +13,10 @@ enum TranscriptionError: LocalizedError {
     
     var errorDescription: String? {
         switch self {
-        case .localeNotSupported: return "Idioma no soportado por SpeechAnalyzer"
-        case .modelNotInstalled: return "Modelo no se pudo descargar"
-        case .audioFileLoadFailed: return "No se pudo cargar el audio"
-        case .transcriptionFailed: return "Falló la transcripción"
+        case .localeNotSupported: return String(localized: "Language not supported by SpeechAnalyzer")
+        case .modelNotInstalled: return String(localized: "Couldn't download the model")
+        case .audioFileLoadFailed: return String(localized: "Couldn't load the audio")
+        case .transcriptionFailed: return String(localized: "Transcription failed")
         }
     }
 }

@@ -43,14 +43,14 @@ struct SearchExploreView: View {
     private var recentSection: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .firstTextBaseline) {
-                sectionTitle("Buscado recientemente")
+                sectionTitle("Recently searched")
                 Spacer()
-                Button("Borrar") {
+                Button("Clear") {
                     withAnimation { recentSearches.clear() }
                 }
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(AppColor.lavenderInk)
-                .accessibilityLabel("Borrar búsquedas recientes")
+                .accessibilityLabel("Clear recent searches")
             }
             .padding(.horizontal, 20)
 
@@ -64,7 +64,7 @@ struct SearchExploreView: View {
                         }
                         .buttonStyle(.plain)
                         .contextMenu {
-                            Button("Quitar de recientes", systemImage: "minus.circle", role: .destructive) {
+                            Button("Remove from recents", systemImage: "minus.circle", role: .destructive) {
                                 withAnimation { recentSearches.remove(podcast) }
                             }
                         }
@@ -80,7 +80,7 @@ struct SearchExploreView: View {
 
     private var categoriesSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            sectionTitle("Explorar categorías")
+            sectionTitle("Explore categories")
                 .padding(.horizontal, 20)
 
             if !genresViewModel.genre.isEmpty {
@@ -107,10 +107,10 @@ struct SearchExploreView: View {
 
     private var errorState: some View {
         VStack(spacing: 10) {
-            Text("No se pudieron cargar las categorías.")
+            Text("Couldn't load the categories.")
                 .font(.system(size: 15))
                 .foregroundStyle(.black.opacity(0.55))
-            Button("Reintentar") {
+            Button("Try again") {
                 genresViewModel.loadGenre()
             }
             .font(.system(size: 15, weight: .semibold))
@@ -120,7 +120,7 @@ struct SearchExploreView: View {
         .padding(.top, 32)
     }
 
-    private func sectionTitle(_ text: String) -> some View {
+    private func sectionTitle(_ text: LocalizedStringKey) -> some View {
         Text(text)
             .font(.system(size: 20, weight: .bold))
             .foregroundStyle(AppColor.ink)

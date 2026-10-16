@@ -13,13 +13,18 @@ import UIKit
 /// Search is the *root* of its own stack instead of being pushed on top of a
 /// tab, so it has no back arrow. Opening a podcast from the results still
 /// pushes (with its back arrow) inside Search's stack.
-final class MainContainerController: UIViewController {
+///
+/// Swiping sideways on a tab's first screen slides to the other tab, with the
+/// content following the finger (see "Swipe between tabs").
+final class MainContainerController: UIViewController, NavigationContainer {
 
     private let stacks: [AppTab: UINavigationController]
     let searchController = PodcastSearchContainerController()
     let searchStack: UINavigationController
     private let scrollTracker = BottomBarScrollTracker(navigator: .shared)
     private weak var current: UINavigationController?
+
+    private var navigator: AppNavigator { .shared }
 
     init() {
         var stacks: [AppTab: UINavigationController] = [:]
@@ -28,6 +33,8 @@ final class MainContainerController: UIViewController {
         }
         self.stacks = stacks
         self.searchStack = Self.makeStack(root: searchController)
+        // "Buscar" as a big title on the left, like Inicio.
+        searchStack.navigationBar.prefersLargeTitles = true
         super.init(nibName: nil, bundle: nil)
         stacks.values.forEach { $0.delegate = self }
         searchStack.delegate = self
@@ -57,7 +64,8 @@ final class MainContainerController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        show(AppNavigator.shared.selectedTab)
+        view.addGestureRecognizer(tabPan)
+        show(navigator.selectedTab)
     }
 
     func show(_ tab: AppTab) {
@@ -71,29 +79,196 @@ final class MainContainerController: UIViewController {
         display(searchStack)
     }
 
+    /// Search is already on screen: focus its field. Inside a podcast opened
+    /// from the results, go back first; the keyboard comes up once Search is
+    /// visible again.
+    func focusSearch() {
+        if searchStack.topViewController === searchController {
+            searchController.focusSearchField()
+        } else {
+            searchController.focusesSearchOnAppear = true
+            searchStack.popToRootViewController(animated: true)
+        }
+    }
+
     private func display(_ next: UINavigationController) {
         guard next !== current else { return }
 
         if let current {
-            current.willMove(toParent: nil)
-            current.view.removeFromSuperview()
-            current.removeFromParent()
+            remove(current)
         }
+        embed(next, frame: view.bounds)
+        didBecomeCurrent(next)
+    }
 
-        addChild(next)
-        next.view.frame = view.bounds
-        next.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.addSubview(next.view)
-        next.didMove(toParent: self)
-        current = next
+    private func embed(_ child: UINavigationController, frame: CGRect) {
+        addChild(child)
+        child.view.frame = frame
+        child.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(child.view)
+        child.didMove(toParent: self)
+    }
 
-        if let top = next.topViewController {
+    private func remove(_ child: UINavigationController) {
+        child.willMove(toParent: nil)
+        child.view.removeFromSuperview()
+        child.removeFromParent()
+    }
+
+    private func didBecomeCurrent(_ stack: UINavigationController) {
+        current = stack
+        if let top = stack.topViewController {
             scrollTracker.track(top)
         }
         setNeedsStatusBarAppearanceUpdate()
     }
 
     override var childForStatusBarStyle: UIViewController? { current }
+
+    // MARK: - Swipe between tabs
+
+    /// A swipe in progress: the tab it goes to and the two stacks moving.
+    private struct TabSwipe {
+        let tab: AppTab
+        let outgoing: UINavigationController
+        let incoming: UINavigationController
+        let towardNext: Bool
+    }
+
+    private var tabSwipe: TabSwipe?
+
+    private lazy var tabPan: UIPanGestureRecognizer = {
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(handleTabPan(_:)))
+        pan.delegate = self
+        return pan
+    }()
+
+    @objc private func handleTabPan(_ pan: UIPanGestureRecognizer) {
+        let width = view.bounds.width
+        switch pan.state {
+        case .began:
+            // Finger to the left → the tab on the right (like Safari's tab bar).
+            let towardNext = pan.velocity(in: view).x < 0
+            guard let outgoing = current,
+                  let tab = navigator.tab(forSwipeTowardNext: towardNext),
+                  let incoming = stacks[tab] else { return }
+            cancelScrolling(at: pan.location(in: view))
+            // The next tab waits just off screen, on the side it comes from.
+            embed(incoming, frame: view.bounds.offsetBy(dx: towardNext ? width : -width, dy: 0))
+            tabSwipe = TabSwipe(tab: tab, outgoing: outgoing, incoming: incoming, towardNext: towardNext)
+
+        case .changed:
+            guard let swipe = tabSwipe else { return }
+            let x = pan.translation(in: view).x
+            // Only toward the other tab, never past it.
+            let dx = swipe.towardNext ? min(0, max(-width, x)) : max(0, min(width, x))
+            move(swipe, by: dx)
+
+        case .ended, .cancelled, .failed:
+            guard let swipe = tabSwipe else { return }
+            tabSwipe = nil
+            let x = pan.translation(in: view).x
+            let velocity = pan.velocity(in: view).x
+            let rightDirection = (x < 0) == swipe.towardNext
+            let farEnough = abs(x) > width * 0.35
+            let flicked = abs(velocity) > 600 && (velocity < 0) == swipe.towardNext
+            let completes = pan.state == .ended && rightDirection && (farEnough || flicked)
+            finish(swipe, completes: completes)
+
+        default:
+            break
+        }
+    }
+
+    private func move(_ swipe: TabSwipe, by dx: CGFloat) {
+        let transform = CGAffineTransform(translationX: dx, y: 0)
+        swipe.outgoing.view.transform = transform
+        swipe.incoming.view.transform = transform
+    }
+
+    /// Lets go: slides to the other tab, or back if the swipe was too short.
+    private func finish(_ swipe: TabSwipe, completes: Bool) {
+        let width = view.bounds.width
+        let target: CGFloat = completes ? (swipe.towardNext ? -width : width) : 0
+        UIView.animate(
+            withDuration: 0.35, delay: 0,
+            usingSpringWithDamping: 0.92, initialSpringVelocity: 0,
+            options: [.allowUserInteraction, .beginFromCurrentState]
+        ) {
+            self.move(swipe, by: target)
+        } completion: { _ in
+            swipe.outgoing.view.transform = .identity
+            swipe.incoming.view.transform = .identity
+            guard completes else {
+                self.remove(swipe.incoming)
+                return
+            }
+            self.remove(swipe.outgoing)
+            swipe.incoming.view.frame = self.view.bounds
+            self.didBecomeCurrent(swipe.incoming)
+            // Updates the bar (selected tab + haptic). show(_:) sees the stack
+            // is already on screen and does nothing.
+            self.navigator.select(swipe.tab)
+        }
+    }
+
+    /// The screen's own scroll starts too (vertical): stop it, the swipe wins.
+    private func cancelScrolling(at point: CGPoint) {
+        var candidate = view.hitTest(point, with: nil)
+        while let v = candidate, v !== view {
+            if let scrollView = v as? UIScrollView {
+                scrollView.panGestureRecognizer.isEnabled = false
+                scrollView.panGestureRecognizer.isEnabled = true
+            }
+            candidate = v.superview
+        }
+    }
+
+    /// Rows that scroll sideways (your podcasts, recents) keep their swipe.
+    private static func touchesHorizontalScroller(at point: CGPoint, in root: UIView) -> Bool {
+        var candidate = root.hitTest(point, with: nil)
+        while let v = candidate, v !== root {
+            if let scrollView = v as? UIScrollView,
+               scrollView.contentSize.width > scrollView.bounds.width + 1 {
+                return true
+            }
+            candidate = v.superview
+        }
+        return false
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate
+
+extension MainContainerController: UIGestureRecognizerDelegate {
+
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard gestureRecognizer === tabPan else { return true }
+        // Only on a tab's first screen, not in Search or while typing.
+        guard tabSwipe == nil,
+              !navigator.isShowingSearch, !navigator.isSearching,
+              let current, current.viewControllers.count == 1 else { return false }
+
+        let velocity = tabPan.velocity(in: view)
+        guard abs(velocity.x) > abs(velocity.y) * 1.5 else { return false }
+
+        // The left edge is iOS's "back"; keep both edges free.
+        let location = tabPan.location(in: view)
+        guard location.x > 30, location.x < view.bounds.width - 30 else { return false }
+
+        // Nothing past the first and last tab.
+        guard navigator.tab(forSwipeTowardNext: velocity.x < 0) != nil else { return false }
+
+        return !Self.touchesHorizontalScroller(at: location, in: view)
+    }
+
+    func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+    ) -> Bool {
+        // Let the screen's vertical scroll begin too; .began cancels it.
+        gestureRecognizer === tabPan && otherGestureRecognizer.view is UIScrollView
+    }
 }
 
 // MARK: - UINavigationControllerDelegate
@@ -105,6 +280,13 @@ extension MainContainerController: UINavigationControllerDelegate {
                               animated: Bool) {
         // Home draws its own big title, so its root hides the navigation bar.
         navigationController.setNavigationBarHidden(viewController is HomeController, animated: animated)
+
+        // In Search's stack only "Buscar" uses the big title; screens opened
+        // from it (a podcast) keep their normal bar.
+        if navigationController === searchStack {
+            viewController.navigationItem.largeTitleDisplayMode =
+                viewController is PodcastSearchContainerController ? .always : .never
+        }
 
         // A back swipe that gets cancelled must restore the bar of the screen
         // that stays.

@@ -15,9 +15,9 @@ struct LibraryView: View {
 //        .init(title: "Programas",        systemImage: "square.stack", libraryDestination: .),
 //        .init(title: "Canales",          systemImage: "play.tv"),
 //        .init(title: "Categorías",       systemImage: "square.grid.2x2"),
-        .init(title: "Guardados",        systemImage: "bookmark", destination: .guardados),
-        .init(title: "Descargas",        systemImage: "arrow.down.circle", destination: .descargas),
-        .init(title: "Episodios más recientes", systemImage: "clock", destination: .podcast(id: 0))
+        .init(title: String(localized: "Saved"),        systemImage: "bookmark", destination: .guardados),
+        .init(title: String(localized: "Downloads"),        systemImage: "arrow.down.circle", destination: .descargas),
+        .init(title: String(localized: "Latest episodes"), systemImage: "clock", destination: .podcast(id: 0))
     ]
 
     private let columns = [
@@ -72,12 +72,12 @@ struct LibraryView: View {
     /// The episodes the listener played, most recent first (RecentlyPlayedManager).
     private var recentUpdatesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Escuchado recientemente")
+            Text("Recently played")
                 .font(.system(size: 22, weight: .bold))
                 .foregroundStyle(.black)
 
             if recentlyPlayed.items.isEmpty {
-                Text("Lo que escuches aparecerá aquí.")
+                Text("What you listen to will show up here.")
                     .font(.system(size: 15))
                     .foregroundStyle(.black.opacity(0.5))
             } else {
@@ -90,7 +90,7 @@ struct LibraryView: View {
                         }
                         .buttonStyle(.plain)
                         .contextMenu {
-                            Button("Quitar de recientes", systemImage: "minus.circle", role: .destructive) {
+                            Button("Remove from recents", systemImage: "minus.circle", role: .destructive) {
                                 withAnimation { recentlyPlayed.remove(item) }
                             }
                         }

@@ -23,7 +23,7 @@ class AVPlayerViewModel {
     var progress: Float = 0
 
     // MARK: - Private
-    @ObservationIgnored private let player: AVPlayerDataSource
+    @ObservationIgnored private let player: PlayerDataSource
     @ObservationIgnored private var currentURL: URL?
     @ObservationIgnored private var currentDurationSeconds: Double = 0
 
@@ -32,7 +32,7 @@ class AVPlayerViewModel {
     }
 
     // MARK: - Init
-    init(player: AVPlayerDataSource = AVPlayerDataSource()) {
+    init(player: PlayerDataSource = AVPlayerDataSource()) {
         self.player = player
         self.bind()
         self.configureAudioSession()

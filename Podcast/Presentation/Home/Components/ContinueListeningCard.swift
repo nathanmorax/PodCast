@@ -56,7 +56,7 @@ struct ContinueListeningCard: View {
             }
             .buttonStyle(.plain)
             .accessibilityElement(children: .combine)
-            .accessibilityHint("Abre el reproductor")
+            .accessibilityHint("Opens the player")
 
             Button {
                 if isCurrent {
@@ -73,7 +73,7 @@ struct ContinueListeningCard: View {
                     .background(Circle().fill(AppColor.lavender))
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(isPlaying ? "Pausar" : "Continuar")
+            .accessibilityLabel(isPlaying ? Text("Pause") : Text("Resume"))
         }
         .padding(14)
         .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(.white))

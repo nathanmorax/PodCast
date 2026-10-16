@@ -14,8 +14,13 @@ final class AppNavigator {
 
     static let shared = AppNavigator()
 
-    /// True while the search field has the keyboard: the bottom bar steps aside.
+    /// True while the search field has the keyboard: the bar shows only the
+    /// field (above the keyboard) and a cancel button.
     var isSearching = false
+
+    /// What's typed in the bar's search field. PodcastSearchContainerController
+    /// observes it and shows results or categories.
+    var searchQuery = ""
 
     /// The last tab chosen in the bar. Stays set while Search is on screen, so
     /// the bar knows where you came from.
@@ -30,7 +35,7 @@ final class AppNavigator {
     var isBarCompact = false
 
     @ObservationIgnored
-    weak var container: MainContainerController?
+    weak var container: (any NavigationContainer)?
 
     /// The stack on screen: Search's or the selected tab's.
     var currentNavigationController: UINavigationController? {
@@ -53,20 +58,41 @@ final class AppNavigator {
         isBarCompact = false
     }
 
+    // MARK: - Swipe between tabs
+
+    /// The tab a horizontal swipe on the bar lands on: the one beside the
+    /// current tab, or nil at either end. From Search, the tab at that end.
+    func tab(forSwipeTowardNext next: Bool) -> AppTab? {
+        if isShowingSearch {
+            return next ? AppTab.allCases.last : AppTab.allCases.first
+        }
+        return selectedTab.neighbor(towardNext: next)
+    }
+
+    /// Finger to the left → the tab on the right (like Safari's tab bar).
+    /// Returns false at the ends, where the bar only bounces.
+    @discardableResult
+    func swipeTab(towardNext next: Bool) -> Bool {
+        guard let tab = tab(forSwipeTowardNext: next) else { return false }
+        select(tab)
+        return true
+    }
+
+    // MARK: - Search field
+
+    /// The ✕ next to the field while typing: clears it and drops the keyboard.
+    func cancelSearchEditing() {
+        searchQuery = ""
+        isSearching = false
+    }
+
     /// Shows Search with the keyboard up. If Search is already on screen,
     /// goes back to its first screen and focuses the field.
     func showSearch() {
         isBarCompact = false
         guard let container else { return }
         if isShowingSearch {
-            if container.searchStack.topViewController === container.searchController {
-                container.searchController.focusSearchField()
-            } else {
-                // Inside a podcast opened from the results: go back first; the
-                // keyboard comes up once Search is visible again.
-                container.searchController.focusesSearchOnAppear = true
-                container.searchStack.popToRootViewController(animated: true)
-            }
+            container.focusSearch()
             return
         }
         isShowingSearch = true

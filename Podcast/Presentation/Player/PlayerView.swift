@@ -187,7 +187,7 @@ struct PlayerView: View {
         .animation(.spring(response: 0.5, dampingFraction: 0.9), value: lines.id)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(lines.current)
-        .accessibilityHint("Abre la transcripción")
+        .accessibilityHint("Opens the transcript")
     }
     
     /// Bookmark and transcript: small and quiet, out of the main row.
@@ -325,7 +325,7 @@ struct PlayerView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Volver al reproductor")
+        .accessibilityLabel("Back to the player")
     }
     
     private func segmentRow(_ segment: LocalTranscriptSegment, proxy: ScrollViewProxy) -> some View {
@@ -358,7 +358,7 @@ struct PlayerView: View {
                     .font(.system(size: 17, weight: .semibold))
                     .frame(width: 44, height: 44, alignment: .leading)
             }
-            .accessibilityLabel("Minimizar reproductor")
+            .accessibilityLabel("Minimize player")
             
             Spacer()
             
@@ -367,7 +367,7 @@ struct PlayerView: View {
                 .font(rounded(20))
                 .monospacedDigit()
                 .contentTransition(.numericText(countsDown: true))
-                .accessibilityLabel("Tiempo restante \(viewModel.remainingTimeText)")
+                .accessibilityLabel("Time remaining \(viewModel.remainingTimeText)")
         }
         .foregroundStyle(Self.ink)
         .padding(.top, 52)
@@ -407,8 +407,8 @@ struct PlayerView: View {
         }
         .frame(height: 24) // taller touch area than the 4pt line
         .accessibilityElement()
-        .accessibilityLabel("Progreso")
-        .accessibilityValue("\(Int(viewModel.progress * 100)) por ciento")
+        .accessibilityLabel("Progress")
+        .accessibilityValue("\(Int(viewModel.progress * 100)) percent")
     }
     
     private var progressLabels: some View {
@@ -443,7 +443,7 @@ struct PlayerView: View {
                 .contentTransition(.symbolEffect(.replace))
                 .frame(width: 44, height: 44)
         }
-        .accessibilityLabel(actionViewModel.isBookmarked ? "Quitar de guardados" : "Guardar episodio")
+        .accessibilityLabel(actionViewModel.isBookmarked ? Text("Remove from saved") : Text("Save episode"))
     }
     
     private var seekBackwardButton: some View {
@@ -455,7 +455,7 @@ struct PlayerView: View {
                 .foregroundStyle(Self.ink)
                 .frame(width: 56, height: 56)
         }
-        .accessibilityLabel("Retroceder 15 segundos")
+        .accessibilityLabel("Rewind 15 seconds")
     }
     
     private var playPauseButton: some View {
@@ -475,7 +475,7 @@ struct PlayerView: View {
             }
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(viewModel.isPlaying ? "Pausar" : "Reproducir")
+        .accessibilityLabel(viewModel.isPlaying ? Text("Pause") : Text("Play"))
     }
     
     private var seekForwardButton: some View {
@@ -487,7 +487,7 @@ struct PlayerView: View {
                 .foregroundStyle(Self.ink)
                 .frame(width: 56, height: 56)
         }
-        .accessibilityLabel("Adelantar 15 segundos")
+        .accessibilityLabel("Skip forward 15 seconds")
     }
     
     private var transcriptButton: some View {
@@ -511,10 +511,10 @@ struct PlayerView: View {
     }
     
     private var transcriptAccessibilityLabel: String {
-        if mode == .transcript { return "Cerrar transcripción" }
-        if transcript.isLoading { return "Preparando transcripción" }
-        if transcript.error != nil { return "Reintentar transcripción" }
-        return "Transcripción"
+        if mode == .transcript { return String(localized: "Close transcript") }
+        if transcript.isLoading { return String(localized: "Preparing transcript") }
+        if transcript.error != nil { return String(localized: "Retry transcript") }
+        return String(localized: "Transcript")
     }
     
     /// Opens the transcript screen (closes it if it's already open).
