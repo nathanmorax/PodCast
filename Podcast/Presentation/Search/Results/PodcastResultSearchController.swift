@@ -16,6 +16,8 @@ class PodcastResultSearchController: UIViewController {
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
         cv.translatesAutoresizingMaskIntoConstraints = false
         cv.allowsSelection = true
+        // Scrolling the results closes the keyboard, which brings the tab bar back.
+        cv.keyboardDismissMode = .onDrag
         cv.allowsMultipleSelection = false
         return cv
     }()

@@ -62,7 +62,13 @@ class MainTabBarController: UITabBarController {
                   identifier: "biblioteca") { _ in
                 UINavigationController(rootViewController: LibraryController())
             },
-            UISearchTab { _ in
+            // A regular tab instead of UISearchTab: the system search tab always
+            // shows the other tabs as a round button next to the field, and there
+            // is no API to remove it. Here search lives at the top of the screen
+            // and, while typing, we hide the tab bar and mini player entirely.
+            UITab(title: "Buscar",
+                  image: UIImage(systemName: "magnifyingglass"),
+                  identifier: "search") { _ in
                 UINavigationController(rootViewController: PodcastSearchContainerController())
             }
         ]
@@ -84,8 +90,21 @@ class MainTabBarController: UITabBarController {
         }
     }
 
+    // MARK: - Search focus
+
+    private var isSearching = false
+
+    /// While the user types, only the search field and keyboard are on screen:
+    /// the tab bar and the mini player get out of the way.
+    func setSearching(_ searching: Bool) {
+        guard isSearching != searching else { return }
+        isSearching = searching
+        setTabBarHidden(searching, animated: true)
+        updateMiniPlayer(animated: true)
+    }
+
     private func updateMiniPlayer(animated: Bool) {
-        let shouldShow = playerManager.currentEpisode != nil
+        let shouldShow = playerManager.currentEpisode != nil && !isSearching
         let isShowing = bottomAccessory != nil
         guard shouldShow != isShowing else { return }
         setBottomAccessory(shouldShow ? miniPlayerAccessory : nil, animated: animated)

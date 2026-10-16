@@ -109,66 +109,54 @@ struct PlayerView: View {
             .accessibilityHidden(true) // decorative: title and author are read below
     }
     
-    // MARK: - Lyrics Preview
+    // MARK: - Transcript states
     
-    private var lyricsPreview: some View {
-        VStack(spacing: 12) {
-            lyricsContent
+    /// Shown while the transcript is being generated: grey placeholder lines that
+    /// gently pulse, shaped like the text that's coming. No spinner, no
+    /// "Descargando audio…" status: that's plumbing the listener doesn't care about.
+    private var transcriptPlaceholder: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            // Constant, never-changing rows, so a static range is fine here.
+            ForEach(0..<9, id: \.self) { row in
+                Text(Self.placeholderLines[row % Self.placeholderLines.count])
+                    .font(.system(size: 19))
+                    .lineSpacing(4)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 8)
+        .redacted(reason: .placeholder)
+        .foregroundStyle(.gray.opacity(0.25))
+        .phaseAnimator([1.0, 0.45]) { content, opacity in
+            content.opacity(opacity)
+        } animation: { _ in
+            .easeInOut(duration: 1.1)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Cargando transcripción")
     }
     
-    @ViewBuilder
-    private var lyricsContent: some View {
-        if transcript.isLoading {
-            loadingView
-        } else if let error = transcript.error {
-            errorView(error)
-        } else if transcript.segments.isEmpty {
-//            emptyStateView
-        } else {
-            currentSegmentView
-        }
-    }
+    private static let placeholderLines = [
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do",
+        "Ut enim ad minim veniam, quis nostrud",
+        "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum",
+        "Excepteur sint occaecat cupidatat non proident",
+    ]
     
-    private var loadingView: some View {
-        VStack(spacing: 8) {
-            ProgressView()
-            Text(transcript.progress)
-                .font(.caption)
-                .foregroundStyle(.gray)
-        }
-        .padding()
-    }
-    
+    /// One quiet line and a retry link, instead of red text in a box.
     private func errorView(_ error: String) -> some View {
-        VStack(spacing: 8) {
-            Text(error)
-                .font(.system(size: 13))
-                .foregroundStyle(.red.opacity(0.7))
-                .multilineTextAlignment(.center)
+        VStack(alignment: .leading, spacing: 10) {
+            Text("No se pudo generar la transcripción.")
+                .font(.system(size: 17, weight: .medium))
+                .foregroundStyle(.black)
             
-            Button("Reintentar") {
+            Button("Intentar de nuevo") {
                 Task { await runTranscription() }
             }
-            .font(.caption)
+            .font(.system(size: 15, weight: .medium))
+            .foregroundStyle(.gray)
         }
-        .padding()
-    }
-    
-    private var emptyStateView: some View {
-        Button {
-            Task { await runTranscription() }
-        } label: {
-            Label("Generar transcripción", systemImage: "text.bubble")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(.white)
-                .padding(.vertical, 12)
-                .padding(.horizontal, 24)
-                .background(Capsule().fill(Color.black))
-        }
-        .padding(.top, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityHint(error)
     }
     
     private var currentSegmentView: some View {
@@ -240,20 +228,15 @@ struct PlayerView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     closeButton
                     
-                    // Before, only the segments were drawn here, so while the
-                    // transcript was being generated the screen stayed blank.
-                    if transcript.isLoading {
-                        loadingView
-                            .frame(maxWidth: .infinity)
-                            .padding(.top, 80)
-                    } else if let error = transcript.error {
+                    // Opening the transcript always starts generating it, so "no
+                    // segments yet" means "loading" (also covers the frame before
+                    // isLoading flips to true, which used to flash an empty state).
+                    if let error = transcript.error {
                         errorView(error)
-                            .frame(maxWidth: .infinity)
-                            .padding(.top, 80)
+                            .padding(.top, 24)
                     } else if transcript.segments.isEmpty {
-                        emptyStateView
-                            .frame(maxWidth: .infinity)
-                            .padding(.top, 80)
+                        transcriptPlaceholder
+                            .transition(.opacity)
                     } else {
                         ForEach(transcript.segments) { segment in
                             segmentRow(segment, proxy: proxy)

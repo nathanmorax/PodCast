@@ -58,6 +58,10 @@ class PodcastSearchContainerController: UIViewController {
         
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
+        // Keep the field at the top, under the title (iOS 26 would otherwise
+        // move it to a bottom toolbar, next to the tab bar).
+        navigationItem.preferredSearchBarPlacement = .stacked
+        navigationItem.searchBarPlacementAllowsToolbarIntegration = false
         definesPresentationContext = true
     }
     
@@ -108,6 +112,20 @@ extension PodcastSearchContainerController: UISearchBarDelegate {
         } else {
             showResults()
         }
+    }
+    
+    // Typing → hide tab bar + mini player. Keyboard gone (Cancel, Search key,
+    // or scrolling the results) → bring them back.
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+        (tabBarController as? MainTabBarController)?.setSearching(true)
+    }
+    
+    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+        (tabBarController as? MainTabBarController)?.setSearching(false)
+    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.resignFirstResponder()
     }
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {

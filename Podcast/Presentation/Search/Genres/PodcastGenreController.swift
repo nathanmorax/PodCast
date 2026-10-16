@@ -20,6 +20,7 @@ class PodcastGenreController: UIViewController {
         let layout = UICollectionViewFlowLayout()
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.contentInsetAdjustmentBehavior = .always
+        collectionView.keyboardDismissMode = .onDrag
         return collectionView
     }()
     
