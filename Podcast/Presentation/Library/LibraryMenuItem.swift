@@ -71,7 +71,10 @@ struct LibraryView: View {
 
             .toolbarBackground(AppColor.background, for: .navigationBar)
         }
-        .preferredColorScheme(.dark)
+        // NOT .preferredColorScheme(.dark): that one is a preference for the whole
+        // window, so visiting this tab flipped the entire app to dark mode.
+        // .environment(\.colorScheme) only affects this view's subtree.
+        .environment(\.colorScheme, .dark)
     }
 
     // MARK: - Menú

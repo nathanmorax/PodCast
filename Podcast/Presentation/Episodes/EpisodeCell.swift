@@ -22,7 +22,7 @@ struct EpisodeCell: View {
                 Text(viewModel.episode.title)
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(.primary)
-                    .lineLimit(3)
+                    .lineLimit(2)
 
                 Text(viewModel.episode.description)
                     .font(.system(size: 14))

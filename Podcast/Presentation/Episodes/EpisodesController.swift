@@ -11,7 +11,9 @@ import SwiftUI
 
 private enum Layout {
     static let headerHeight: CGFloat = 720
-    static let cellHeight: CGFloat   = 150  // ← sube un poco
+    // Content needs ~160pt: date + 2-line title + 2-line description + 32pt button + 16pt padding.
+    // At 150 the 100pt artwork + 36pt menu button column overflowed into the next row.
+    static let cellHeight: CGFloat   = 164
     static let sectionInset          = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
 }
 

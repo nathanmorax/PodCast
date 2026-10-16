@@ -14,7 +14,11 @@ class DownloadEpisodeViewController: UIViewController {
     private var pendingDeleteIndexPath: IndexPath?
     
     private lazy var collectionView: UICollectionView = {
-        let layout = UICollectionViewFlowLayout()
+        // Same spacing/insets as before, but each row now sizes to its content.
+        let layout = UICollectionViewCompositionalLayout.selfSizingList(
+            spacing: 24,
+            contentInsets: NSDirectionalEdgeInsets(top: 42, leading: 4, bottom: 16, trailing: 4)
+        )
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
         return cv
     }()
@@ -99,7 +103,7 @@ class DownloadEpisodeViewController: UIViewController {
 }
 
 
-extension DownloadEpisodeViewController: UICollectionViewDataSource, UICollectionViewDelegate ,  UICollectionViewDelegateFlowLayout{
+extension DownloadEpisodeViewController: UICollectionViewDataSource, UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return viewModel.episode.count
     }
@@ -113,22 +117,6 @@ extension DownloadEpisodeViewController: UICollectionViewDataSource, UICollectio
             for: indexPath,
             item: episode
         )
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        
-        let horizontalInset: CGFloat = 4
-        let width = collectionView.bounds.width - (horizontalInset * 2)
-
-        return CGSize(width: width, height: 88)
-    }
-    
-    func collectionView(_ collectionView: UICollectionView,layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        24
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        return UIEdgeInsets(top: 42, left: 0, bottom: 16, right: 0)
     }
     
 }

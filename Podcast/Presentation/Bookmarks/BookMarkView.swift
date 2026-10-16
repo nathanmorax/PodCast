@@ -15,7 +15,7 @@ struct BookMarkView: View {
     let state: DownloadState
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(alignment: .top, spacing: 12) {
             
             PodcastImage(source: viewModel.episode.imageUrl)
                 .frame(width: 95, height: 95)
@@ -34,6 +34,7 @@ struct BookMarkView: View {
                 Text(viewModel.episode.description)
                     .font(.system(size: 12))
                     .foregroundStyle(.gray)
+                    .lineLimit(2) // was unlimited: long descriptions made the row grow without end
                 
 
                 

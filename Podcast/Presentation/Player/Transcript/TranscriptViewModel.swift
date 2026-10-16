@@ -9,6 +9,9 @@
 import Observation
 import Speech
 
+/// @MainActor: before, `generate` ran on a background executor after its first
+/// `await`, so SwiftUI received state changes off the main thread.
+@MainActor
 @Observable
 final class TranscriptViewModel {
 
@@ -45,6 +48,7 @@ final class TranscriptViewModel {
     @available(iOS 26.0, *)
     func generate(for streamUrl: String, episodeId: String, locale: Locale = Locale(identifier: "en-US")) async {
         guard let url = URL(string: streamUrl) else { return }
+        guard !isLoading else { return }   // ignore repeated taps while it's working
 
         isLoading = true
         error = nil

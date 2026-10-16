@@ -62,17 +62,51 @@ struct PlayerView: View {
     private var normalView: some View {
         VStack(spacing: 0) {
             topBar
-            Spacer()
+            // The artwork is the only flexible element: it takes whatever height
+            // is left after the text and controls, so nothing gets pushed off
+            // screen on small iPhones and it grows on Pro Max / iPad.
+            artwork
+                .padding(.vertical, 20)
             episodeInfo
-            Spacer()
             progressSection
-            Spacer(minLength: 24)
+                .padding(.top, 24)
             controlsSection
-            Spacer(minLength: 8)
-//            lyricsPreview
-//            Spacer(minLength: 40)
+                .padding(.top, 28)
+                .padding(.bottom, 32)
         }
         .padding(.horizontal, 24)
+    }
+    
+    // MARK: - Artwork
+    
+    private var hasArtwork: Bool {
+        !(episode.imageUrl ?? "").isEmpty
+    }
+    
+    private var artwork: some View {
+        // A clear square defines the box; the image fills it via overlay.
+        // With `.fill` alone the image would size itself from its own pixels and
+        // overflow; this way any aspect ratio (square, 16:9…) is center-cropped
+        // to the same square.
+        Color.clear
+            .aspectRatio(1, contentMode: .fit)
+            .overlay {
+                PodcastImage(source: episode.imageUrl, contentMode: .fill)
+            }
+            .overlay {
+                if !hasArtwork {
+                    Image(systemName: "waveform")
+                        .font(.system(size: 48, weight: .light))
+                        .foregroundStyle(.gray.opacity(0.5))
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .shadow(color: .black.opacity(0.18), radius: 24, x: 0, y: 12)
+            // Apple Music–style feedback: the cover "breathes" in when playing.
+            .scaleEffect(viewModel.isPlaying ? 1 : 0.88)
+            .animation(.spring(response: 0.45, dampingFraction: 0.75), value: viewModel.isPlaying)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .accessibilityHidden(true) // decorative: title and author are read below
     }
     
     // MARK: - Lyrics Preview
@@ -206,8 +240,24 @@ struct PlayerView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     closeButton
                     
-                    ForEach(transcript.segments) { segment in
-                        segmentRow(segment, proxy: proxy)
+                    // Before, only the segments were drawn here, so while the
+                    // transcript was being generated the screen stayed blank.
+                    if transcript.isLoading {
+                        loadingView
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 80)
+                    } else if let error = transcript.error {
+                        errorView(error)
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 80)
+                    } else if transcript.segments.isEmpty {
+                        emptyStateView
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 80)
+                    } else {
+                        ForEach(transcript.segments) { segment in
+                            segmentRow(segment, proxy: proxy)
+                        }
                     }
                 }
                 .padding(.horizontal, 24)
@@ -274,7 +324,6 @@ struct PlayerView: View {
             Spacer()
         }
         .padding(.top, 60)
-        .padding(.bottom, 4)
     }
     
     // MARK: - Episode Info
@@ -287,10 +336,13 @@ struct PlayerView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             
             Text(episode.title)
-                .font(.system(size: 34, weight: .bold, design: .serif))
+                .font(.system(size: 30, weight: .bold, design: .serif))
                 .foregroundStyle(.black)
                 .multilineTextAlignment(.leading)
                 .lineSpacing(2)
+                // Cap very long titles so they can't squeeze the artwork to nothing.
+                .lineLimit(3)
+                .minimumScaleFactor(0.8)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -413,12 +465,34 @@ struct PlayerView: View {
     
     private var transcriptButton: some View {
         Button {
-            Task { await runTranscription() }
-
+            toggleTranscript()
         } label: {
-            Image(systemName: "captions.bubble")
-                .font(.system(size: 20, weight: .regular))
-                .foregroundStyle(.black)
+            Group {
+                if transcript.isLoading {
+                    ProgressView()
+                        .controlSize(.small)
+                        .tint(.black)
+                } else {
+                    Image(systemName: transcript.segments.isEmpty ? "captions.bubble" : "captions.bubble.fill")
+                        .font(.system(size: 20, weight: .regular))
+                }
+            }
+            .foregroundStyle(.black)
+            .frame(width: 28, height: 28)
+        }
+        .accessibilityLabel(mode == .transcript ? "Cerrar transcripción" : "Transcripción")
+    }
+    
+    /// Opens the transcript screen (closes it if it's already open).
+    /// Only generates the first time: a cached or in-progress transcript just opens.
+    private func toggleTranscript() {
+        if mode == .transcript {
+            mode = .normal
+            return
+        }
+        mode = .transcript
+        if transcript.segments.isEmpty && !transcript.isLoading {
+            Task { await runTranscription() }
         }
     }
     
