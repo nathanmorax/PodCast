@@ -34,6 +34,11 @@ enum AppColor {
     static let ink              = Color(asset: .ink)
     /// Dark lavender: selected tab, accents on light backgrounds.
     static let lavenderInk      = Color(asset: .lavenderInk)
+    /// Transcript page: sepia paper (light) / warm near-black (dark).
+    /// Softer than white/black: ~13–14:1 contrast without the glare.
+    static let readingBackground = Color(asset: .readingBackground)
+    /// Transcript text: warm ink (light) / cream (dark).
+    static let readingText       = Color(asset: .readingText)
 
     // MARK: - Semantic roles
 

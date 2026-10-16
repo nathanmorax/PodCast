@@ -24,6 +24,18 @@ final class TranscriptViewModel {
     /// Index of `currentSegment` in `segments` (for the previous/next lines).
     private(set) var currentIndex: Int?
 
+    /// The sentence before the current one (shown faint above it).
+    var previousSegment: LocalTranscriptSegment? {
+        guard let currentIndex, currentIndex > 0, segments.indices.contains(currentIndex - 1) else { return nil }
+        return segments[currentIndex - 1]
+    }
+
+    /// What the subtitle shows: the sentence being said or, before the first
+    /// one starts, the first one.
+    var displayedSegment: LocalTranscriptSegment? {
+        currentSegment ?? segments.first
+    }
+
     // MARK: - Private
     @ObservationIgnored private var currentEpisodeId: String?
 
@@ -69,7 +81,7 @@ final class TranscriptViewModel {
         }
 
         do {
-            let hasPermission = await requestSpeechPermission()
+            let hasPermission = await Self.requestSpeechPermission()
             guard hasPermission else {
                 error = String(localized: "Speech recognition permission is needed")
                 return
@@ -103,10 +115,18 @@ final class TranscriptViewModel {
 
     // MARK: - Permisos
 
-    private func requestSpeechPermission() async -> Bool {
-        await withCheckedContinuation { continuation in
-            SFSpeechRecognizer.requestAuthorization {
-                continuation.resume(returning: $0 == .authorized)
+    /// `nonisolated` on purpose. Speech calls this handler on a background
+    /// queue. Written inside this @MainActor class, the closure would be
+    /// inferred main-actor-isolated, and the Swift runtime checks that at the
+    /// call: running it off the main thread crashes the app
+    /// (EXC_BREAKPOINT in swift_task_checkIsolated) the first time the
+    /// transcript button asks for permission.
+    private nonisolated static func requestSpeechPermission() async -> Bool {
+        let status = SFSpeechRecognizer.authorizationStatus()
+        if status != .notDetermined { return status == .authorized }
+        return await withCheckedContinuation { continuation in
+            SFSpeechRecognizer.requestAuthorization { status in
+                continuation.resume(returning: status == .authorized)
             }
         }
     }

@@ -8,7 +8,8 @@
 import Foundation
 import FeedKit
 
-struct Episode: Codable {
+/// Sendable: only value fields, so it can go into download and KVO callbacks.
+struct Episode: Codable, Sendable {
     
     let title: String
     let author: String

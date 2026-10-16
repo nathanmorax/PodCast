@@ -51,14 +51,11 @@ enum AppAnimation {
     /// The next line rolling into the player's line wheel.
     static var lineWheel: Animation { motion(.spring(duration: 0.5, bounce: 0.1)) }
 
-    /// The transcript's floating controls showing/hiding.
-    static var controlsVisibility: Animation { motion(.spring(duration: 0.35, bounce: 0.15)) }
+    /// The subtitle moving on to the next sentence.
+    static var subtitleLine: Animation { motion(.spring(duration: 0.45, bounce: 0)) }
 
-    /// The transcript following the line being spoken.
-    static var transcriptFollow: Animation { motion(.easeInOut(duration: 0.4)) }
-
-    /// The spoken line lighting up in the transcript.
-    static var lineHighlight: Animation { .easeInOut(duration: 0.3) }
+    /// Switching the transcript between Noche and Papel.
+    static var readingTheme: Animation { .easeInOut(duration: 0.3) }
 
     // MARK: - Content
 

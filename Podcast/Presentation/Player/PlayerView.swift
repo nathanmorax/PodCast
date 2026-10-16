@@ -9,8 +9,6 @@ struct PlayerView: View {
     
     let episode: Episode
     @State private var mode: PlayerMode = .normal
-    @State private var showControls: Bool = true
-    @State private var hideControlsTask: Task<Void, Never>?
     /// The listener asked for the transcript while it was still being generated:
     /// open it by itself as soon as it's ready. No intermediate screen.
     @State private var wantsTranscript = false
@@ -218,144 +216,21 @@ struct PlayerView: View {
     }
     
     // MARK: - Transcript View
-    
+
+    /// Subtitles: the sentence being said, the one before it faint above,
+    /// and a pause pill. See TranscriptSubtitleView.
     private var transcriptView: some View {
-        ZStack(alignment: .bottom) {
-            transcriptBackground
-            
-            transcriptScrollView
-            
-            if showControls {
-                compactControls
-                    .padding(.bottom, 20)
-                    .padding(.top, 28)
-                    .background(
-                        // Frosted glass that fades in from the top, instead of a
-                        // white gradient that only matched a white background.
-                        Rectangle()
-                            .fill(.ultraThinMaterial)
-                            .mask(
-                                LinearGradient(
-                                    colors: [.clear, .black, .black],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                            )
-                            .ignoresSafeArea()
-                    )
-                    .transition(.floatingControls)
-            }
-        }
-        .animation(AppAnimation.controlsVisibility, value: showControls)
-        .onAppear {
-            showControls = true
-            scheduleHideControls()
-        }
-        .onDisappear {
-            hideControlsTask?.cancel()
-        }
+        TranscriptSubtitleView(
+            previous: transcript.previousSegment?.text,
+            current: transcript.displayedSegment?.text,
+            lineID: transcript.displayedSegment?.id,
+            isPlaying: viewModel.isPlaying,
+            timeText: "\(viewModel.currentTimeText) / \(viewModel.durationText)",
+            onTogglePlay: { viewModel.togglePlayPause() },
+            onClose: { mode = .normal }
+        )
     }
-    
-    // MARK: - Transcript Scroll
-    
-    private var transcriptScrollView: some View {
-        ScrollViewReader { proxy in
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    closeButton
-                    
-                    ForEach(transcript.segments) { segment in
-                        segmentRow(segment, proxy: proxy)
-                    }
-                }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 120)
-            }
-            .onChange(of: transcript.currentSegment?.id) { _, newId in
-                guard let newId else { return }
-                withAnimation(AppAnimation.transcriptFollow) {
-                    proxy.scrollTo(newId, anchor: .center)
-                }
-            }
-            .onAppear {
-                if let id = transcript.currentSegment?.id {
-                    proxy.scrollTo(id, anchor: .center)
-                }
-            }
-        }
-    }
-    
-    /// The episode's own artwork, blurred and washed with white: the transcript
-    /// keeps the color of what's playing instead of jumping to a blank page,
-    /// and black text stays readable on top.
-    private var transcriptBackground: some View {
-        Color.clear
-            .overlay {
-                PodcastImage(source: episode.imageUrl, contentMode: .fill)
-                    .blur(radius: 50, opaque: true)
-                    .scaleEffect(1.3) // hides the soft edges the blur leaves
-            }
-            .overlay(Color.white.opacity(0.62))
-            .clipped()
-            .ignoresSafeArea()
-            .accessibilityHidden(true)
-    }
-    
-    /// "Now playing" header: tiny cover + title, so the listener never loses
-    /// context. Tapping it goes back to the player.
-    private var closeButton: some View {
-        Button {
-            mode = .normal
-        } label: {
-            HStack(spacing: 10) {
-                PodcastImage(source: episode.imageUrl)
-                    .frame(width: 36, height: 36)
-                    .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
-                
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(episode.title)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(.black)
-                        .lineLimit(1)
-                    Text(episode.author)
-                        .font(.system(size: 12))
-                        .foregroundStyle(.black.opacity(0.5))
-                        .lineLimit(1)
-                }
-                
-                Spacer(minLength: 8)
-                
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.black.opacity(0.5))
-            }
-            .padding(.top, 60)
-            .padding(.bottom, 12)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Back to the player")
-    }
-    
-    private func segmentRow(_ segment: LocalTranscriptSegment, proxy: ScrollViewProxy) -> some View {
-        let isCurrent = transcript.currentSegment?.id == segment.id
-        return Text(segment.text)
-            .font(.system(
-                size: 19,
-                weight: isCurrent ? .semibold : .regular
-            ))
-            .foregroundStyle(isCurrent ? .black : .black.opacity(0.3))
-            .lineSpacing(4)
-            .multilineTextAlignment(.leading)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .id(segment.id)
-            .animation(AppAnimation.lineHighlight, value: isCurrent)
-            .onTapGesture {
-                seekToSegment(segment)
-                showControlsTemporarily()
-            }
-    }
-    
+
     // MARK: - Top Bar
     
     private var topBar: some View {
@@ -550,19 +425,6 @@ struct PlayerView: View {
         }
     }
     
-    // MARK: - Compact Controls (transcript)
-    
-    private var compactControls: some View {
-        VStack(spacing: 12) {
-            progressSection
-                .padding(.horizontal, 24)
-            
-            controlsSection
-                .padding(.horizontal, 24)
-                .padding(.bottom, 8)
-        }
-    }
-    
     // MARK: - Helpers
     
     private var dismissGesture: some Gesture {
@@ -572,28 +434,6 @@ struct PlayerView: View {
                     playerManager.collapse()
                 }
             }
-    }
-    
-    private func seekToSegment(_ segment: LocalTranscriptSegment) {
-        guard let last = transcript.segments.last,
-              last.endTime > 0 else { return }
-        let percentage = Float(segment.startTime / last.endTime)
-        viewModel.seek(to: percentage)
-    }
-    
-    private func showControlsTemporarily() {
-        withAnimation(AppAnimation.controlsVisibility) { showControls = true }
-        scheduleHideControls()
-    }
-    
-    private func scheduleHideControls() {
-        hideControlsTask?.cancel()
-        hideControlsTask = Task {
-            try? await Task.sleep(for: .seconds(3))
-            guard !Task.isCancelled else { return }
-            // Inherits the view's main actor: no MainActor.run needed.
-            withAnimation(AppAnimation.controlsVisibility) { showControls = false }
-        }
     }
 }
 

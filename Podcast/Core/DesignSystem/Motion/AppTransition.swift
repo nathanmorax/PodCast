@@ -47,9 +47,14 @@ extension AnyTransition {
         )
     }
 
-    /// The transcript's controls sliding in from the bottom.
-    static var floatingControls: AnyTransition {
-        .move(edge: .bottom).combined(with: .opacity)
+    /// Subtitle sentences: the new one rises a little and fades in, the old
+    /// one keeps going up and fades out. Small offsets, so it reads as a
+    /// gentle roll, not a slide.
+    static var subtitleLine: AnyTransition {
+        .asymmetric(
+            insertion: .opacity.combined(with: .offset(y: 16)),
+            removal: .opacity.combined(with: .offset(y: -16))
+        )
     }
 
     // MARK: - Content
