@@ -97,6 +97,7 @@ extension PodcastResultSearchController: UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let podcast = viewModel.podcasts[indexPath.item]
+        RecentSearchesManager.shared.record(podcast)
         let episodesController = EpisodesController()
         episodesController.podcast = podcast
         navigationController?.pushViewController(episodesController, animated: true)

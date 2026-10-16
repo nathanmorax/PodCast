@@ -81,7 +81,8 @@ struct BottomBar: View {
     }
 
     private func tabButton(_ tab: AppTab) -> some View {
-        let isSelected = navigator.selectedTab == tab
+        // While Search is on screen no tab is highlighted: the search field is.
+        let isSelected = !navigator.isShowingSearch && navigator.selectedTab == tab
         return Button {
             navigator.select(tab)
         } label: {
@@ -119,20 +120,26 @@ struct BottomBar: View {
             HStack(spacing: 10) {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(navigator.isShowingSearch ? AppColor.lavenderInk : .black)
                 Text("Buscar podcasts")
                     .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(.black.opacity(0.5))
+                    .foregroundStyle(navigator.isShowingSearch ? AppColor.lavenderInk : .black.opacity(0.5))
                     .lineLimit(1)
                 Spacer(minLength: 0)
             }
             .padding(.horizontal, 18)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background {
+                if navigator.isShowingSearch {
+                    Capsule().fill(AppColor.lavender.opacity(0.3))
+                }
+            }
             .glassCapsule()
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Buscar podcasts")
+        .accessibilityAddTraits(navigator.isShowingSearch ? .isSelected : [])
     }
 
     // MARK: - Folded (while scrolling down)
@@ -142,15 +149,19 @@ struct BottomBar: View {
             Button {
                 navigator.expandBar()
             } label: {
-                Image(systemName: navigator.selectedTab.selectedSystemImage)
+                Image(systemName: navigator.isShowingSearch
+                      ? navigator.selectedTab.systemImage
+                      : navigator.selectedTab.selectedSystemImage)
                     .font(.system(size: 19, weight: .semibold))
-                    .foregroundStyle(AppColor.lavenderInk)
+                    .foregroundStyle(navigator.isShowingSearch ? Color.black.opacity(0.6) : AppColor.lavenderInk)
                     .frame(width: Metrics.compactHeight, height: Metrics.compactHeight)
                     .glassCapsule()
             }
             .buttonStyle(.plain)
             .matchedGeometryEffect(id: "tabs", in: namespace)
-            .accessibilityLabel("\(navigator.selectedTab.title), pestaña actual")
+            .accessibilityLabel(navigator.isShowingSearch
+                                ? navigator.selectedTab.title
+                                : "\(navigator.selectedTab.title), pestaña actual")
             .accessibilityHint("Muestra todas las pestañas")
 
             MiniPlayerCapsule(episode: episode, showsSubtitle: false)
@@ -162,8 +173,13 @@ struct BottomBar: View {
             } label: {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(navigator.isShowingSearch ? AppColor.lavenderInk : .black)
                     .frame(width: Metrics.compactHeight, height: Metrics.compactHeight)
+                    .background {
+                        if navigator.isShowingSearch {
+                            Circle().fill(AppColor.lavender.opacity(0.3))
+                        }
+                    }
                     .glassCapsule()
             }
             .buttonStyle(.plain)

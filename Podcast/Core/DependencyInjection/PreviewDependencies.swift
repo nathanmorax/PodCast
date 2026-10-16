@@ -28,6 +28,27 @@ extension RecentlyPlayedManager {
     }
 }
 
+extension RecentSearchesManager {
+    /// A few searched podcasts so the Search preview has a recent row.
+    static var preview: RecentSearchesManager {
+        let manager = RecentSearchesManager(userDefaults: UserDefaults(suiteName: "preview.searches") ?? .standard)
+        manager.clear()
+        let names = ["Hidden Brain", "Radio Ambulante", "Café con Datos", "Historias Lentas"]
+        for (offset, name) in names.enumerated().reversed() {
+            manager.record(Podcast(
+                trackId: offset + 1,
+                trackName: name,
+                artistName: Podcast.mock.artistName,
+                artworkUrl600: Podcast.mock.artworkUrl600,
+                primaryGenreName: Podcast.mock.primaryGenreName,
+                trackCount: Podcast.mock.trackCount,
+                feedUrl: Podcast.mock.feedUrl
+            ))
+        }
+        return manager
+    }
+}
+
 extension PlayerManager {
     static var preview: PlayerManager {
         PlayerManager(downloadManager: .preview, recentlyPlayed: .preview)
