@@ -5,12 +5,12 @@
 
 import Foundation
 
-protocol PodcastRemoteDataSource {
+protocol PodcastRemoteDataSource: Sendable {
 
     func searchPodcast(query: String) async throws -> [Podcast]
 
-    func fetchEpisodes(feedURL: String) async throws -> [Episode]
+    /// Downloads and parses the podcast's RSS once.
+    func fetchFeed(feedURL: String) async throws -> PodcastFeed
 
-    /// Still callback-based (GenresRepository uses it); candidate for async.
-    func fetchGenresPodcast(completion: @escaping (Result<[Genre], Error>) -> Void)
+    func fetchGenres() async throws -> [Genre]
 }

@@ -36,9 +36,12 @@ actor MockSearchPodcastRepository: SearchPodcastRepository {
         return try podcastsResult.get()
     }
 
-    func fetchEpisodes(feedURL: String) async throws -> [Episode] {
+    /// Description returned with the episodes by fetchFeed.
+    let feedDescription: String? = "A show about tests"
+
+    func fetchFeed(feedURL: String) async throws -> PodcastFeed {
         fetchedFeeds.append(feedURL)
-        return try episodesResult.get()
+        return PodcastFeed(description: feedDescription, episodes: try episodesResult.get())
     }
 }
 

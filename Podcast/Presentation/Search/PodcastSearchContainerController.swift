@@ -44,9 +44,6 @@ class PodcastSearchContainerController: UIViewController {
         view.backgroundColor = AppColor.screenBackground.uiColor
 
         setupChildControllers()
-        setupBindings()
-        apply(query: navigator.searchQuery)
-        observeQuery()
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -70,18 +67,17 @@ class PodcastSearchContainerController: UIViewController {
 
     // MARK: - Query
 
-    /// Follows what's typed in the bar.
-    private func observeQuery() {
-        withObservationTracking {
-            _ = navigator.searchQuery
-        } onChange: { [weak self] in
-            // onChange fires before the new value is stored: read it next turn.
-            Task { @MainActor in
-                guard let self else { return }
-                self.apply(query: self.navigator.searchQuery)
-                self.observeQuery()
-            }
-        }
+    /// The query the screen is showing, to react only to changes.
+    private var appliedQuery: String?
+
+    /// iOS 26: UIKit tracks `navigator.searchQuery` read here and calls this
+    /// again whenever the bar's field changes.
+    override func updateProperties() {
+        super.updateProperties()
+        let query = navigator.searchQuery
+        guard query != appliedQuery else { return }
+        appliedQuery = query
+        apply(query: query)
     }
 
     private func apply(query: String) {
@@ -95,20 +91,6 @@ class PodcastSearchContainerController: UIViewController {
     }
 
     // MARK: - Setup
-
-    private func setupBindings() {
-        withObservationTracking {
-            _ = viewModel.error
-        } onChange: { [weak self] in
-            Task { @MainActor in
-                guard let self else { return }
-                if let errorMessage = self.viewModel.error {
-                    print(errorMessage)
-                }
-                self.setupBindings()
-            }
-        }
-    }
 
     private func setupChildControllers() {
         // A category opens its own screen: its name centered, with back.

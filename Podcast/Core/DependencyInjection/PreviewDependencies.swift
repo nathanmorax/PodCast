@@ -49,6 +49,17 @@ extension RecentSearchesManager {
     }
 }
 
+extension FavoritesPodcastManager {
+    /// Two favorite podcasts for the Home preview.
+    static var preview: FavoritesPodcastManager {
+        let manager = FavoritesPodcastManager(userDefaults: UserDefaults(suiteName: "preview.favorites") ?? .standard)
+        for podcast in RecentSearchesManager.preview.items.prefix(2) where !manager.isFavorite(podcast) {
+            manager.toggleFavorite(podcast)
+        }
+        return manager
+    }
+}
+
 extension PlayerManager {
     static var preview: PlayerManager {
         PlayerManager(downloadManager: .preview, recentlyPlayed: .preview)

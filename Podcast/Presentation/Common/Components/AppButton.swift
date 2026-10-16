@@ -297,7 +297,7 @@ private extension View {
 // MARK: - Hashable Conformance -
 
 /// Conformando a Hashable para usar AppButton con ForEach en la Button Library.
-extension AppButton: Hashable {
+extension AppButton: @MainActor Hashable {
     
     public static func == (lhs: AppButton, rhs: AppButton) -> Bool {
         lhs.style == rhs.style

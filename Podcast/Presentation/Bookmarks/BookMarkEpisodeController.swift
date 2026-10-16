@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import Combine
 import SwiftUI
 
 class BookMarkEpisodeController: UIViewController {
@@ -28,13 +27,11 @@ class BookMarkEpisodeController: UIViewController {
     private var savedEpisodeCellRegistration: UICollectionView.CellRegistration<UICollectionViewCell, Episode>!
 
     
-    private var cancellables = Set<AnyCancellable>()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         configureCellRegistration()
         configureCollection()
-        observeEpisodes()
         
         view.backgroundColor = AppColor.slateGray.uiColor
         collectionView.backgroundColor = .clear
@@ -47,15 +44,16 @@ class BookMarkEpisodeController: UIViewController {
     }
 
     
-    private func observeEpisodes() {
-        withObservationTracking {
-            _ = viewModel.episodes
-        } onChange: { [weak self] in
-            Task { @MainActor in
-                self?.collectionView.reloadData()
-                self?.observeEpisodes()
-            }
-        }
+    private var renderedEpisodeIDs: [String] = []
+
+    /// iOS 26: UIKit tracks `viewModel.episodes` read here and calls this again
+    /// when it changes.
+    override func updateProperties() {
+        super.updateProperties()
+        let ids = viewModel.episodes.map(\.streamUrl)
+        guard ids != renderedEpisodeIDs else { return }
+        renderedEpisodeIDs = ids
+        collectionView.reloadData()
     }
 
     // Playback state (play/pause icon) is NOT observed here on purpose:

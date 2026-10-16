@@ -4,19 +4,18 @@
 //
 
 import SwiftUI
-import Combine
 
 /// "Inicio": pick up where you left off, your podcasts, and what you played.
 struct HomeView: View {
 
     @Environment(\.recentlyPlayed) private var recentlyPlayed
     @Environment(\.playerManager) private var playerManager
+    @Environment(\.favoritesManager) private var favoritesManager
 
-    var favoritesPublisher: AnyPublisher<[Podcast], Never> = FavoritesPodcastManager.shared.favoritesPublisher
     let onOpenPodcast: (Podcast) -> Void
     let onSearch: () -> Void
 
-    @State private var favorites: [Podcast] = []
+    private var favorites: [Podcast] { favoritesManager.favorites }
 
     /// The most recent episode that isn't finished.
     private var continueItem: RecentlyPlayed? {
@@ -60,7 +59,6 @@ struct HomeView: View {
         }
         .scrollIndicators(.hidden)
         .background(AppColor.screenBackground.ignoresSafeArea())
-        .onReceive(favoritesPublisher) { favorites = $0 }
         .animation(AppAnimation.listChange, value: recentlyPlayed.items.map(\.id))
     }
 
@@ -169,10 +167,10 @@ struct HomeView: View {
 
 #Preview {
     HomeView(
-        favoritesPublisher: Just([]).eraseToAnyPublisher(),
         onOpenPodcast: { _ in },
         onSearch: {}
     )
     .environment(\.recentlyPlayed, .preview)
     .environment(\.playerManager, .preview)
+    .environment(\.favoritesManager, .preview)
 }

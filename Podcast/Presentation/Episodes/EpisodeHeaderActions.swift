@@ -15,7 +15,9 @@ enum EpisodeHeaderEvent {
 
 // MARK: - EpisodeHeaderActions
 
-final class EpisodeHeaderActions {
+/// Sendable: its only state is an AsyncStream and its continuation, both
+/// Sendable and immutable, so the environment's shared default is safe.
+final class EpisodeHeaderActions: Sendable {
 
     let events: AsyncStream<EpisodeHeaderEvent>
     private let continuation: AsyncStream<EpisodeHeaderEvent>.Continuation

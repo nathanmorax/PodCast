@@ -10,7 +10,8 @@ import Speech
 import AVFoundation
 
 @available(iOS 26.0, *)
-final class LocalTranscriptionService {
+/// Sendable: it has no stored state; every call works on its own values.
+final class LocalTranscriptionService: Sendable {
     
     static let shared = LocalTranscriptionService()
     private init() {}

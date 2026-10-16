@@ -3,6 +3,6 @@
 //  Podcast
 //
 
-protocol GenresRepository {
-    func fetchGenresPodcast(completion: @escaping (Result<[Genre], Error>) -> Void)
+protocol GenresRepository: Sendable {
+    func fetchGenres() async throws -> [Genre]
 }

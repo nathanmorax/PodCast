@@ -85,4 +85,28 @@ struct EpisodesViewModelTests {
         sut.toggleFavorite(podcast: podcast)
         #expect(sut.isFavorite(podcast) == false)
     }
+
+    @Test("Episodes and the description come from a single download of the feed")
+    func oneDownloadForEpisodesAndDescription() async {
+        let (sut, repository) = makeSUT(episodes: Fixtures.episodes(count: 3))
+
+        sut.loadEpisodes(feedURL: "feed")
+        #expect(sut.isLoadingDescription)
+        await sut.loadEpisodesTask?.value
+
+        #expect(sut.podcastDescription == "A show about tests")
+        #expect(sut.isLoadingDescription == false)
+        #expect(sut.episodes.count == 3)
+        #expect(await repository.fetchedFeeds.count == 1)
+    }
+
+    @Test("favorites follows the manager")
+    func favoritesFollowManager() {
+        let (sut, _) = makeSUT()
+        let podcast = Fixtures.podcast()
+
+        favorites.toggleFavorite(podcast)
+
+        #expect(sut.favorites.map(\.trackId) == [podcast.trackId])
+    }
 }

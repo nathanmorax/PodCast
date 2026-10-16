@@ -42,6 +42,8 @@
 	<array>
 		<string>audio</string>
 	</array>
+	<key>UIObservationTrackingEnabled</key>
+	<true/>
 	<key>UIUserInterfaceStyle</key>
 	<string>Light</string>
 </dict>

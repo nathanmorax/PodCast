@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import Combine
 import SwiftUI
 
 private enum Layout {
@@ -27,12 +26,11 @@ class EpisodesController: UIViewController {
     private var lastHeaderState: HeaderState?
     private var headerActions = EpisodeHeaderActions()
     private var eventsTaks: Task<Void, Never>?
-    private var observationTask: Task<Void, Never>?
 
     var podcast: Podcast? {
         didSet {
+            // One request: episodes and the description come from the same feed.
             loadEpisodes()
-            viewModel.loadPodcastDescription(feedURL: podcast?.feedUrl)
         }
     }
 
@@ -91,7 +89,6 @@ class EpisodesController: UIViewController {
         perf.measure("viewDidLoad") {
             setupHeaderRegistration()
             setupCollectionView()
-            observeViewModel()
             listenerHeaderEvents()
         }
     }
@@ -140,70 +137,42 @@ class EpisodesController: UIViewController {
 
     deinit {
         eventsTaks?.cancel()
-        observationTask?.cancel()
     }
 
-    // MARK: - Observation (reemplaza setupBindings con Combine)
+    // MARK: - Observation (iOS 26 automatic tracking)
 
-    private func observeViewModel() {
-        observeLoading()
-        observeEpisodes()
-        observeHeader()
-    }
+    /// What the collection view currently shows, to reload only on changes.
+    private var renderedEpisodeIDs: [String] = []
 
-    private func observeLoading() {
-        withObservationTracking {
-            _ = viewModel.isLoadingEpisodes
-        } onChange: { [weak self] in
-            Task { @MainActor in
-                guard let self else { return }
-                if self.viewModel.isLoadingEpisodes {
-                    self.loaderView.startAnimating()
-                    self.loaderContainerView.isHidden = false
-                } else {
-                    self.loaderView.stopAnimating()
-                    self.loaderContainerView.isHidden = true
-                }
-                self.observeLoading()
-            }
+    /// UIKit tracks every @Observable value read here (loading flag, episodes,
+    /// favorites, description) and calls this again, before the next layout,
+    /// when any of them changes. Replaces three withObservationTracking loops.
+    override func updateProperties() {
+        super.updateProperties()
+
+        if viewModel.isLoadingEpisodes {
+            loaderView.startAnimating()
+            loaderContainerView.isHidden = false
+        } else {
+            loaderView.stopAnimating()
+            loaderContainerView.isHidden = true
         }
-    }
 
-    private func observeEpisodes() {
-        withObservationTracking {
-            _ = viewModel.episodes
-        } onChange: { [weak self] in
-            Task { @MainActor in
-                guard let self else { return }
-                if !self.viewModel.episodes.isEmpty {
-                    self.collectionView.reloadData()
-                    self.refreshVisibleHeader()
-                }
-                self.observeEpisodes()
-            }
+        let episodeIDs = viewModel.episodes.map(\.streamUrl)
+        if episodeIDs != renderedEpisodeIDs {
+            renderedEpisodeIDs = episodeIDs
+            collectionView.reloadData()
         }
-    }
 
-    private func observeHeader() {
-        withObservationTracking {
-            _ = viewModel.favorites
-            _ = viewModel.podcastDescription
-            _ = viewModel.isLoadingDescription
-        } onChange: { [weak self] in
-            Task { @MainActor in
-                guard let self, let podcast = self.podcast else { return }
-                self.perf.measure("favorites pipeline") {
-                    let newState = HeaderState(
-                        isFavorite: self.viewModel.isFavorite(podcast),
-                        description: self.viewModel.podcastDescription,
-                        isLoadingDescription: self.viewModel.isLoadingDescription
-                    )
-                    guard newState != self.lastHeaderState else { return }
-                    self.lastHeaderState = newState
-                    self.refreshVisibleHeader()
-                }
-                self.observeHeader()
-            }
+        guard let podcast else { return }
+        let headerState = HeaderState(
+            isFavorite: viewModel.isFavorite(podcast),
+            description: viewModel.podcastDescription,
+            isLoadingDescription: viewModel.isLoadingDescription
+        )
+        if headerState != lastHeaderState {
+            lastHeaderState = headerState
+            refreshVisibleHeader()
         }
     }
 

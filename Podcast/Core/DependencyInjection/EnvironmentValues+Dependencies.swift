@@ -24,4 +24,5 @@ extension EnvironmentValues {
     @Entry var downloadManager: DownloadManager = MainActor.assumeIsolated { DownloadManager.shared }
     @Entry var recentlyPlayed: RecentlyPlayedManager = MainActor.assumeIsolated { RecentlyPlayedManager.shared }
     @Entry var recentSearches: RecentSearchesManager = MainActor.assumeIsolated { RecentSearchesManager.shared }
+    @Entry var favoritesManager: FavoritesPodcastManager = MainActor.assumeIsolated { FavoritesPodcastManager.shared }
 }

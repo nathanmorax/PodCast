@@ -51,6 +51,8 @@ final class FakePlayerDataSource: PlayerDataSource {
 
 // MARK: - Genres
 
+/// @MainActor (so it's Sendable and tests can change `result` directly).
+@MainActor
 final class MockGenresRepository: GenresRepository {
     var result: Result<[Genre], Error>
     private(set) var fetchCount = 0
@@ -59,9 +61,9 @@ final class MockGenresRepository: GenresRepository {
         self.result = result
     }
 
-    func fetchGenresPodcast(completion: @escaping (Result<[Genre], Error>) -> Void) {
+    func fetchGenres() async throws -> [Genre] {
         fetchCount += 1
-        completion(result)
+        return try result.get()
     }
 }
 

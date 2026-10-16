@@ -9,11 +9,10 @@ import Foundation
 import Alamofire
 import FeedKit
 
-class PodcastRemoteDataService: PodcastRemoteDataSource {
+final class PodcastRemoteDataService: PodcastRemoteDataSource {
     
-    private let baseURL = "https://itunes.apple.com/search"
     
-    func request<T: Decodable>(_ endpoint: PodcastEndpoint) async throws ->T {
+    func request<T: Decodable & Sendable>(_ endpoint: PodcastEndpoint) async throws -> T {
         
         let response = await AF
             .request(endpoint.url, parameters: endpoint.parameters)
@@ -34,7 +33,7 @@ class PodcastRemoteDataService: PodcastRemoteDataSource {
         return result.results
     }
     
-    func fetchEpisodes(feedURL: String) async throws -> [Episode] {
+    func fetchFeed(feedURL: String) async throws -> PodcastFeed {
         let secureURL = feedURL.replacingOccurrences(of: "http://", with: "https://")
         
         guard let url = URL(string: secureURL) else {
@@ -47,43 +46,27 @@ class PodcastRemoteDataService: PodcastRemoteDataSource {
         let feed = try await Feed(url: url)
         
         switch feed {
-        case .rss(let rssFeed): return rssFeed.toEpisodes()
-        case .atom, .json:      return []
+        case .rss(let rssFeed):
+            return PodcastFeed(
+                description: rssFeed.toPodcastDescription(),
+                episodes: rssFeed.toEpisodes()
+            )
+        case .atom, .json:
+            return PodcastFeed(description: nil, episodes: [])
         }
     }
     
     
-    func fetchGenresPodcast(completion: @escaping (Result<[Genre], Error>) -> Void) {
-        let url = "https://itunes.apple.com/WebObjects/MZStoreServices.woa/ws/genres?id=26&l=en"
-        
-        AF.request(url, method: .get).responseData { dataResponse in
-            
-            if let err = dataResponse.error {
-                print("Failed to contact API", err)
-                completion(.failure(err))
-                return
-            }
-            
-            guard let data = dataResponse.data else { return }
-            
-            do {
-                let result = try JSONDecoder().decode([String: GenreResponse].self, from: data)
-                
-                guard let subgenres = result.values.first?.subgenres?.values else {
-                    completion(.success([]))
-                    return
-                }
-                
-                let genres = subgenres
-                    .map { Genre(id: $0.id, name: $0.name) }
-                    .prefix(15)
-                    .map { $0 }
-                
-                completion(.success(genres))
-            } catch let decodeErr {
-                print("Failed to decode:", decodeErr)
-                completion(.failure(decodeErr))
-            }
-        }
+    /// The podcast categories (iTunes genre 26's subgenres), sorted by name.
+    /// Before: a callback that never fired when the response had no data
+    /// (the screen loaded forever) and a random order on every launch.
+    func fetchGenres() async throws -> [Genre] {
+        let result: [String: GenreResponse] = try await request(.genres)
+        guard let subgenres = result.values.first?.subgenres?.values else { return [] }
+        return subgenres
+            .map { Genre(id: $0.id, name: $0.name) }
+            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+            .prefix(15)
+            .map { $0 }
     }
 }
