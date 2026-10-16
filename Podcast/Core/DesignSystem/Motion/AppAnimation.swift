@@ -18,6 +18,11 @@ import UIKit
 ///
 /// Springs use the iOS 17 `duration`/`bounce` form: `duration` is how long it
 /// takes to settle, `bounce` 0 means no overshoot.
+///
+/// @MainActor: it reads `UIAccessibility.isReduceMotionEnabled`, which UIKit
+/// isolates to the main actor, and every caller (views, PlayerManager, the
+/// navigation container) already runs there.
+@MainActor
 enum AppAnimation {
 
     // MARK: - Navigation (bar and screens)
