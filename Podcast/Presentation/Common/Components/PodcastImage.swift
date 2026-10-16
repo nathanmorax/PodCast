@@ -43,7 +43,6 @@ private struct RemotePodcastImage: View {
     let placeholder: Color
     
     @State private var image: UIImage?
-    @State private var loadTask: Task<Void, Never>?
     
     var body: some View {
         Group {
@@ -56,22 +55,24 @@ private struct RemotePodcastImage: View {
                 placeholder
             }
         }
-        .onAppear {
-            loadTask = Task {
-                await loadImage()
-            }
-        }
-        .onDisappear {
-            loadTask?.cancel()
+        // `.task(id:)` instead of onAppear/onDisappear: it re-runs whenever the URL
+        // changes while the view stays on screen (mini player switching episodes,
+        // reused cells) and cancels the previous load automatically.
+        // onAppear only fired once, so the old artwork stayed until the view was
+        // recreated (e.g. opening the full player).
+        .task(id: url) {
+            await loadImage()
         }
     }
     
     private func loadImage() async {
         if let cached = ImageMemoryCache.shared.image(for: url) {
-            print("🟢 Imagen desde MEMORY cache")
-            self.image = cached
+            image = cached
             return
         }
+        
+        // Don't keep showing the previous URL's artwork while the new one loads.
+        image = nil
         
         do {
             let request = URLRequest(
@@ -81,22 +82,18 @@ private struct RemotePodcastImage: View {
             )
             
             let (data, _) = try await URLSession.shared.data(for: request)
-            
             guard !Task.isCancelled else { return }
             
-            let decoded = await UIImage.decode(from: data)
-            
-            guard let decoded, !Task.isCancelled else { return }
+            guard let decoded = await UIImage.decode(from: data),
+                  !Task.isCancelled else { return }
             
             ImageMemoryCache.shared.insert(decoded, for: url)
             
-            await MainActor.run {
-                withAnimation(.easeIn(duration: 0.2)) {
-                    self.image = decoded
-                }
+            withAnimation(.easeIn(duration: 0.2)) {
+                image = decoded
             }
         } catch {
-            // Cancelado o error de red, no hacemos nada
+            // Cancelled (URL changed / view left the screen) or network error.
         }
     }
 }

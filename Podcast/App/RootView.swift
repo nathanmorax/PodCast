@@ -30,20 +30,10 @@ struct RootView: View {
     private var playerOverlay: some View {
         switch manager.presentation {
             
-        case .hidden:
+        case .hidden, .mini:
+            // The mini player lives in the tab bar's bottom accessory
+            // (MainTabBarController), so nothing is overlaid here.
             EmptyView()
-            
-        case .mini:
-            if let episode = manager.currentEpisode {
-                MiniPlayerView(
-                    episode: episode,
-                    viewModel: manager.viewModel,
-                    onExpand: { manager.expand() }
-                )
-                .padding(.horizontal, 12)
-                .padding(.bottom, 60)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
             
         case .expanded:
             if let episode = manager.currentEpisode {
