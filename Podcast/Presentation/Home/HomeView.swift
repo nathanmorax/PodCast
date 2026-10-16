@@ -59,7 +59,7 @@ struct HomeView: View {
             .padding(.bottom, 24) // the bottom bar's space comes from the safe area
         }
         .scrollIndicators(.hidden)
-        .background(Color.homeBackground.ignoresSafeArea())
+        .background(AppColor.screenBackground.ignoresSafeArea())
         .onReceive(favoritesPublisher) { favorites = $0 }
         .animation(.spring(response: 0.4, dampingFraction: 0.85), value: recentlyPlayed.items.map(\.id))
     }
@@ -139,7 +139,7 @@ struct HomeView: View {
         VStack(spacing: 14) {
             Image(systemName: "waveform")
                 .font(.system(size: 40, weight: .semibold))
-                .foregroundStyle(Color.homeAccentInk)
+                .foregroundStyle(AppColor.lavenderInk)
                 .accessibilityHidden(true)
             Text("Tu inicio está vacío")
                 .font(.system(size: 20, weight: .bold))
@@ -163,116 +163,6 @@ struct HomeView: View {
         .padding(.horizontal, 32)
         .padding(.top, 48)
     }
-}
-
-// MARK: - Continue listening
-
-/// Big card for the last unfinished episode: play/pause right there.
-struct ContinueListeningCard: View {
-
-    let item: RecentlyPlayed
-    @Environment(\.playerManager) private var playerManager
-
-    private var isCurrent: Bool {
-        playerManager.currentEpisode?.streamUrl == item.id
-    }
-
-    private var isPlaying: Bool {
-        isCurrent && playerManager.viewModel.isPlaying
-    }
-
-    /// Live progress for the episode that's loaded, saved progress otherwise.
-    private var progress: Double {
-        isCurrent ? Double(playerManager.viewModel.progress) : item.progress
-    }
-
-    var body: some View {
-        HStack(spacing: 14) {
-            Button {
-                playerManager.play(item.episode)
-            } label: {
-                HStack(spacing: 14) {
-                    Color.clear
-                        .frame(width: 88, height: 88)
-                        .overlay { PodcastImage(source: item.episode.imageUrl) }
-                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(item.episode.author)
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(.black.opacity(0.5))
-                            .lineLimit(1)
-                        Text(item.episode.title)
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(.black)
-                            .lineLimit(2)
-                            .multilineTextAlignment(.leading)
-                        ProgressView(value: min(max(progress, 0), 1))
-                            .tint(Color.homeAccentInk)
-                    }
-
-                    Spacer(minLength: 0)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityElement(children: .combine)
-            .accessibilityHint("Abre el reproductor")
-
-            Button {
-                if isCurrent {
-                    playerManager.togglePlayPause()
-                } else {
-                    playerManager.play(item.episode, presentation: .mini)
-                }
-            } label: {
-                Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 18, weight: .bold))
-                    .contentTransition(.symbolEffect(.replace))
-                    .foregroundStyle(.black)
-                    .frame(width: 52, height: 52)
-                    .background(Circle().fill(AppColor.lavender))
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(isPlaying ? "Pausar" : "Continuar")
-        }
-        .padding(14)
-        .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(.white))
-    }
-}
-
-// MARK: - Podcast tile
-
-private struct PodcastTile: View {
-    let podcast: Podcast
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Color.clear
-                .frame(width: 132, height: 132)
-                .overlay { PodcastImage(source: podcast.artworkUrl600) }
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-            Text(podcast.trackName ?? "")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.black)
-                .lineLimit(2)
-                .multilineTextAlignment(.leading)
-            Text(podcast.artistName ?? "")
-                .font(.system(size: 12))
-                .foregroundStyle(.black.opacity(0.5))
-                .lineLimit(1)
-        }
-        .frame(width: 132, alignment: .leading)
-        .accessibilityElement(children: .combine)
-    }
-}
-
-// MARK: - Colors
-
-private extension Color {
-    static let homeBackground = Color(red: 0.96, green: 0.96, blue: 0.96)
-    /// #4C40A0
-    static let homeAccentInk = Color(red: 0.298, green: 0.251, blue: 0.627)
 }
 
 // MARK: - Preview

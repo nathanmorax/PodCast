@@ -93,7 +93,7 @@ struct BottomBar: View {
                     .font(.system(size: 10, weight: .semibold))
                     .lineLimit(1)
             }
-            .foregroundStyle(isSelected ? Color.barAccentInk : .black.opacity(0.6))
+            .foregroundStyle(isSelected ? AppColor.lavenderInk : .black.opacity(0.6))
             .padding(.horizontal, 14)
             .frame(height: 50)
             .background {
@@ -144,7 +144,7 @@ struct BottomBar: View {
             } label: {
                 Image(systemName: navigator.selectedTab.selectedSystemImage)
                     .font(.system(size: 19, weight: .semibold))
-                    .foregroundStyle(Color.barAccentInk)
+                    .foregroundStyle(AppColor.lavenderInk)
                     .frame(width: Metrics.compactHeight, height: Metrics.compactHeight)
                     .glassCapsule()
             }
@@ -174,106 +174,9 @@ struct BottomBar: View {
     }
 }
 
-// MARK: - Mini player capsule
-
-/// What's playing: artwork with its progress strip, title, play/pause.
-/// Tapping the info opens the full player.
-private struct MiniPlayerCapsule: View {
-
-    @Environment(\.playerManager) private var manager
-    let episode: Episode
-    /// Author and remaining time; hidden when the bar is folded.
-    let showsSubtitle: Bool
-
-    var body: some View {
-        HStack(spacing: 4) {
-            Button {
-                manager.expand()
-            } label: {
-                HStack(spacing: 10) {
-                    artwork
-
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(episode.title)
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.black)
-                            .lineLimit(1)
-                        if showsSubtitle {
-                            Text(subtitle)
-                                .font(.system(size: 11))
-                                .monospacedDigit()
-                                .foregroundStyle(.black.opacity(0.55))
-                                .lineLimit(1)
-                        }
-                    }
-
-                    Spacer(minLength: 0)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityElement(children: .combine)
-            .accessibilityHint("Abre el reproductor")
-
-            Button {
-                manager.togglePlayPause()
-            } label: {
-                Image(systemName: manager.viewModel.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 17, weight: .semibold))
-                    .contentTransition(.symbolEffect(.replace))
-                    .foregroundStyle(.black)
-                    .frame(width: 40, height: 40)
-                    .contentShape(Circle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(manager.viewModel.isPlaying ? "Pausar" : "Reproducir")
-        }
-        .padding(.leading, 9)
-        .padding(.trailing, 6)
-        .frame(maxHeight: .infinity)
-        .glassCapsule()
-    }
-
-    private var artwork: some View {
-        Color.clear
-            .frame(width: 38, height: 38)
-            .overlay { PodcastImage(source: episode.imageUrl) }
-            .overlay(alignment: .bottomLeading) {
-                // Progress lives on the artwork's bottom edge.
-                GeometryReader { geo in
-                    Rectangle()
-                        .fill(AppColor.lavender)
-                        .frame(width: geo.size.width * CGFloat(manager.viewModel.progress), height: 3)
-                        .frame(maxHeight: .infinity, alignment: .bottom)
-                }
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
-    }
-
-    private var subtitle: String {
-        let remaining = manager.viewModel.remainingTimeText
-        return remaining.isEmpty ? episode.author : "\(episode.author) · −\(remaining)"
-    }
-}
-
-// MARK: - Styling
-
-private extension View {
-    /// Frosted capsule shared by every piece of the bar (a circle on square frames).
-    func glassCapsule() -> some View {
-        background(.regularMaterial, in: Capsule())
-            .shadow(color: .black.opacity(0.12), radius: 16, x: 0, y: 6)
-    }
-}
-
-private extension Color {
-    /// Dark lavender for the selected tab's icon and label (#4C40A0).
-    static let barAccentInk = Color(red: 0.298, green: 0.251, blue: 0.627)
-}
-
 #Preview {
     ZStack(alignment: .bottom) {
-        Color(white: 0.96).ignoresSafeArea()
+        AppColor.screenBackground.ignoresSafeArea()
         BottomBar(navigator: .shared)
             .padding(.horizontal, 16)
     }

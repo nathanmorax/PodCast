@@ -1,5 +1,5 @@
 //
-//  FavoritesManager.swift
+//  FavoritesPodcastManager.swift
 //  Podcast
 //
 //  Created by Jesus Mora on 19/03/26.

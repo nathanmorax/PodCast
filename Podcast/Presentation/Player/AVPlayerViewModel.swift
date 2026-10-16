@@ -1,5 +1,5 @@
 //
-//  PlayerDetailViewModel.swift
+//  AVPlayerViewModel.swift
 //  Podcast
 //
 //  Created by Jesus Mora on 30/01/26.

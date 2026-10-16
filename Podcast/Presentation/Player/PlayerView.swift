@@ -5,11 +5,6 @@
 
 import SwiftUI
 
-enum PlayerMode {
-    case normal
-    case transcript
-}
-
 struct PlayerView: View {
     
     let episode: Episode
@@ -40,8 +35,8 @@ struct PlayerView: View {
     
     // MARK: - Style (soft white, near-black ink, lavender accent)
     
-    private static let paper = Color(red: 0.965, green: 0.965, blue: 0.957)
-    private static let ink = Color(red: 0.07, green: 0.07, blue: 0.08)
+    private static let paper = AppColor.paper
+    private static let ink = AppColor.ink
     private static let accent = AppColor.lavender
     
     private func rounded(_ size: CGFloat, _ weight: Font.Weight = .medium) -> Font {

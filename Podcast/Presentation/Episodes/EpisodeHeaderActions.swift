@@ -1,23 +1,9 @@
 //
-//  HeaderState.swift
+//  EpisodeHeaderActions.swift
 //  Podcast
 //
 
-import Foundation
-
-// MARK: - HeaderState
-
-struct HeaderState: Equatable {
-    let isFavorite: Bool
-    let description: String?
-    let isLoadingDescription: Bool
-
-    static func == (lhs: HeaderState, rhs: HeaderState) -> Bool {
-        lhs.isFavorite == rhs.isFavorite &&
-        lhs.isLoadingDescription == rhs.isLoadingDescription &&
-        (lhs.description ?? "") == (rhs.description ?? "")
-    }
-}
+import SwiftUI
 
 // MARK: - EpisodeHeaderEvent
 
@@ -47,9 +33,7 @@ final class EpisodeHeaderActions {
     }
 }
 
-// EnvironmentValues+HeaderActions.swift
-
-import SwiftUI
+// MARK: - Environment
 
 private struct EpisodeHeaderActionsKey: EnvironmentKey {
     static let defaultValue = EpisodeHeaderActions()
