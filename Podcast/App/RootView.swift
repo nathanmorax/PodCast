@@ -18,16 +18,18 @@ struct RootView: View {
     /// Bar height + the gap under it + breathing room above it.
     /// Uses the resting size even while the bar is folded, so lists don't jump
     /// as you scroll. While typing, the bar is just the search field.
+    private var barLayout: BottomBarLayout {
+        BottomBar.layout(navigator: navigator, isPlaying: manager.currentEpisode != nil)
+    }
+
     private var reservedBottomSpace: CGFloat {
-        let bar = navigator.isSearching
-            ? BottomBar.Metrics.rowHeight
-            : BottomBar.restingHeight(isPlaying: manager.currentEpisode != nil)
-        return bar + 8 + 12
+        BottomBar.restingHeight(barLayout) + 8 + 12
     }
     
-    /// Hidden while the full player is open and on screens opened from Search.
+    /// Hidden while the full player is open, and on screens opened from
+    /// Search when nothing is playing (there the bar is just the mini player).
     private var showsBottomBar: Bool {
-        manager.presentation != .expanded && !navigator.hidesBottomBar
+        manager.presentation != .expanded && barLayout.isVisible
     }
     
     var body: some View {

@@ -160,8 +160,9 @@ class EpisodesController: UIViewController {
 
         let episodeIDs = viewModel.episodes.map(\.streamUrl)
         if episodeIDs != renderedEpisodeIDs {
+            let previous = renderedEpisodeIDs
             renderedEpisodeIDs = episodeIDs
-            collectionView.reloadData()
+            applyEpisodes(episodeIDs, replacing: previous)
         }
 
         guard let podcast else { return }
@@ -173,6 +174,24 @@ class EpisodesController: UIViewController {
         if headerState != lastHeaderState {
             lastHeaderState = headerState
             refreshVisibleHeader()
+        }
+    }
+
+    /// The next page (the old list plus more at the end) is *inserted*, so the
+    /// rows on screen stay where they are. Before, every page did a full
+    /// reloadData() in the middle of the scroll: all visible cells were
+    /// rebuilt and the list visibly jumped.
+    private func applyEpisodes(_ ids: [String], replacing previous: [String]) {
+        let isNextPage = !previous.isEmpty
+            && ids.count > previous.count
+            && Array(ids.prefix(previous.count)) == previous
+        guard isNextPage, collectionView.window != nil else {
+            collectionView.reloadData()
+            return
+        }
+        let newRows = (previous.count..<ids.count).map { IndexPath(item: $0, section: 0) }
+        UIView.performWithoutAnimation {
+            collectionView.insertItems(at: newRows)
         }
     }
 

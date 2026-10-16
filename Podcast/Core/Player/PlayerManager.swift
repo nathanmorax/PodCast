@@ -106,4 +106,13 @@ final class PlayerManager {
     func togglePlayPause() {
         viewModel.togglePlayPause()
     }
+
+    /// The app is being closed (force quit): remember where the listener was
+    /// in the current episode, then stop the audio.
+    func stopForTermination() {
+        if let current = currentEpisode {
+            recentlyPlayed.updateProgress(for: current, progress: Double(viewModel.progress))
+        }
+        viewModel.stop()
+    }
 }

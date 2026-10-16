@@ -100,4 +100,17 @@ struct PlayerManagerTests {
         sut.collapse()
         #expect(sut.presentation == .mini)
     }
+
+    @Test("Closing the app saves the position and stops the audio")
+    func stopForTermination() {
+        sut.play(first)
+        player.sendTime(current: 300, total: 1_000)
+
+        sut.stopForTermination()
+
+        #expect(!sut.viewModel.isPlaying)
+        #expect(player.pauseCount == 1)
+        let saved = recentlyPlayed.items.first?.progress ?? 0
+        #expect(abs(saved - 0.3) < 0.001)
+    }
 }

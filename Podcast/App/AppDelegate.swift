@@ -25,6 +25,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
       return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
    }
 
+   /// Force quit from the app switcher. Because the app has the "audio"
+   /// background mode (so podcasts keep playing with the screen locked or in
+   /// another app), it's still running when the user swipes it away; stop the
+   /// playback explicitly and save the position instead of relying on the
+   /// process dying.
+   func applicationWillTerminate(_ application: UIApplication) {
+      PlayerManager.shared.stopForTermination()
+   }
+
    func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
       // Called when the user discards a scene session.
       // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.

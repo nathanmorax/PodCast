@@ -21,6 +21,11 @@ extension AnyTransition {
         .move(edge: .leading).combined(with: .opacity)
     }
 
+    /// The mini player's own row in Search: rises from the field.
+    static var barPlayerRow: AnyTransition {
+        .move(edge: .bottom).combined(with: .opacity)
+    }
+
     /// Small buttons that appear next to the search field (⌄, ✕).
     static var barAccessory: AnyTransition {
         .scale.combined(with: .opacity)

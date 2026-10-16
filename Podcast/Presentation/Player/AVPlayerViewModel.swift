@@ -83,6 +83,13 @@ class AVPlayerViewModel {
         player.play(url: url)
     }
 
+    /// Stops for good: pauses and gives the audio session back to the system
+    /// (other apps' audio can resume).
+    func stop() {
+        player.pause()
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    }
+
     func togglePlayPause() {
         guard currentURL != nil else { return }
         isPlaying ? player.pause() : player.resume()

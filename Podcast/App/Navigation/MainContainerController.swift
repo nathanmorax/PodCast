@@ -426,8 +426,9 @@ extension MainContainerController: UINavigationControllerDelegate {
         }
     }
 
-    /// Screens opened from Search (a category, a podcast) show no bottom bar:
-    /// there, the search field has nothing to search and Search has no tabs.
+    /// Screens opened from Search (a category, a podcast) drop the search
+    /// field: there it has nothing to search, and Search has no tabs. The bar
+    /// keeps only the mini player, when something is playing (BottomBarLayout).
     private func updateBottomBarVisibility(showing viewController: UIViewController?,
                                            in stack: UINavigationController) {
         let isSearchDetail = stack === searchStack && viewController !== searchController

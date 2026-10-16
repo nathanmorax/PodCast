@@ -9,8 +9,12 @@ import SwiftUI
 /// - Inicio / Biblioteca: the mini player and, next to it, a search circle.
 ///   (Nothing playing: just the search field.) Tabs change by swiping the
 ///   screen sideways (MainContainerController), so they aren't listed here.
-/// - Search: only the search field, plus a button to close Search (or ✕ to
-///   cancel while typing). Swiping down on the field closes Search too.
+/// - Search: the search field, plus a button to close Search (or ✕ to
+///   cancel while typing). If something is playing, the mini player sits in
+///   its own row above the field (hidden while typing). Swiping down on the
+///   field closes Search too.
+/// - Screens opened from Search (a genre, a podcast): only the mini player,
+///   if something is playing. See `BottomBarLayout`.
 /// - Scrolling down a list makes the row a little smaller.
 /// - Swiping up on the search circle/field opens Search (no slide: the
 ///   keyboard coming up is the only motion).
@@ -26,21 +30,31 @@ struct BottomBar: View {
         static let rowHeight: CGFloat = 62
         static let compactHeight: CGFloat = 52
         static let spacing: CGFloat = 10
+        /// The mini player's own row in Search.
+        static let playerRowHeight: CGFloat = 56
     }
 
-    /// Height of the bar at rest (always one row). RootView reserves it so
-    /// lists end above it.
-    static func restingHeight(isPlaying: Bool) -> CGFloat {
-        Metrics.rowHeight
+    static func layout(navigator: AppNavigator, isPlaying: Bool) -> BottomBarLayout {
+        BottomBarLayout(
+            isPlaying: isPlaying,
+            inSearch: navigator.isShowingSearch || navigator.isSearching,
+            isTyping: navigator.isSearching,
+            isSearchDetail: navigator.hidesBottomBar
+        )
     }
 
-    private var inSearch: Bool {
-        navigator.isShowingSearch || navigator.isSearching
+    /// Height of the bar at rest. RootView reserves it so lists end above it.
+    static func restingHeight(_ layout: BottomBarLayout) -> CGFloat {
+        layout.height(row: Metrics.rowHeight, playerRow: Metrics.playerRowHeight, spacing: Metrics.spacing)
     }
 
-    private var showsMiniPlayer: Bool {
-        manager.currentEpisode != nil && !inSearch
+    private var layout: BottomBarLayout {
+        Self.layout(navigator: navigator, isPlaying: manager.currentEpisode != nil)
     }
+
+    private var inSearch: Bool { layout.inSearch }
+
+    private var showsMiniPlayer: Bool { layout.player == .inline }
 
     private var isCompact: Bool {
         navigator.isBarCompact && showsMiniPlayer
@@ -53,22 +67,20 @@ struct BottomBar: View {
     // The search element always sits at the same place in this structure, so
     // the field keeps its identity (and the keyboard) while the bar changes.
     var body: some View {
-        HStack(spacing: Metrics.spacing) {
-            if showsMiniPlayer, let episode = manager.currentEpisode {
-                MiniPlayerCapsule(episode: episode, showsSubtitle: !isCompact)
+        VStack(spacing: Metrics.spacing) {
+            if let episode = manager.currentEpisode,
+               layout.player == .above || layout.player == .alone {
+                MiniPlayerCapsule(episode: episode, showsSubtitle: true)
                     .matchedGeometryEffect(id: "player", in: namespace)
-                    .transition(.barLeadingItem)
+                    .frame(height: layout.player == .alone ? Metrics.rowHeight : Metrics.playerRowHeight)
+                    .transition(.barPlayerRow)
             }
 
-            searchElement
-                .matchedGeometryEffect(id: "search", in: namespace)
-
-            if inSearch {
-                trailingSearchButton
-                    .transition(.barAccessory)
+            if layout.showsSearchRow {
+                mainRow
             }
         }
-        .frame(height: height)
+        .animation(AppAnimation.bar, value: layout)
         .animation(AppAnimation.bar, value: isCompact)
         .animation(AppAnimation.bar, value: inSearch)
         .animation(AppAnimation.bar, value: navigator.isSearching)
@@ -85,6 +97,25 @@ struct BottomBar: View {
         .accessibilityElement(children: .contain)
         .accessibilityAction(named: Text("Next tab")) { navigator.swipeTab(towardNext: true) }
         .accessibilityAction(named: Text("Previous tab")) { navigator.swipeTab(towardNext: false) }
+    }
+
+    private var mainRow: some View {
+        HStack(spacing: Metrics.spacing) {
+            if showsMiniPlayer, let episode = manager.currentEpisode {
+                MiniPlayerCapsule(episode: episode, showsSubtitle: !isCompact)
+                    .matchedGeometryEffect(id: "player", in: namespace)
+                    .transition(.barLeadingItem)
+            }
+
+            searchElement
+                .matchedGeometryEffect(id: "search", in: namespace)
+
+            if inSearch {
+                trailingSearchButton
+                    .transition(.barAccessory)
+            }
+        }
+        .frame(height: height)
     }
 
     // MARK: - Search
