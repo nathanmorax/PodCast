@@ -16,6 +16,9 @@ struct PlayerView: View {
     @State private var mode: PlayerMode = .normal
     @State private var showControls: Bool = true
     @State private var hideControlsTask: Task<Void, Never>?
+    /// The listener asked for the transcript while it was still being generated:
+    /// open it by itself as soon as it's ready. No intermediate screen.
+    @State private var wantsTranscript = false
     
     @Environment(\.playerManager) private var playerManager
     
@@ -54,6 +57,12 @@ struct PlayerView: View {
         .onChange(of: episode.streamUrl) { _, _ in
             // @State ignores new init values, so rebuild the VM when the episode changes.
             actionViewModel = EpisodeActionViewModel(episode: episode)
+            wantsTranscript = false
+        }
+        .onChange(of: transcript.segments.isEmpty) { _, isEmpty in
+            guard !isEmpty, wantsTranscript, mode == .normal else { return }
+            wantsTranscript = false
+            mode = .transcript
         }
     }
     
@@ -107,56 +116,6 @@ struct PlayerView: View {
             .animation(.spring(response: 0.45, dampingFraction: 0.75), value: viewModel.isPlaying)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .accessibilityHidden(true) // decorative: title and author are read below
-    }
-    
-    // MARK: - Transcript states
-    
-    /// Shown while the transcript is being generated: grey placeholder lines that
-    /// gently pulse, shaped like the text that's coming. No spinner, no
-    /// "Descargando audio…" status: that's plumbing the listener doesn't care about.
-    private var transcriptPlaceholder: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            // Constant, never-changing rows, so a static range is fine here.
-            ForEach(0..<9, id: \.self) { row in
-                Text(Self.placeholderLines[row % Self.placeholderLines.count])
-                    .font(.system(size: 19))
-                    .lineSpacing(4)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-        }
-        .redacted(reason: .placeholder)
-        .foregroundStyle(.black.opacity(0.12))
-        .phaseAnimator([1.0, 0.45]) { content, opacity in
-            content.opacity(opacity)
-        } animation: { _ in
-            .easeInOut(duration: 1.1)
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Cargando transcripción")
-    }
-    
-    private static let placeholderLines = [
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do",
-        "Ut enim ad minim veniam, quis nostrud",
-        "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum",
-        "Excepteur sint occaecat cupidatat non proident",
-    ]
-    
-    /// One quiet line and a retry link, instead of red text in a box.
-    private func errorView(_ error: String) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("No se pudo generar la transcripción.")
-                .font(.system(size: 17, weight: .medium))
-                .foregroundStyle(.black)
-            
-            Button("Intentar de nuevo") {
-                Task { await runTranscription() }
-            }
-            .font(.system(size: 15, weight: .medium))
-            .foregroundStyle(.gray)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityHint(error)
     }
     
     private var currentSegmentView: some View {
@@ -237,19 +196,8 @@ struct PlayerView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     closeButton
                     
-                    // Opening the transcript always starts generating it, so "no
-                    // segments yet" means "loading" (also covers the frame before
-                    // isLoading flips to true, which used to flash an empty state).
-                    if let error = transcript.error {
-                        errorView(error)
-                            .padding(.top, 24)
-                    } else if transcript.segments.isEmpty {
-                        transcriptPlaceholder
-                            .transition(.opacity)
-                    } else {
-                        ForEach(transcript.segments) { segment in
-                            segmentRow(segment, proxy: proxy)
-                        }
+                    ForEach(transcript.segments) { segment in
+                        segmentRow(segment, proxy: proxy)
                     }
                 }
                 .padding(.horizontal, 24)
@@ -493,20 +441,28 @@ struct PlayerView: View {
         Button {
             toggleTranscript()
         } label: {
-            Group {
-                if transcript.isLoading {
-                    ProgressView()
-                        .controlSize(.small)
-                        .tint(.black)
-                } else {
-                    Image(systemName: transcript.segments.isEmpty ? "captions.bubble" : "captions.bubble.fill")
-                        .font(.system(size: 20, weight: .regular))
-                }
-            }
-            .foregroundStyle(.black)
-            .frame(width: 28, height: 28)
+            // The only loading feedback: the icon itself breathes while the
+            // transcript is generated. The player stays exactly as it is.
+            Image(systemName: transcriptIcon)
+                .font(.system(size: 20, weight: .regular))
+                .symbolEffect(.pulse, options: .repeating, isActive: transcript.isLoading)
+                .contentTransition(.symbolEffect(.replace))
+                .foregroundStyle(.black)
+                .frame(width: 44, height: 44)
         }
-        .accessibilityLabel(mode == .transcript ? "Cerrar transcripción" : "Transcripción")
+        .accessibilityLabel(transcriptAccessibilityLabel)
+    }
+    
+    private var transcriptIcon: String {
+        if transcript.error != nil { return "exclamationmark.bubble" }
+        return transcript.segments.isEmpty ? "captions.bubble" : "captions.bubble.fill"
+    }
+    
+    private var transcriptAccessibilityLabel: String {
+        if mode == .transcript { return "Cerrar transcripción" }
+        if transcript.isLoading { return "Preparando transcripción" }
+        if transcript.error != nil { return "Reintentar transcripción" }
+        return "Transcripción"
     }
     
     /// Opens the transcript screen (closes it if it's already open).
@@ -516,8 +472,14 @@ struct PlayerView: View {
             mode = .normal
             return
         }
-        mode = .transcript
-        if transcript.segments.isEmpty && !transcript.isLoading {
+        // Ready (cached or already generated): open it right away.
+        guard transcript.segments.isEmpty else {
+            mode = .transcript
+            return
+        }
+        // Not ready: stay on the player; it opens by itself when done.
+        wantsTranscript = true
+        if !transcript.isLoading {
             Task { await runTranscription() }
         }
     }
