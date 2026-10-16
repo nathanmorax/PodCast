@@ -5,10 +5,6 @@
 //  Created by Jonathan Mora on 20/03/26.
 //
 
-protocol GenresRepository {
-    func fetchGenresPodcast(completion: @escaping (Result<[Genre], Error>) -> Void)
-}
-
 final class GenresRepositoryImpl: GenresRepository {
     
     private let remoteDataSource: PodcastRemoteDataSource

@@ -35,7 +35,7 @@ struct EpisodeContextMenuButton: UIViewRepresentable {
             self.viewModel = viewModel
         }
 
-        func makeMenu() -> UIMenu {
+        @MainActor func makeMenu() -> UIMenu {
             let download = UIAction(
                 title: "Descargar",
                 image: UIImage(systemName: "arrow.down.circle")
