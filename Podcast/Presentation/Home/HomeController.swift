@@ -7,12 +7,16 @@ import UIKit
 import SwiftUI
 
 /// Root of the "Inicio" tab. Hosts HomeView and pushes the screens it opens.
-/// Its navigation bar is hidden (MainContainerController): the title is
-/// drawn by HomeView.
+/// The title is the native large title, like Biblioteca and Buscar.
 final class HomeController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        title = String(localized: "Home")
+        navigationItem.largeTitleDisplayMode = .always
+        // Same gray as the content, so the large title area doesn't show a
+        // white band above it.
+        view.backgroundColor = AppColor.screenBackground.uiColor
         setupHosting()
     }
 

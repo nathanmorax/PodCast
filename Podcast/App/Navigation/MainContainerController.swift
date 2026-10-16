@@ -33,8 +33,6 @@ final class MainContainerController: UIViewController, NavigationContainer {
         }
         self.stacks = stacks
         self.searchStack = Self.makeStack(root: searchController)
-        // "Buscar" as a big title on the left, like Inicio.
-        searchStack.navigationBar.prefersLargeTitles = true
         super.init(nibName: nil, bundle: nil)
         stacks.values.forEach { $0.delegate = self }
         searchStack.delegate = self
@@ -47,6 +45,9 @@ final class MainContainerController: UIViewController, NavigationContainer {
     private static func makeStack(root: UIViewController) -> UINavigationController {
         let navigation = UINavigationController(rootViewController: root)
         navigation.navigationBar.tintColor = .label
+        // Every root (Inicio, Biblioteca, Buscar) uses the native large title,
+        // so all three headers sit at exactly the same height.
+        navigation.navigationBar.prefersLargeTitles = true
         return navigation
     }
 
@@ -66,6 +67,9 @@ final class MainContainerController: UIViewController, NavigationContainer {
         view.backgroundColor = .systemBackground
         view.addGestureRecognizer(tabPan)
         view.addGestureRecognizer(searchPan)
+        // Build Search's screen now (off screen), so opening it the first time
+        // doesn't create its views, categories and SwiftUI hosting on the spot.
+        searchController.loadViewIfNeeded()
         show(navigator.selectedTab)
     }
 
@@ -75,11 +79,13 @@ final class MainContainerController: UIViewController, NavigationContainer {
         display(next, transition: current === searchStack ? .slideDown : .none)
     }
 
-    /// Shows Search's stack, rising from the bottom (where the field is); the
-    /// keyboard comes up once it's on screen.
+    /// Shows Search's stack right away (no slide): the keyboard coming up is
+    /// the only motion, so nothing competes with it. A slide-up used to run at
+    /// the same time as the keyboard and the bar changing shape, and it
+    /// stuttered.
     func showSearch() {
         searchController.focusesSearchOnAppear = true
-        display(searchStack, transition: .slideUp)
+        display(searchStack)
     }
 
     /// Search is already on screen: focus its field. Inside a podcast opened
@@ -96,8 +102,6 @@ final class MainContainerController: UIViewController, NavigationContainer {
 
     private enum StackTransition {
         case none
-        /// The new stack rises from the bottom over the old one.
-        case slideUp
         /// The old stack drops away, revealing the new one under it.
         case slideDown
     }
@@ -112,15 +116,6 @@ final class MainContainerController: UIViewController, NavigationContainer {
             if let previous { remove(previous) }
             embed(next, frame: bounds)
             didBecomeCurrent(next)
-
-        case .slideUp:
-            embed(next, frame: bounds.offsetBy(dx: 0, dy: bounds.height))
-            didBecomeCurrent(next)
-            animateStacks {
-                next.view.frame = bounds
-            } completion: {
-                self.removeIfHidden(previous)
-            }
 
         case .slideDown:
             embed(next, frame: bounds)
@@ -164,6 +159,7 @@ final class MainContainerController: UIViewController, NavigationContainer {
 
     private func didBecomeCurrent(_ stack: UINavigationController) {
         current = stack
+        updateBottomBarVisibility(showing: stack.topViewController, in: stack)
         if let top = stack.topViewController {
             scrollTracker.track(top)
         }
@@ -410,23 +406,33 @@ extension MainContainerController: UINavigationControllerDelegate {
     func navigationController(_ navigationController: UINavigationController,
                               willShow viewController: UIViewController,
                               animated: Bool) {
-        // Home draws its own big title, so its root hides the navigation bar.
-        navigationController.setNavigationBarHidden(viewController is HomeController, animated: animated)
+        // Big title only on each stack's first screen (Inicio, Biblioteca,
+        // Buscar); screens opened from them (a podcast, a category) keep the
+        // normal bar with the title centered.
+        let isRoot = viewController === navigationController.viewControllers.first
+        viewController.navigationItem.largeTitleDisplayMode = isRoot ? .always : .never
 
-        // In Search's stack only "Buscar" uses the big title; screens opened
-        // from it (a podcast) keep their normal bar.
-        if navigationController === searchStack {
-            viewController.navigationItem.largeTitleDisplayMode =
-                viewController is PodcastSearchContainerController ? .always : .never
+        if navigationController === current {
+            updateBottomBarVisibility(showing: viewController, in: navigationController)
         }
 
-        // A back swipe that gets cancelled must restore the bar of the screen
-        // that stays.
+        // A back swipe that gets cancelled leaves the screen that was on top:
+        // put its bottom bar state back.
         if let coordinator = navigationController.transitionCoordinator, coordinator.isInteractive {
-            coordinator.notifyWhenInteractionChanges { context in
+            coordinator.notifyWhenInteractionChanges { [weak self] context in
                 guard context.isCancelled, let from = context.viewController(forKey: .from) else { return }
-                navigationController.setNavigationBarHidden(from is HomeController, animated: true)
+                self?.updateBottomBarVisibility(showing: from, in: navigationController)
             }
+        }
+    }
+
+    /// Screens opened from Search (a category, a podcast) show no bottom bar:
+    /// there, the search field has nothing to search and Search has no tabs.
+    private func updateBottomBarVisibility(showing viewController: UIViewController?,
+                                           in stack: UINavigationController) {
+        let isSearchDetail = stack === searchStack && viewController !== searchController
+        if navigator.hidesBottomBar != isSearchDetail {
+            navigator.hidesBottomBar = isSearchDetail
         }
     }
 

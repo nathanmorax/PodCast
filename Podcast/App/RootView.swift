@@ -25,9 +25,9 @@ struct RootView: View {
         return bar + 8 + 12
     }
     
-    /// Hidden only while the full player is open.
+    /// Hidden while the full player is open and on screens opened from Search.
     private var showsBottomBar: Bool {
-        manager.presentation != .expanded
+        manager.presentation != .expanded && !navigator.hidesBottomBar
     }
     
     var body: some View {

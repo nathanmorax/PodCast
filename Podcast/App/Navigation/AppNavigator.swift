@@ -30,6 +30,10 @@ final class AppNavigator {
     /// root, so there's no back arrow); choosing a tab leaves it.
     private(set) var isShowingSearch = false
 
+    /// True on screens opened from Search (a category, a podcast): no bottom
+    /// bar there. Set by MainContainerController as screens are shown.
+    var hidesBottomBar = false
+
     /// Scrolling down folds the bar into one row; scrolling up (or reaching the
     /// top) brings it back. Driven by BottomBarScrollTracker.
     var isBarCompact = false
@@ -46,7 +50,11 @@ final class AppNavigator {
     func select(_ tab: AppTab) {
         isBarCompact = false
         if !isShowingSearch, tab == selectedTab {
-            currentNavigationController?.popToRootViewController(animated: true)
+            if let stack = currentNavigationController {
+                // Animate only what's on screen; off screen the pop happens
+                // right away (an animated pop off screen is deferred).
+                stack.popToRootViewController(animated: stack.viewIfLoaded?.window != nil)
+            }
             return
         }
         isShowingSearch = false

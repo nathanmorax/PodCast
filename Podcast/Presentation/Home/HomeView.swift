@@ -64,18 +64,14 @@ struct HomeView: View {
 
     // MARK: - Header
 
+    /// The title "Inicio" is the navigation bar's large title (same height as
+    /// Biblioteca and Buscar); under it, today's date.
     private var header: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(Date.now, format: .dateTime.weekday(.wide).day().month(.wide))
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.black.opacity(0.45))
-                .textCase(.uppercase)
-            Text("Home")
-                .font(.system(size: 34, weight: .bold))
-                .foregroundStyle(.black)
-                .accessibilityAddTraits(.isHeader)
-        }
-        .padding(.horizontal, 20)
+        Text(Date.now, format: .dateTime.weekday(.wide).day().month(.wide))
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(.black.opacity(0.45))
+            .textCase(.uppercase)
+            .padding(.horizontal, 20)
     }
 
     private func section<Content: View>(_ title: LocalizedStringKey, @ViewBuilder content: () -> Content) -> some View {

@@ -12,7 +12,8 @@ import SwiftUI
 /// - Search: only the search field, plus a button to close Search (or ✕ to
 ///   cancel while typing). Swiping down on the field closes Search too.
 /// - Scrolling down a list makes the row a little smaller.
-/// - Swiping up on the search circle/field opens Search, rising from below.
+/// - Swiping up on the search circle/field opens Search (no slide: the
+///   keyboard coming up is the only motion).
 struct BottomBar: View {
 
     @Environment(\.playerManager) private var manager

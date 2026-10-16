@@ -13,6 +13,10 @@ private enum KeysFavoriteEpisode {
     static let favorites = "favorite_episodes"
 }
 
+/// The episodes the listener saved. UI state, like the other managers:
+/// the whole class lives on the main actor (before, only `shared` did, so
+/// `episodes` could be touched from anywhere).
+@MainActor
 @Observable
 final class BookMarkEpisodeManager {
     
@@ -20,7 +24,7 @@ final class BookMarkEpisodeManager {
     
     private(set) var episodes: [Episode] = []
     
-    private let userDefaults: UserDefaults
+    @ObservationIgnored private let userDefaults: UserDefaults
     
     init(userDefaults: UserDefaults = .standard) {
         self.userDefaults = userDefaults

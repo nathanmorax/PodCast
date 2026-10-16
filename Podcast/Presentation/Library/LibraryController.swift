@@ -17,6 +17,11 @@ final class LibraryController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        title = String(localized: "Library")
+        navigationItem.largeTitleDisplayMode = .always
+        // Same gray as the content, so the large title area doesn't show a
+        // white band above it.
+        view.backgroundColor = AppColor.screenBackground.uiColor
         setupHosting()
         listenNavigationEvents()
     }
@@ -51,7 +56,7 @@ final class LibraryController: UIViewController {
             
             for await destination in self.actions.events {
                 guard !Task.isCancelled else { return }
-                await self.navigate(to: destination)
+                 self.navigate(to: destination)
             }
         }
         

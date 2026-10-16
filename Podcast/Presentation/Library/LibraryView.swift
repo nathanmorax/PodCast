@@ -26,23 +26,22 @@ struct LibraryView: View {
     ]
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
+        // No NavigationStack here: this view already lives in a UIKit
+        // navigation stack (with the large title "Biblioteca"). A second one
+        // added an empty bar on top and pushed the content down.
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
 
-                    menuSection
-                        .padding(.top, 8)
+                menuSection
+                    .padding(.top, 8)
 
-                    recentUpdatesSection
-                        .padding(.top, 28)
-                }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 24) // the bottom bar's space comes from the safe area
+                recentUpdatesSection
+                    .padding(.top, 28)
             }
-            .background(AppColor.screenBackground.ignoresSafeArea())
-
-            .toolbarBackground(AppColor.background, for: .navigationBar)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 24) // the bottom bar's space comes from the safe area
         }
+        .background(AppColor.screenBackground.ignoresSafeArea())
         // NOT .preferredColorScheme(.dark): that one is a preference for the whole
         // window, so visiting this tab flipped the entire app to dark mode.
         // .environment(\.colorScheme) only affects this view's subtree.
