@@ -1,0 +1,21 @@
+//
+//  GenresRepositoryImpl.swift
+//  Podcast
+//
+//  Created by Jonathan Mora on 20/03/26.
+//
+
+final class GenresRepositoryImpl: GenresRepository {
+    
+    private let remoteDataSource: PodcastRemoteDataSource
+    
+    
+    init(remoteDataSource: PodcastRemoteDataSource) {
+        self.remoteDataSource = remoteDataSource
+    }
+    
+    
+    func fetchGenresPodcast(completion: @escaping (Result<[Genre], any Error>) -> Void) {
+        remoteDataSource.fetchGenresPodcast(completion: completion)
+    }
+}
