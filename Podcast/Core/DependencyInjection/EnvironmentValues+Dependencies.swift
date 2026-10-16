@@ -22,4 +22,5 @@ extension EnvironmentValues {
     /// is safe here (and traps loudly if that assumption is ever broken).
     @Entry var playerManager: PlayerManager = MainActor.assumeIsolated { PlayerManager.shared }
     @Entry var downloadManager: DownloadManager = MainActor.assumeIsolated { DownloadManager.shared }
+    @Entry var recentlyPlayed: RecentlyPlayedManager = MainActor.assumeIsolated { RecentlyPlayedManager.shared }
 }

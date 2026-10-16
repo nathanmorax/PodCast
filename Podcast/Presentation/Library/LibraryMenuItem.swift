@@ -16,19 +16,13 @@ struct LibraryMenuItem: Identifiable {
     let destination: LibraryDestination
 }
 
-struct RecentPodcastUpdate: Identifiable {
-    let id: Int
-    let title: String
-    let artworkURL: String?
-    let timeAgo: String
-    let newEpisodes: Int
-}
-
 // MARK: - LibraryView
 
 struct LibraryView: View {
     
     let actions: LibraryActions
+    @Environment(\.recentlyPlayed) private var recentlyPlayed
+    @Environment(\.playerManager) private var playerManager
 
     private let menuItems: [LibraryMenuItem] = [
 //        .init(title: "Programas",        systemImage: "square.stack", libraryDestination: .),
@@ -37,15 +31,6 @@ struct LibraryView: View {
         .init(title: "Guardados",        systemImage: "bookmark", destination: .guardados),
         .init(title: "Descargas",        systemImage: "arrow.down.circle", destination: .descargas),
         .init(title: "Episodios más recientes", systemImage: "clock", destination: .podcast(id: 0))
-    ]
-
-    private let recentUpdates: [RecentPodcastUpdate] = [
-        .init(id: 1, title: "The Daily", artworkURL: nil, timeAgo: "Hace 10 h", newEpisodes: 1),
-        .init(id: 2, title: "The Journal.", artworkURL: nil, timeAgo: "Ayer", newEpisodes: 1),
-        .init(id: 3, title: "Up First from NPR", artworkURL: nil, timeAgo: "Ayer", newEpisodes: 1),
-        .init(id: 4, title: "The Indicator from Planet Money", artworkURL: nil, timeAgo: "Ayer", newEpisodes: 1),
-        .init(id: 5, title: "The Economics of Everyday Things", artworkURL: nil, timeAgo: "Ayer", newEpisodes: 1),
-        .init(id: 6, title: "The Daily Stoic", artworkURL: nil, timeAgo: "Ayer", newEpisodes: 1)
     ]
 
     private let columns = [
@@ -97,21 +82,34 @@ struct LibraryView: View {
 
     // MARK: - Actualizaciones recientes
 
+    /// The episodes the listener played, most recent first (RecentlyPlayedManager).
     private var recentUpdatesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Actualizaciones recientes")
                 .font(.system(size: 22, weight: .bold))
                 .foregroundStyle(.black)
 
-            LazyVGrid(columns: columns, spacing: 20) {
-                ForEach(recentUpdates) { podcast in
-                    Button {
-                        // navegar al podcast
-                    } label: {
-                        RecentUpdateCard(podcast: podcast)
+            if recentlyPlayed.items.isEmpty {
+                Text("Lo que escuches aparecerá aquí.")
+                    .font(.system(size: 15))
+                    .foregroundStyle(.black.opacity(0.5))
+            } else {
+                LazyVGrid(columns: columns, spacing: 20) {
+                    ForEach(recentlyPlayed.items) { item in
+                        Button {
+                            playerManager.play(item.episode)
+                        } label: {
+                            RecentUpdateCard(item: item)
+                        }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            Button("Quitar de recientes", systemImage: "minus.circle", role: .destructive) {
+                                withAnimation { recentlyPlayed.remove(item) }
+                            }
+                        }
                     }
-                    .buttonStyle(.plain)
                 }
+                .animation(.spring(response: 0.4, dampingFraction: 0.85), value: recentlyPlayed.items.map(\.id))
             }
         }
     }
@@ -147,26 +145,60 @@ struct LibraryMenuRow: View {
 // MARK: - Recent Update Card
 
 struct RecentUpdateCard: View {
-    let podcast: RecentPodcastUpdate
+    let item: RecentlyPlayed
+    @Environment(\.playerManager) private var playerManager
+
+    private var isCurrent: Bool {
+        playerManager.currentEpisode?.streamUrl == item.id
+    }
+
+    /// Live progress for the episode that's playing, saved progress for the rest.
+    private var progress: Double {
+        isCurrent ? Double(playerManager.viewModel.progress) : item.progress
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            PodcastImage(source: podcast.artworkURL)
-                .frame(maxWidth: .infinity)
-                .aspectRatio(1, contentMode: .fill)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+            // Clear square + overlay: the cover always fills the same square
+            // (before, `.aspectRatio(.fill)` after `.frame` could overflow).
+            Color.clear
+                .aspectRatio(1, contentMode: .fit)
+                .overlay { PodcastImage(source: item.episode.imageUrl) }
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .overlay(alignment: .bottomLeading) {
+                    if isCurrent {
+                        Label("Sonando", systemImage: "waveform")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(.black)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Capsule().fill(AppColor.lavender))
+                            .padding(8)
+                    }
+                }
 
-            Text(podcast.title)
+            Text(item.episode.title)
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(.black) // was .white on a light background: unreadable
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
 
-            Text("\(podcast.timeAgo) · \(podcast.newEpisodes) nuevo")
-                .font(.system(size: 12))
-                .foregroundStyle(.gray)
-                .lineLimit(1)
+            HStack(spacing: 4) {
+                Text(item.lastPlayedAt, format: .relative(presentation: .named))
+                Text("·")
+                Text(item.episode.author)
+            }
+            .font(.system(size: 12))
+            .foregroundStyle(.black.opacity(0.5))
+            .lineLimit(1)
+
+            if progress > 0.01 {
+                ProgressView(value: min(progress, 1))
+                    .tint(AppColor.lavender)
+                    .accessibilityLabel(progress >= 0.98 ? "Terminado" : "Escuchado \(Int(progress * 100)) por ciento")
+            }
         }
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -179,9 +211,11 @@ private extension Color {
 
 // MARK: - Preview
 
-//#Preview {
-//    LibraryView()
-//}
+#Preview {
+    LibraryView(actions: LibraryActions())
+        .environment(\.recentlyPlayed, .preview)
+        .environment(\.playerManager, .preview)
+}
 
 
 enum LibraryDestination {

@@ -38,9 +38,19 @@ struct PlayerView: View {
         _actionViewModel = State(initialValue: EpisodeActionViewModel(episode: episode))
     }
     
+    // MARK: - Style (soft white, near-black ink, lavender accent)
+    
+    private static let paper = Color(red: 0.965, green: 0.965, blue: 0.957)
+    private static let ink = Color(red: 0.07, green: 0.07, blue: 0.08)
+    private static let accent = AppColor.lavender
+    
+    private func rounded(_ size: CGFloat, _ weight: Font.Weight = .medium) -> Font {
+        .system(size: size, weight: weight, design: .rounded)
+    }
+    
     var body: some View {
         ZStack {
-            Color.white
+            Self.paper
                 .ignoresSafeArea()
             
             if mode == .normal {
@@ -72,18 +82,19 @@ struct PlayerView: View {
         VStack(spacing: 0) {
             topBar
             // The artwork is the only flexible element: it takes whatever height
-            // is left after the text and controls, so nothing gets pushed off
-            // screen on small iPhones and it grows on Pro Max / iPad.
+            // is left, so nothing gets pushed off screen on small iPhones.
             artwork
-                .padding(.vertical, 20)
-            episodeInfo
-            progressSection
-                .padding(.top, 24)
+                .padding(.top, 8)
+                .padding(.bottom, 26)
+            progressBar
             controlsSection
-                .padding(.top, 28)
-                .padding(.bottom, 32)
+                .padding(.top, 26)
+            lineWheel
+                .padding(.top, 22)
+            secondaryActions
+                .padding(.bottom, 24)
         }
-        .padding(.horizontal, 24)
+        .padding(.horizontal, 28)
     }
     
     // MARK: - Artwork
@@ -93,10 +104,8 @@ struct PlayerView: View {
     }
     
     private var artwork: some View {
-        // A clear square defines the box; the image fills it via overlay.
-        // With `.fill` alone the image would size itself from its own pixels and
-        // overflow; this way any aspect ratio (square, 16:9…) is center-cropped
-        // to the same square.
+        // A clear square defines the box; the image fills it via overlay, so any
+        // aspect ratio is center-cropped to the same square.
         Color.clear
             .aspectRatio(1, contentMode: .fit)
             .overlay {
@@ -106,39 +115,94 @@ struct PlayerView: View {
                 if !hasArtwork {
                     Image(systemName: "waveform")
                         .font(.system(size: 48, weight: .light))
-                        .foregroundStyle(.gray.opacity(0.5))
+                        .foregroundStyle(Self.ink.opacity(0.25))
                 }
             }
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .shadow(color: .black.opacity(0.18), radius: 24, x: 0, y: 12)
-            // Apple Music–style feedback: the cover "breathes" in when playing.
-            .scaleEffect(viewModel.isPlaying ? 1 : 0.88)
+            .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .shadow(color: .black.opacity(0.10), radius: 20, x: 0, y: 10)
+            .scaleEffect(viewModel.isPlaying ? 1 : 0.92)
             .animation(.spring(response: 0.45, dampingFraction: 0.75), value: viewModel.isPlaying)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .accessibilityHidden(true) // decorative: title and author are read below
+            .frame(maxWidth: 320, maxHeight: .infinity)
+            .frame(maxWidth: .infinity)
+            .accessibilityHidden(true)
     }
     
-    private var currentSegmentView: some View {
-        Button {
-            mode = .transcript
+    // MARK: - Line wheel
+    
+    private struct WheelLines {
+        let id: String
+        let previous: String?
+        let current: String
+        let next: String?
+    }
+    
+    /// With a transcript: the sentence before, the one being said, and the next.
+    /// Without one: the episode title and, below, who's talking (the show).
+    private var wheelLines: WheelLines {
+        let segments = transcript.segments
+        if let index = transcript.currentIndex, segments.indices.contains(index) {
+            return WheelLines(
+                id: "\(index)",
+                previous: index > 0 ? segments[index - 1].text : nil,
+                current: segments[index].text,
+                next: index + 1 < segments.count ? segments[index + 1].text : nil
+            )
+        }
+        return WheelLines(id: episode.streamUrl, previous: nil, current: episode.title, next: episode.author)
+    }
+    
+    /// Lines rolling like a picker wheel: the past one tilts back and fades,
+    /// the current one is bold, the next one waits in grey.
+    private var lineWheel: some View {
+        let lines = wheelLines
+        return Button {
+            toggleTranscript()
         } label: {
             VStack(spacing: 6) {
-                if let current = transcript.currentSegment {
-                    Text(current.text)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(.black)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.center)
-                }
-                Image(systemName: "chevron.up")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.gray.opacity(0.5))
+                Text(lines.previous ?? " ")
+                    .font(rounded(18))
+                    .foregroundStyle(Self.ink.opacity(0.16))
+                    .lineLimit(1)
+                    .rotation3DEffect(.degrees(42), axis: (x: 1, y: 0, z: 0), anchor: .bottom, perspective: 0.45)
+                
+                Text(lines.current)
+                    .font(rounded(23, .semibold))
+                    .foregroundStyle(Self.ink)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.85)
+                
+                Text(lines.next ?? " ")
+                    .font(rounded(19))
+                    .foregroundStyle(Self.ink.opacity(0.38))
+                    .lineLimit(1)
+                    .rotation3DEffect(.degrees(-24), axis: (x: 1, y: 0, z: 0), anchor: .top, perspective: 0.45)
             }
-            .padding(.vertical, 12)
+            .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity)
+            .id(lines.id)
+            .transition(.asymmetric(
+                insertion: .move(edge: .bottom).combined(with: .opacity),
+                removal: .move(edge: .top).combined(with: .opacity)
+            ))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .frame(height: 132)
+        .clipped()
+        .animation(.spring(response: 0.5, dampingFraction: 0.9), value: lines.id)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(lines.current)
+        .accessibilityHint("Abre la transcripción")
+    }
+    
+    /// Bookmark and transcript: small and quiet, out of the main row.
+    private var secondaryActions: some View {
+        HStack {
+            bookmarkButton
+            Spacer()
+            transcriptButton
+        }
+        .foregroundStyle(Self.ink.opacity(0.55))
     }
     
     // MARK: - Transcription
@@ -291,35 +355,27 @@ struct PlayerView: View {
     // MARK: - Top Bar
     
     private var topBar: some View {
-        HStack {
-            Text(episode.pubDate.formattedDate())
-                .font(.system(size: 13, weight: .regular))
-                .foregroundStyle(.gray)
-            Spacer()
-        }
-        .padding(.top, 60)
-    }
-    
-    // MARK: - Episode Info
-    
-    private var episodeInfo: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(episode.author)
-                .font(.system(size: 13, weight: .regular))
-                .foregroundStyle(.gray)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        HStack(alignment: .center) {
+            Button {
+                playerManager.collapse()
+            } label: {
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 17, weight: .semibold))
+                    .frame(width: 44, height: 44, alignment: .leading)
+            }
+            .accessibilityLabel("Minimizar reproductor")
             
-            Text(episode.title)
-                .font(.system(size: 30, weight: .bold, design: .serif))
-                .foregroundStyle(.black)
-                .multilineTextAlignment(.leading)
-                .lineSpacing(2)
-                // Cap very long titles so they can't squeeze the artwork to nothing.
-                .lineLimit(3)
-                .minimumScaleFactor(0.8)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .fixedSize(horizontal: false, vertical: true)
+            Spacer()
+            
+            // Time left, big and calm in the corner.
+            Text(viewModel.remainingTimeText)
+                .font(rounded(20))
+                .monospacedDigit()
+                .contentTransition(.numericText(countsDown: true))
+                .accessibilityLabel("Tiempo restante \(viewModel.remainingTimeText)")
         }
+        .foregroundStyle(Self.ink)
+        .padding(.top, 52)
     }
     
     // MARK: - Progress
@@ -335,13 +391,14 @@ struct PlayerView: View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
                 Capsule()
-                    .fill(Color.black.opacity(0.08))
-                    .frame(height: 2)
+                    .fill(Self.ink.opacity(0.08))
                 
                 Capsule()
-                    .fill(Color.black)
-                    .frame(width: geo.size.width * CGFloat(viewModel.progress), height: 2)
+                    .fill(Self.accent)
+                    .frame(width: geo.size.width * CGFloat(viewModel.progress))
             }
+            .frame(height: 4)
+            .frame(maxHeight: .infinity)
             .contentShape(Rectangle())
             .gesture(
                 DragGesture(minimumDistance: 0)
@@ -353,37 +410,33 @@ struct PlayerView: View {
                     }
             )
         }
-        .frame(height: 2)
+        .frame(height: 24) // taller touch area than the 4pt line
+        .accessibilityElement()
+        .accessibilityLabel("Progreso")
+        .accessibilityValue("\(Int(viewModel.progress * 100)) por ciento")
     }
     
     private var progressLabels: some View {
         HStack {
             Text(viewModel.currentTimeText)
-                .font(.system(size: 11, weight: .regular))
-                .foregroundStyle(.gray)
-            
             Spacer()
-            
-            Text("-\(viewModel.durationText)")
-                .font(.system(size: 11, weight: .regular))
-                .foregroundStyle(.gray)
+            Text("-\(viewModel.remainingTimeText)")
         }
+        .font(rounded(12))
+        .monospacedDigit()
+        .foregroundStyle(Self.ink.opacity(0.5))
     }
     
     // MARK: - Controls
     
+    /// −15 · lavender play/pause · +15, nothing else in the main row.
     private var controlsSection: some View {
-        HStack(alignment: .center) {
-            bookmarkButton
-            Spacer()
+        HStack(spacing: 40) {
             seekBackwardButton
-            Spacer()
             playPauseButton
-            Spacer()
             seekForwardButton
-            Spacer()
-            transcriptButton
         }
+        .frame(maxWidth: .infinity)
     }
     
     private var bookmarkButton: some View {
@@ -391,13 +444,11 @@ struct PlayerView: View {
             actionViewModel.toggleBookmark()
         } label: {
             Image(systemName: actionViewModel.isBookmarked ? "bookmark.fill" : "bookmark")
-                .font(.system(size: 20, weight: .regular))
-                .foregroundStyle(.black)
-                .animation(
-                    .spring(response: 0.3, dampingFraction: 0.6),
-                    value: actionViewModel.isBookmarked
-                )
+                .font(.system(size: 19, weight: .regular))
+                .contentTransition(.symbolEffect(.replace))
+                .frame(width: 44, height: 44)
         }
+        .accessibilityLabel(actionViewModel.isBookmarked ? "Quitar de guardados" : "Guardar episodio")
     }
     
     private var seekBackwardButton: some View {
@@ -405,9 +456,11 @@ struct PlayerView: View {
             viewModel.seekBackward()
         } label: {
             Image(systemName: "gobackward.15")
-                .font(.system(size: 26, weight: .regular))
-                .foregroundStyle(.black)
+                .font(.system(size: 34, weight: .light))
+                .foregroundStyle(Self.ink)
+                .frame(width: 56, height: 56)
         }
+        .accessibilityLabel("Retroceder 15 segundos")
     }
     
     private var playPauseButton: some View {
@@ -416,15 +469,18 @@ struct PlayerView: View {
         } label: {
             ZStack {
                 Circle()
-                    .fill(Color.black)
-                    .frame(width: 66, height: 66)
+                    .fill(Self.accent)
+                    .frame(width: 88, height: 88)
                 
                 Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 22, weight: .medium))
-                    .foregroundStyle(.white)
-                    .offset(x: viewModel.isPlaying ? 0 : 2)
+                    .font(.system(size: 30, weight: .black))
+                    .foregroundStyle(Self.ink)
+                    .contentTransition(.symbolEffect(.replace))
+                    .offset(x: viewModel.isPlaying ? 0 : 3)
             }
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel(viewModel.isPlaying ? "Pausar" : "Reproducir")
     }
     
     private var seekForwardButton: some View {
@@ -432,9 +488,11 @@ struct PlayerView: View {
             viewModel.seekForward()
         } label: {
             Image(systemName: "goforward.15")
-                .font(.system(size: 26, weight: .regular))
-                .foregroundStyle(.black)
+                .font(.system(size: 34, weight: .light))
+                .foregroundStyle(Self.ink)
+                .frame(width: 56, height: 56)
         }
+        .accessibilityLabel("Adelantar 15 segundos")
     }
     
     private var transcriptButton: some View {
@@ -447,7 +505,6 @@ struct PlayerView: View {
                 .font(.system(size: 20, weight: .regular))
                 .symbolEffect(.pulse, options: .repeating, isActive: transcript.isLoading)
                 .contentTransition(.symbolEffect(.replace))
-                .foregroundStyle(.black)
                 .frame(width: 44, height: 44)
         }
         .accessibilityLabel(transcriptAccessibilityLabel)
@@ -498,13 +555,6 @@ struct PlayerView: View {
     }
     
     // MARK: - Helpers
-    
-    private var formattedDate: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM d"
-        formatter.locale = Locale(identifier: "en_US")
-        return formatter.string(from: Date())
-    }
     
     private var dismissGesture: some Gesture {
         DragGesture(minimumDistance: 30)
