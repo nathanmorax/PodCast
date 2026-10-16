@@ -15,8 +15,12 @@ struct RootView: View {
     
     private var navigator: AppNavigator { .shared }
     
-    /// Bar height + the gap under it + breathing room above it.
-    private static let reservedBottomSpace: CGFloat = BottomBar.height + 8 + 12
+    /// Resting bar height + the gap under it + breathing room above it.
+    /// Uses the resting size even while the bar is folded, so lists don't jump
+    /// as you scroll.
+    private var reservedBottomSpace: CGFloat {
+        BottomBar.restingHeight(isPlaying: manager.currentEpisode != nil) + 8 + 12
+    }
     
     /// Hidden while typing in Search and while the full player is open.
     private var showsBottomBar: Bool {
@@ -26,11 +30,11 @@ struct RootView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             
-            MainNavigationRepresentable(bottomInset: showsBottomBar ? Self.reservedBottomSpace : 0)
+            MainNavigationRepresentable(bottomInset: showsBottomBar ? reservedBottomSpace : 0)
                 .ignoresSafeArea(.container)
             
             if showsBottomBar {
-                BottomBar(onSearch: { navigator.showSearch() })
+                BottomBar(navigator: navigator)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 8)
                     .ignoresSafeArea(.keyboard)

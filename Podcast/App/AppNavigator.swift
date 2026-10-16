@@ -6,8 +6,33 @@
 import UIKit
 import Observation
 
-/// App-level navigation state shared between UIKit (the navigation stack) and
-/// SwiftUI (the bottom bar in RootView).
+/// The two tabs of the bottom bar. Search is not a tab: it's pushed on top of
+/// whichever tab you're in.
+enum AppTab: Int, CaseIterable, Identifiable {
+    case home
+    case library
+
+    var id: Int { rawValue }
+
+    var title: String {
+        switch self {
+        case .home:    "Inicio"
+        case .library: "Biblioteca"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .home:    "house"
+        case .library: "square.stack"
+        }
+    }
+
+    var selectedSystemImage: String { systemImage + ".fill" }
+}
+
+/// App-level navigation state shared between UIKit (the navigation stacks)
+/// and SwiftUI (the bottom bar in RootView).
 @MainActor
 @Observable
 final class AppNavigator {
@@ -17,13 +42,40 @@ final class AppNavigator {
     /// True while the search field has the keyboard: the bottom bar steps aside.
     var isSearching = false
 
-    @ObservationIgnored
-    weak var navigationController: UINavigationController?
+    private(set) var selectedTab: AppTab = .home
 
-    /// Opens Search on top of the Library (or just focuses the field if it's
-    /// already the visible screen).
+    /// Scrolling down folds the bar into one row; scrolling up (or reaching the
+    /// top) brings it back. Driven by BottomBarScrollTracker.
+    var isBarCompact = false
+
+    @ObservationIgnored
+    weak var container: MainContainerController?
+
+    /// The stack of the tab on screen.
+    var currentNavigationController: UINavigationController? {
+        container?.stack(for: selectedTab)
+    }
+
+    /// Tapping the tab you're already in goes back to its first screen.
+    func select(_ tab: AppTab) {
+        isBarCompact = false
+        guard tab != selectedTab else {
+            currentNavigationController?.popToRootViewController(animated: true)
+            return
+        }
+        selectedTab = tab
+        container?.show(tab)
+    }
+
+    func expandBar() {
+        isBarCompact = false
+    }
+
+    /// Opens Search on top of the current tab (or just focuses the field if
+    /// it's already the visible screen).
     func showSearch() {
-        guard let navigationController else { return }
+        guard let navigationController = currentNavigationController else { return }
+        isBarCompact = false
         if let search = navigationController.topViewController as? PodcastSearchContainerController {
             search.focusSearchField()
             return
