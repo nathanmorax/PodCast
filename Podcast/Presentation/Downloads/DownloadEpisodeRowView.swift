@@ -9,32 +9,47 @@ import SwiftUI
 struct DownloadEpisodeRowView: View {
     let viewModel: EpisodeActionViewModel
 
-//    var episode: Episode
-    
+    // The tilted cover "peeks" above the card. That overhang is now part of the
+    // layout (the card starts `coverOverhang` points down) instead of a negative
+    // .offset, which moved the drawing but not the space the row reported,
+    // so the cover was painted over the previous cell.
+    private let coverSize: CGFloat = 95
+    private let coverOverhang: CGFloat = 28
+
     var body: some View {
-        HStack(spacing: 12) {
+        ZStack(alignment: .topLeading) {
+            card
+                .padding(.top, coverOverhang)
+
             PodcastImage(source: viewModel.episode.imageUrl)
-                .frame(width: 95, height: 95)
+                .frame(width: coverSize, height: coverSize)
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .rotationEffect(.degrees(-4))
                 .shadow(color: .black.opacity(0.25), radius: 12, x: 0, y: 8)
-                .offset(y: -70)
-                .padding(.bottom, -50)
-             
-            VStack {
+                .padding(.leading, 20)
+        }
+        .padding(.horizontal, 12)
+    }
+
+    private var card: some View {
+        HStack(alignment: .center, spacing: 12) {
+            // Reserves the cover's width so the text never runs under it.
+            Color.clear
+                .frame(width: coverSize)
+
+            VStack(alignment: .leading, spacing: 6) {
                 Text(viewModel.episode.title)
                     .font(.system(size: 14, weight: .semibold))
-                    .multilineTextAlignment(.center)
-                
+                    .foregroundStyle(.black)
+                    .lineLimit(2)
+
                 Text(viewModel.episode.author)
                     .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.gray)
                     .lineLimit(1)
-                
+
                 Button {
-                    
                     viewModel.playOrPause()
-                    
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
@@ -46,24 +61,18 @@ struct DownloadEpisodeRowView: View {
                     .foregroundStyle(.black)
                     .padding(.horizontal, 10)
                     .frame(height: 28)
-                    .background(
-                        Capsule()
-                            .fill(Color.black.opacity(0.08))
-                    )
+                    .background(Capsule().fill(Color.black.opacity(0.08)))
                 }
                 .buttonStyle(.plain)
-                
-//                DownloadButton(episode: viewModel.episode)
-
+                .padding(.top, 2)
             }
-
-            
-            Spacer()
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.top, 40)
-        .padding(.bottom, 30)
-        .padding(.horizontal, 20)
-        .frame(maxWidth: .infinity, maxHeight: 125)
+        .padding(.leading, 20)
+        .padding(.trailing, 16)
+        .padding(.vertical, 16)
+        // Tall enough for the part of the cover that sits inside the card.
+        .frame(minHeight: coverSize - coverOverhang + 24)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .fill(Color(uiColor: .systemGray5))
