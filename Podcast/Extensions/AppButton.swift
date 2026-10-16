@@ -187,21 +187,21 @@ public struct AppButton: View {
     
     private var filledButton: some View {
         buttonContent
-            .foregroundColor(tone.palette.activeForeground)
+            .foregroundStyle(tone.palette.activeForeground)
             .frame(height: size.height)
             .filledBackground(tone.palette.activeBackground)
     }
     
     private var outlinedButton: some View {
         buttonContent
-            .foregroundColor(tone.palette.activeBackground)
+            .foregroundStyle(tone.palette.activeBackground)
             .frame(height: size.height)
             .outlinedBorder(tone.palette.activeBackground, width: size.borderWidth)
     }
     
     private var plainButton: some View {
         buttonContent
-            .foregroundColor(tone.palette.activeBackground)
+            .foregroundStyle(tone.palette.activeBackground)
             .frame(height: size.height)
             .contentShape(Rectangle())
     }
@@ -214,7 +214,7 @@ public struct AppButton: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: size.iconSize, height: size.iconSize)
-                    .foregroundColor(iconForegroundColor)
+                    .foregroundStyle(iconForegroundColor)
             }
         }
         .frame(width: size.iconButtonSize, height: size.iconButtonSize)

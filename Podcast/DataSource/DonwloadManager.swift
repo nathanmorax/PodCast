@@ -26,6 +26,7 @@ enum DownloadState: Equatable {
     }
 }
 
+@MainActor
 @Observable
 final class DownloadManager {
 
@@ -53,46 +54,61 @@ final class DownloadManager {
     }
 
     func download(_ episode: Episode) {
-        guard case .idle = state(for: episode),
-              let url = URL(string: episode.streamUrl) else { return }
+        // .failed is allowed too, so the user can retry after an error.
+        switch state(for: episode) {
+        case .idle, .failed: break
+        default: return
+        }
+        guard let url = URL(string: episode.streamUrl) else { return }
 
-        states[episode.streamUrl] = .downloading(progress: 0)
+        let key = episode.streamUrl
+        states[key] = .downloading(progress: 0)
 
+        // This completion handler runs on a URLSession background queue,
+        // NOT on the main actor.
         let task = URLSession.shared.downloadTask(with: url) { [weak self] tempURL, _, error in
             guard let self else { return }
 
             if let error {
-                DispatchQueue.main.async {
-                    self.states[episode.streamUrl] = .failed(error.localizedDescription)
+                // cancelDownload() already set the state to .idle; don't overwrite it with .failed.
+                if (error as? URLError)?.code == .cancelled { return }
+                let message = error.localizedDescription
+                Task { @MainActor in
+                    self.activeTasks[key] = nil
+                    self.states[key] = .failed(message)
                 }
                 return
             }
 
             guard let tempURL else { return }
 
-            do {
-                let localURL = try self.moveToDocuments(tempURL: tempURL, episode: episode)
-                DispatchQueue.main.async {
-                    self.states[episode.streamUrl] = .downloaded(localURL: localURL)
+            // The temp file is deleted as soon as this closure returns, so the
+            // move must happen here, off the main actor (moveToDocuments is nonisolated).
+            let result = Result { try self.moveToDocuments(tempURL: tempURL, episode: episode) }
+
+            Task { @MainActor in
+                self.activeTasks[key] = nil
+                switch result {
+                case .success(let localURL):
+                    self.states[key] = .downloaded(localURL: localURL)
                     self.persistEpisode(episode)
-                    print("Success Episode: \(episode.title)")
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    self.states[episode.streamUrl] = .failed(error.localizedDescription)
-                    print("Error Download Episode: \(error.localizedDescription)")
+                case .failure(let error):
+                    self.states[key] = .failed(error.localizedDescription)
                 }
             }
         }
 
         let observation = task.progress.observe(\.fractionCompleted) { [weak self] progress, _ in
-            DispatchQueue.main.async {
-                self?.states[episode.streamUrl] = .downloading(progress: progress.fractionCompleted)
+            let fraction = progress.fractionCompleted
+            Task { @MainActor in
+                // A late progress tick must not revert .downloaded / .idle back to .downloading.
+                guard let self, case .downloading = self.state(for: episode) else { return }
+                self.states[key] = .downloading(progress: fraction)
             }
         }
         objc_setAssociatedObject(task, "observation", observation, .OBJC_ASSOCIATION_RETAIN)
 
-        activeTasks[episode.streamUrl] = task
+        activeTasks[key] = task
         task.resume()
     }
 
@@ -122,7 +138,7 @@ final class DownloadManager {
 
     // MARK: - File management
 
-    private func safeFileName(for episode: Episode) -> String {
+    nonisolated private func safeFileName(for episode: Episode) -> String {
         let allowed = CharacterSet.alphanumerics
         let safe = episode.streamUrl
             .unicodeScalars
@@ -132,7 +148,7 @@ final class DownloadManager {
         return String(safe.prefix(100))
     }
 
-    private func moveToDocuments(tempURL: URL, episode: Episode) throws -> URL {
+    nonisolated private func moveToDocuments(tempURL: URL, episode: Episode) throws -> URL {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let folder = docs.appendingPathComponent("Downloads", isDirectory: true)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)

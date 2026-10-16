@@ -5,11 +5,9 @@
 //  Created by Jesus Mora on 05/05/26.
 //
 import UIKit
-import Combine
 
 class PodcastResultSearchController: UIViewController {
     
-    private var cancellables = Set<AnyCancellable>()
     var viewModel: PodcastSearchViewModel
     
     private lazy var collectionView: UICollectionView = {
@@ -60,12 +58,16 @@ class PodcastResultSearchController: UIViewController {
     }
     
     private func setupBindings() {
-        viewModel.$podcasts
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
+        withObservationTracking {
+            _ = viewModel.podcasts
+        } onChange: { [weak self] in
+            // onChange fires BEFORE the new value is stored (willSet),
+            // so hop to the next main-actor turn to read the new podcasts.
+            Task { @MainActor in
                 self?.collectionView.reloadData()
+                self?.setupBindings()
             }
-            .store(in: &cancellables)
+        }
     }
 }
 

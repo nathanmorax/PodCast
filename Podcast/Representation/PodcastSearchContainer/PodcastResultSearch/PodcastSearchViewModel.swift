@@ -4,91 +4,53 @@
 //
 //  Created by Jesus Mora on 28/01/26.
 //
-import UIKit
-import Combine
+import Foundation
+import Observation
 
-class PodcastSearchViewModel {
+@MainActor
+@Observable
+final class PodcastSearchViewModel {
     
-    private let repository: SearchPodcastRepository
-    private var cancellables = Set<AnyCancellable>()
-    private var searchTask: Task<Void, Never>?
+    private(set) var podcasts: [Podcast] = []
+    private(set) var error: String?
     
-    @Published private(set) var podcasts: [Podcast] = []
-    @Published private(set) var episodes: [Episode] = []
-    @Published private(set) var error: String?
-    private var callCount = 0
+    @ObservationIgnored private let repository: SearchPodcastRepository
+    @ObservationIgnored private let debounce: Duration
+    @ObservationIgnored private var searchTask: Task<Void, Never>?
+    @ObservationIgnored private var lastSearchedQuery = ""
     
-    let searchText = CurrentValueSubject<String, Never>("")
-    private var lastSearchedQuery = ""
-    
-    var onDataUpdated: (() -> Void)?
-    var onError: ((String) -> Void)?
-    
-    
-    init(repository: SearchPodcastRepository) {
+    init(repository: SearchPodcastRepository, debounce: Duration = .milliseconds(500)) {
         self.repository = repository
-        self.setupSearchPipeline()
+        self.debounce = debounce
     }
     
-    private func setupSearchPipeline() {
-        searchText
-            .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
-            .removeDuplicates()
-            .filter { !$0.isEmpty }
-            .sink { [weak self] query in
-                self?.performSearch(query: query)
-            }
-            .store(in: &cancellables)
-    }
-    
-    private func performSearch(query: String) {
+    /// Call on every keystroke. Each call cancels the pending search, so only
+    /// text that stays unchanged for `debounce` reaches the network.
+    func search(_ query: String) {
         searchTask?.cancel()
-        searchTask = Task {
+        guard !query.isEmpty else { return }
+        
+        searchTask = Task { [weak self, debounce] in
+            // Debounce: sleep throws CancellationError if another keystroke arrives.
             do {
-                let results = try await repository.searchPodcast(query: query)
+                try await Task.sleep(for: debounce)
+            } catch {
+                return
+            }
+            
+            // Equivalent to removeDuplicates(): skip a query we already have results for.
+            guard let self, query != self.lastSearchedQuery else { return }
+            
+            do {
+                let results = try await self.repository.searchPodcast(query: query)
                 guard !Task.isCancelled else { return }
-                await MainActor.run { self.podcasts = results }
+                self.podcasts = results
+                self.error = nil
+                self.lastSearchedQuery = query
             } catch {
                 guard !Task.isCancelled else { return }
-                await MainActor.run { self.error = error.localizedDescription }
+                self.error = error.localizedDescription
             }
         }
     }
-    
-    
-    func loadEpisodes(feedURL: String) {
-        Task {
-            do {
-                let results = try await repository.fetchEpisodes(feedURL: feedURL)
-                await MainActor.run {
-                    self.episodes = results
-                    self.onDataUpdated?()
-                }
-            } catch {
-                await MainActor.run {
-                    self.onError?(error.localizedDescription)
-                }
-            }
-        }
-    }
-    
-    //    func searchPodcast(searchPodcast: String) {
-    //        callCount += 1
-    //        print("🔍 Llamada #\(callCount) con texto: \(searchPodcast)")
-    //
-    //        repository.searchPodcastsPublisher(searchPodcast: <#T##String#>)
-    //
-    //        repository.searchPodcasts(searchPodcast: searchPodcast) { [weak self] result in
-    //            DispatchQueue.main.async {
-    //                switch result {
-    //                case .success(let podcasts):
-    //                    self?.podcasts = podcasts
-    //                    self?.onDataUpdated?()
-    //                    print(podcasts)
-    //                case .failure(let error):
-    //                    print(error)
-    //                }
-    //            }
-    //        }
-    //    }
 }

@@ -36,7 +36,7 @@ struct PlayerView: View {
     var body: some View {
         ZStack {
             Color.white
-                .edgesIgnoringSafeArea(.all)
+                .ignoresSafeArea()
             
             if mode == .normal {
                 normalView

@@ -7,7 +7,8 @@
 import Combine
 import Observation
 
-class DownloadEpisodeViewModel {
+@MainActor
+final class DownloadEpisodeViewModel {
     
     var episode: [Episode] { downloadManager.downloadedEpisodes }
 

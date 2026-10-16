@@ -48,7 +48,7 @@ class DownloadEpisodeViewController: UIViewController {
         withObservationTracking {
             _ = viewModel.episode
         } onChange: { [weak self] in
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 self?.collectionView.reloadData()
                 self?.observeEpisodes()
             }

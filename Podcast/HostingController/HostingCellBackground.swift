@@ -21,7 +21,7 @@ enum HostingCellBackground {
 extension UICollectionView {
     static func hostingRegistration<Item, Content: View>(
         backgroundStyle: HostingCellBackground = .card,
-        @ViewBuilder content: @escaping (Item) -> Content
+        @ViewBuilder content: @escaping @MainActor (Item) -> Content
     ) -> UICollectionView.CellRegistration<UICollectionViewCell, Item> {
         .init { cell, _, item in
             let base = UIHostingConfiguration { content(item) }
@@ -42,7 +42,7 @@ extension UICollectionView {
     
     static func hostingListRegistration<Item, Content: View>(
         backgroundStyle: HostingCellBackground = .none,
-        @ViewBuilder content: @escaping (Item) -> Content
+        @ViewBuilder content: @escaping @MainActor (Item) -> Content
     ) -> UICollectionView.CellRegistration<UICollectionViewListCell, Item> {
         .init { cell, _, item in
             let base = UIHostingConfiguration { content(item) }
@@ -66,7 +66,7 @@ extension UICollectionView {
         elementKind: String,
         background: HostingCellBackground = .none,
         itemProvider: @escaping () -> Item?,
-        @ViewBuilder content: @escaping (Item) -> Content
+        @ViewBuilder content: @escaping @MainActor (Item) -> Content
     ) -> UICollectionView.SupplementaryRegistration<UICollectionViewCell> {
         UICollectionView.SupplementaryRegistration(elementKind: elementKind) { supplementaryView, _, _ in
             guard let item = itemProvider() else { return }

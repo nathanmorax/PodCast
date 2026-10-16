@@ -47,7 +47,7 @@ class BookMarkEpisodeController: UIViewController {
         withObservationTracking {
             _ = viewModel.episodes
         } onChange: { [weak self] in
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 self?.collectionView.reloadData()
                 self?.observeEpisodes()
             }

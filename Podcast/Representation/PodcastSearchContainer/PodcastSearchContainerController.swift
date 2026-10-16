@@ -7,13 +7,11 @@
 
 import UIKit
 import Alamofire
-import Combine
 
 class PodcastSearchContainerController: UIViewController {
     let searchController = UISearchController(searchResultsController: nil)
     
     private let genreController = PodcastGenreController()
-    private var cancellables = Set<AnyCancellable>()
 
     
     private lazy var viewModel: PodcastSearchViewModel = {
@@ -32,19 +30,24 @@ class PodcastSearchContainerController: UIViewController {
         self.setupSearchBar()
         self.setupChildControllers()
         self.showGenres()
+        self.setupBindings()
         
         view.backgroundColor = AppColor.slateGray.uiColor
         
     }
     
     private func setupBindings() {
-        viewModel.$error
-            .compactMap { $0 }
-            .receive(on: DispatchQueue.main)
-            .sink { errorMessage in
-                print(errorMessage)
+        withObservationTracking {
+            _ = viewModel.error
+        } onChange: { [weak self] in
+            Task { @MainActor in
+                guard let self else { return }
+                if let errorMessage = self.viewModel.error {
+                    print(errorMessage)
+                }
+                self.setupBindings()
             }
-            .store(in: &cancellables)
+        }
     }
 
     
@@ -97,11 +100,13 @@ extension PodcastSearchContainerController: UISearchBarDelegate {
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         
-        if searchText.isEmpty{
+        // Always forward the text: an empty string cancels a pending search.
+        viewModel.search(searchText)
+        
+        if searchText.isEmpty {
             showGenres()
         } else {
             showResults()
-            viewModel.searchText.send(searchText)
         }
     }
     

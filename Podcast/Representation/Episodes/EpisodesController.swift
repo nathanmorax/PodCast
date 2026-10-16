@@ -112,7 +112,7 @@ class EpisodesController: UIViewController {
         withObservationTracking {
             _ = viewModel.isLoadingEpisodes
         } onChange: { [weak self] in
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 guard let self else { return }
                 if self.viewModel.isLoadingEpisodes {
                     self.loaderView.startAnimating()
@@ -130,7 +130,7 @@ class EpisodesController: UIViewController {
         withObservationTracking {
             _ = viewModel.episodes
         } onChange: { [weak self] in
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 guard let self else { return }
                 if !self.viewModel.episodes.isEmpty {
                     self.collectionView.reloadData()
@@ -147,7 +147,7 @@ class EpisodesController: UIViewController {
             _ = viewModel.podcastDescription
             _ = viewModel.isLoadingDescription
         } onChange: { [weak self] in
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 guard let self, let podcast = self.podcast else { return }
                 self.perf.measure("favorites pipeline") {
                     let newState = HeaderState(

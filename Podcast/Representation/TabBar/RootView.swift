@@ -18,7 +18,9 @@ struct RootView: View {
         ZStack(alignment: .bottom) {
             
             MainTabBarRepresentable()
-                .edgesIgnoringSafeArea(.all)
+                // Same as the old edgesIgnoringSafeArea(.all): container only.
+                // UIKit handles the keyboard itself inside the tab controller.
+                .ignoresSafeArea(.container)
             
             playerOverlay
         }
@@ -35,14 +37,12 @@ struct RootView: View {
             if let episode = manager.currentEpisode {
                 MiniPlayerView(
                     episode: episode,
-                    viewModel: manager.viewModel
+                    viewModel: manager.viewModel,
+                    onExpand: { manager.expand() }
                 )
                 .padding(.horizontal, 12)
                 .padding(.bottom, 60)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
-                .onTapGesture {
-                    manager.expand()
-                }
             }
             
         case .expanded:

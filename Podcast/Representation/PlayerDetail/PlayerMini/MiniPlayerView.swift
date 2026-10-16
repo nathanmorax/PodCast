@@ -10,27 +10,38 @@ struct MiniPlayerView: View {
     
     let episode: Episode
     let viewModel: AVPlayerViewModel
+    var onExpand: () -> Void = {}
     
     var body: some View {
         HStack(spacing: 12) {
             
-            PodcastImage(source: episode.imageUrl)
-                .frame(width: 40, height: 40)
-                .clipShape(RoundedRectangle(cornerRadius: 6))
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text(episode.title)
-                    .font(.system(size: 14, weight: .semibold))
-                    .lineLimit(1)
-                    .foregroundStyle(.black)
-                
-                Text(episode.author)
-                    .font(.system(size: 12))
-                    .foregroundStyle(.gray)
-                    .lineLimit(1)
+            // Only the info area expands the player. Play/Forward stay as
+            // separate buttons so they don't fight with the expand tap.
+            Button(action: onExpand) {
+                HStack(spacing: 12) {
+                    PodcastImage(source: episode.imageUrl)
+                        .frame(width: 40, height: 40)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(episode.title)
+                            .font(.system(size: 14, weight: .semibold))
+                            .lineLimit(1)
+                            .foregroundStyle(.black)
+                        
+                        Text(episode.author)
+                            .font(.system(size: 12))
+                            .foregroundStyle(.gray)
+                            .lineLimit(1)
+                    }
+                    
+                    Spacer(minLength: 0)
+                }
+                .contentShape(Rectangle()) // the empty Spacer area is tappable too
             }
-            
-            Spacer()
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
+            .accessibilityHint("Abre el reproductor")
             
             AppButton(
                 style: .icon,
