@@ -10,7 +10,7 @@ import SwiftUI
 
 struct RootView: View {
     
-    @State private var manager = PlayerManager.shared
+    @Environment(\.playerManager) private var manager
     let headerActions = EpisodeHeaderActions()
 
     
@@ -59,6 +59,7 @@ struct RootView: View {
 
 #Preview {
     RootView()
+        .environment(\.playerManager, .preview)
 }
 
 

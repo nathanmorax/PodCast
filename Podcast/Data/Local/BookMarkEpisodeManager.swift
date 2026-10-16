@@ -22,7 +22,7 @@ final class BookMarkEpisodeManager {
     
     private let userDefaults: UserDefaults
     
-    private init(userDefaults: UserDefaults = .standard) {
+    init(userDefaults: UserDefaults = .standard) {
         self.userDefaults = userDefaults
         self.episodes = Self.load(from: userDefaults)
     }

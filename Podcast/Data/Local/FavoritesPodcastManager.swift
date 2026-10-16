@@ -23,7 +23,7 @@ class FavoritesPodcastManager {
         favoritesSubject.eraseToAnyPublisher()
     }
     
-    private init(userDefaults: UserDefaults = .standard) {
+    init(userDefaults: UserDefaults = .standard) {
         self.userDefaults = userDefaults
         
         let initial = Self.load(from: userDefaults, key: Keys.favorites)

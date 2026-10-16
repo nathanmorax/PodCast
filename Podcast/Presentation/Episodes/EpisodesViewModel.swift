@@ -35,7 +35,8 @@ class EpisodesViewModel {
     private let favoritesManager: FavoritesPodcastManager
     private var cancellables = Set<AnyCancellable>()
     
-    private var loadEpisodesTask: Task<Void, Never>?
+    /// Internal read access so tests can `await viewModel.loadEpisodesTask?.value`.
+    private(set) var loadEpisodesTask: Task<Void, Never>?
     private var loadDescriptionTask: Task<Void, Never>?
     
     // MARK: - Init
@@ -71,30 +72,28 @@ class EpisodesViewModel {
         
         loadEpisodesTask?.cancel()
         isLoadingEpisodes = true
+        errorMessage = nil
         
-        Task {
+        // Store the task: before, it was never assigned, so cancel() above did nothing.
+        // The Task inherits @MainActor from this class, so no MainActor.run is needed.
+        loadEpisodesTask = Task {
             do {
                 let episodes = try await withTimeout(seconds: 15) {
                     try await self.repository.fetchEpisodes(feedURL: feedURL)
                 }
                 
                 guard !Task.isCancelled else { return }
-
                 
-                await MainActor.run {
-                    self.allEpisodes = episodes
-                    self.currentPage = 0
-                    self.loadMoreEpisodes()
-                    self.isLoadingEpisodes = false
-                }
+                self.allEpisodes = episodes
+                self.episodes = []          // a reload must replace, not append to, the old list
+                self.currentPage = 0
+                self.loadMoreEpisodes()
+                self.isLoadingEpisodes = false
             } catch {
-                
                 guard !Task.isCancelled else { return }
                 
-                await MainActor.run {
-                    self.errorMessage = error.localizedDescription
-                    self.isLoadingEpisodes = false
-                }
+                self.errorMessage = error.localizedDescription
+                self.isLoadingEpisodes = false
             }
         }
     }

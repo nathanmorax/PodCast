@@ -16,7 +16,8 @@ final class PodcastSearchViewModel {
     
     @ObservationIgnored private let repository: SearchPodcastRepository
     @ObservationIgnored private let debounce: Duration
-    @ObservationIgnored private var searchTask: Task<Void, Never>?
+    /// Internal read access so tests can `await viewModel.searchTask?.value`.
+    @ObservationIgnored private(set) var searchTask: Task<Void, Never>?
     @ObservationIgnored private var lastSearchedQuery = ""
     
     init(repository: SearchPodcastRepository, debounce: Duration = .milliseconds(500)) {

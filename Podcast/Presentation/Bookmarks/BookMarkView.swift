@@ -84,7 +84,8 @@ struct BookMarkView: View {
 
 struct DownloadButton: View {
     let episode: Episode
-    @State private var downloadManager = DownloadManager.shared
+    // Not @State: the view doesn't own the manager, it just reads it.
+    @Environment(\.downloadManager) private var downloadManager
     @State private var spinAngle: Double = 0
 
     private var state: DownloadState {

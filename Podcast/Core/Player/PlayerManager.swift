@@ -12,7 +12,13 @@ import Observation
 final class PlayerManager {
     
     static let shared = PlayerManager()
-    private init() {}
+
+    @ObservationIgnored
+    private let downloadManager: DownloadManager
+
+    init(downloadManager: DownloadManager = .shared) {
+        self.downloadManager = downloadManager
+    }
     
     var currentEpisode: Episode?
     var presentation: PlayerPresentation = .hidden
@@ -32,7 +38,7 @@ final class PlayerManager {
         currentEpisode = episode
         
         let url: URL
-        if let localURL = DownloadManager.shared.localURL(for: episode) {
+        if let localURL = downloadManager.localURL(for: episode) {
             url = localURL
         } else {
             guard let remoteURL = URL(string: episode.streamUrl) else { return }

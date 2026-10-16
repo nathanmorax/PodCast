@@ -14,13 +14,24 @@
 		BA1FD1772F283CE100EBD902 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = BA1FD1762F283CE100EBD902 /* Alamofire */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		F1A0C0DE2FF0001300A0C0DE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0BCC34432AFB195C005A3E38 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0BCC344A2AFB195C005A3E38;
+			remoteInfo = Podcast;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		F1A0C0DE2FF0001100A0C0DE /* PodcastTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PodcastTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0BCC344B2AFB195C005A3E38 /* Podcast.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Podcast.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		384B7D8CB43BC2296EB82E81 /* Pods_Podcast.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Podcast.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		F1A0C0DE2FF0000200A0C0DE /* Exceptions for "Podcast" folder in "Podcast" target */ = {
+		F1A0C0DE2FF0000200A0C0DE /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Resources/Info.plist,
@@ -30,7 +41,8 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		F1A0C0DE2FF0000100A0C0DE /* Podcast */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (F1A0C0DE2FF0000200A0C0DE /* Exceptions for "Podcast" folder in "Podcast" target */, ); explicitFileTypes = {}; explicitFolders = (); path = Podcast; sourceTree = "<group>"; };
+		F1A0C0DE2FF0000100A0C0DE /* Podcast */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (F1A0C0DE2FF0000200A0C0DE /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Podcast; sourceTree = "<group>"; };
+		F1A0C0DE2FF0001200A0C0DE /* PodcastTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = PodcastTests; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -46,6 +58,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F1A0C0DE2FF0001600A0C0DE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -53,6 +72,7 @@
 			isa = PBXGroup;
 			children = (
 				F1A0C0DE2FF0000100A0C0DE /* Podcast */,
+				F1A0C0DE2FF0001200A0C0DE /* PodcastTests */,
 				0BCC344C2AFB195C005A3E38 /* Products */,
 				CEC8FBBADD40A644A927A4B4 /* Frameworks */,
 			);
@@ -62,6 +82,7 @@
 			isa = PBXGroup;
 			children = (
 				0BCC344B2AFB195C005A3E38 /* Podcast.app */,
+				F1A0C0DE2FF0001100A0C0DE /* PodcastTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -97,6 +118,29 @@
 			productReference = 0BCC344B2AFB195C005A3E38 /* Podcast.app */;
 			productType = "com.apple.product-type.application";
 		};
+		F1A0C0DE2FF0001000A0C0DE /* PodcastTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F1A0C0DE2FF0001800A0C0DE /* Build configuration list for PBXNativeTarget "PodcastTests" */;
+			buildPhases = (
+				F1A0C0DE2FF0001500A0C0DE /* Sources */,
+				F1A0C0DE2FF0001600A0C0DE /* Frameworks */,
+				F1A0C0DE2FF0001700A0C0DE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F1A0C0DE2FF0001400A0C0DE /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				F1A0C0DE2FF0001200A0C0DE /* PodcastTests */,
+			);
+			name = PodcastTests;
+			packageProductDependencies = (
+			);
+			productName = PodcastTests;
+			productReference = F1A0C0DE2FF0001100A0C0DE /* PodcastTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -109,6 +153,10 @@
 				TargetAttributes = {
 					0BCC344A2AFB195C005A3E38 = {
 						CreatedOnToolsVersion = 14.2;
+					};
+					F1A0C0DE2FF0001000A0C0DE = {
+						CreatedOnToolsVersion = 26.0;
+						TestTargetID = 0BCC344A2AFB195C005A3E38;
 					};
 				};
 			};
@@ -131,12 +179,20 @@
 			projectRoot = "";
 			targets = (
 				0BCC344A2AFB195C005A3E38 /* Podcast */,
+				F1A0C0DE2FF0001000A0C0DE /* PodcastTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		0BCC34492AFB195C005A3E38 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F1A0C0DE2FF0001700A0C0DE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -153,7 +209,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F1A0C0DE2FF0001500A0C0DE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F1A0C0DE2FF0001400A0C0DE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0BCC344A2AFB195C005A3E38 /* Podcast */;
+			targetProxy = F1A0C0DE2FF0001300A0C0DE /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		0BCC345D2AFB195F005A3E38 /* Debug */ = {
@@ -332,6 +403,44 @@
 			};
 			name = Release;
 		};
+		F1A0C0DE2FF0001900A0C0DE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9CWTM4F934;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = nathan.mora.PodcastTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Podcast.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Podcast";
+			};
+			name = Debug;
+		};
+		F1A0C0DE2FF0002000A0C0DE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9CWTM4F934;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = nathan.mora.PodcastTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Podcast.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Podcast";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -349,6 +458,15 @@
 			buildConfigurations = (
 				0BCC34602AFB195F005A3E38 /* Debug */,
 				0BCC34612AFB195F005A3E38 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F1A0C0DE2FF0001800A0C0DE /* Build configuration list for PBXNativeTarget "PodcastTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F1A0C0DE2FF0001900A0C0DE /* Debug */,
+				F1A0C0DE2FF0002000A0C0DE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

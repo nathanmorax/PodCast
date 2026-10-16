@@ -31,8 +31,23 @@ enum DownloadState: Equatable {
 final class DownloadManager {
 
     static let shared = DownloadManager()
-    private init() {
+
+    /// Dependencies are injectable so tests and previews never touch the real
+    /// Documents folder, UserDefaults.standard or the network.
+    init(
+        userDefaults: UserDefaults = .standard,
+        session: URLSession = .shared,
+        downloadsDirectory: URL = DownloadManager.defaultDownloadsDirectory
+    ) {
+        self.userDefaults = userDefaults
+        self.session = session
+        self.downloadsDirectory = downloadsDirectory
         loadPersistedEpisodes()
+    }
+
+    nonisolated static var defaultDownloadsDirectory: URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("Downloads", isDirectory: true)
     }
 
     private(set) var states: [String: DownloadState] = [:]
@@ -42,7 +57,13 @@ final class DownloadManager {
     private var activeTasks: [String: URLSessionDownloadTask] = [:]
 
     @ObservationIgnored
-    private let userDefaults = UserDefaults.standard
+    private let userDefaults: UserDefaults
+
+    @ObservationIgnored
+    private let session: URLSession
+
+    @ObservationIgnored
+    private let downloadsDirectory: URL
 
     @ObservationIgnored
     private let episodesKey = "downloaded_episodes_metadata"
@@ -62,11 +83,12 @@ final class DownloadManager {
         guard let url = URL(string: episode.streamUrl) else { return }
 
         let key = episode.streamUrl
+        let destination = fileURL(for: episode)
         states[key] = .downloading(progress: 0)
 
         // This completion handler runs on a URLSession background queue,
         // NOT on the main actor.
-        let task = URLSession.shared.downloadTask(with: url) { [weak self] tempURL, _, error in
+        let task = session.downloadTask(with: url) { [weak self] tempURL, _, error in
             guard let self else { return }
 
             if let error {
@@ -84,7 +106,7 @@ final class DownloadManager {
 
             // The temp file is deleted as soon as this closure returns, so the
             // move must happen here, off the main actor (moveToDocuments is nonisolated).
-            let result = Result { try self.moveToDocuments(tempURL: tempURL, episode: episode) }
+            let result = Result { try Self.moveFile(from: tempURL, to: destination) }
 
             Task { @MainActor in
                 self.activeTasks[key] = nil
@@ -119,10 +141,13 @@ final class DownloadManager {
     }
 
     func deleteDownload(_ episode: Episode) {
+        // Read the file URL BEFORE cancelDownload() resets the state to .idle;
+        // otherwise this check never matched and the .mp3 stayed on disk.
+        let localURL = localURL(for: episode)
         cancelDownload(episode)
 
-        if case .downloaded(let url) = state(for: episode) {
-            try? FileManager.default.removeItem(at: url)
+        if let localURL {
+            try? FileManager.default.removeItem(at: localURL)
         }
 
         states[episode.streamUrl] = .idle
@@ -148,12 +173,16 @@ final class DownloadManager {
         return String(safe.prefix(100))
     }
 
-    nonisolated private func moveToDocuments(tempURL: URL, episode: Episode) throws -> URL {
-        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let folder = docs.appendingPathComponent("Downloads", isDirectory: true)
-        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+    private func fileURL(for episode: Episode) -> URL {
+        downloadsDirectory.appendingPathComponent("\(safeFileName(for: episode)).mp3")
+    }
 
-        let destination = folder.appendingPathComponent("\(safeFileName(for: episode)).mp3")
+    /// Pure file operation, safe to run on URLSession's background queue.
+    nonisolated private static func moveFile(from tempURL: URL, to destination: URL) throws -> URL {
+        try FileManager.default.createDirectory(
+            at: destination.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
 
         if FileManager.default.fileExists(atPath: destination.path) {
             try FileManager.default.removeItem(at: destination)
@@ -187,8 +216,7 @@ final class DownloadManager {
         downloadedEpisodes = episodes
 
         for episode in episodes {
-            let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            let url = docs.appendingPathComponent("Downloads/\(safeFileName(for: episode)).mp3")
+            let url = fileURL(for: episode)
 
             if FileManager.default.fileExists(atPath: url.path) {
                 states[episode.streamUrl] = .downloaded(localURL: url)

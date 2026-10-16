@@ -17,12 +17,14 @@ struct PlayerView: View {
     @State private var showControls: Bool = true
     @State private var hideControlsTask: Task<Void, Never>?
     
+    @Environment(\.playerManager) private var playerManager
+    
     private var viewModel: AVPlayerViewModel {
-        PlayerManager.shared.viewModel
+        playerManager.viewModel
     }
     
     private var transcript: TranscriptViewModel {
-        PlayerManager.shared.transcript
+        playerManager.transcript
     }
     
     /// Owned by the view: created once per episode and kept across body re-evaluations.
@@ -446,7 +448,7 @@ struct PlayerView: View {
         DragGesture(minimumDistance: 30)
             .onEnded { value in
                 if value.translation.height > 100 && mode == .normal {
-                    PlayerManager.shared.collapse()
+                    playerManager.collapse()
                 }
             }
     }
@@ -477,4 +479,5 @@ struct PlayerView: View {
 
 #Preview {
     PlayerView(episode: .mock)
+        .environment(\.playerManager, .preview)
 }
