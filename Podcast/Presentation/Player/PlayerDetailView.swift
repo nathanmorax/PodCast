@@ -125,7 +125,7 @@ struct PlayerView: View {
             }
         }
         .redacted(reason: .placeholder)
-        .foregroundStyle(.gray.opacity(0.25))
+        .foregroundStyle(.black.opacity(0.12))
         .phaseAnimator([1.0, 0.45]) { content, opacity in
             content.opacity(opacity)
         } animation: { _ in
@@ -194,18 +194,27 @@ struct PlayerView: View {
     
     private var transcriptView: some View {
         ZStack(alignment: .bottom) {
+            transcriptBackground
+            
             transcriptScrollView
             
             if showControls {
                 compactControls
                     .padding(.bottom, 20)
-                    .padding(.top, 12)
+                    .padding(.top, 28)
                     .background(
-                        LinearGradient(
-                            colors: [Color.white.opacity(0), Color.white],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
+                        // Frosted glass that fades in from the top, instead of a
+                        // white gradient that only matched a white background.
+                        Rectangle()
+                            .fill(.ultraThinMaterial)
+                            .mask(
+                                LinearGradient(
+                                    colors: [.clear, .black, .black],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                            .ignoresSafeArea()
                     )
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
@@ -260,22 +269,56 @@ struct PlayerView: View {
         }
     }
     
+    /// The episode's own artwork, blurred and washed with white: the transcript
+    /// keeps the color of what's playing instead of jumping to a blank page,
+    /// and black text stays readable on top.
+    private var transcriptBackground: some View {
+        Color.clear
+            .overlay {
+                PodcastImage(source: episode.imageUrl, contentMode: .fill)
+                    .blur(radius: 50, opaque: true)
+                    .scaleEffect(1.3) // hides the soft edges the blur leaves
+            }
+            .overlay(Color.white.opacity(0.62))
+            .clipped()
+            .ignoresSafeArea()
+            .accessibilityHidden(true)
+    }
+    
+    /// "Now playing" header: tiny cover + title, so the listener never loses
+    /// context. Tapping it goes back to the player.
     private var closeButton: some View {
         Button {
             mode = .normal
         } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: 10) {
+                PodcastImage(source: episode.imageUrl)
+                    .frame(width: 36, height: 36)
+                    .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(episode.title)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.black)
+                        .lineLimit(1)
+                    Text(episode.author)
+                        .font(.system(size: 12))
+                        .foregroundStyle(.black.opacity(0.5))
+                        .lineLimit(1)
+                }
+                
+                Spacer(minLength: 8)
+                
                 Image(systemName: "chevron.down")
-                    .font(.system(size: 13, weight: .semibold))
-                Text("Player")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.black.opacity(0.5))
             }
-            .foregroundStyle(.gray)
             .padding(.top, 60)
-            .padding(.bottom, 8)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.bottom, 12)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Volver al reproductor")
     }
     
     private func segmentRow(_ segment: LocalTranscriptSegment, proxy: ScrollViewProxy) -> some View {
@@ -285,7 +328,7 @@ struct PlayerView: View {
                 size: 19,
                 weight: isCurrent ? .semibold : .regular
             ))
-            .foregroundStyle(isCurrent ? .black : .gray.opacity(0.4))
+            .foregroundStyle(isCurrent ? .black : .black.opacity(0.3))
             .lineSpacing(4)
             .multilineTextAlignment(.leading)
             .frame(maxWidth: .infinity, alignment: .leading)
