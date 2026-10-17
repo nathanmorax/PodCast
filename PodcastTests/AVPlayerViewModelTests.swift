@@ -97,4 +97,14 @@ struct AVPlayerViewModelTests {
         #expect(sut.timeText(at: 0.5) == "5:00")
         #expect(sut.remainingText(at: 0.25) == "7:30")
     }
+
+    @Test("Seeking to a second turns it into the right position")
+    func seekToSeconds() {
+        let player = FakePlayerDataSource()
+        let sut = AVPlayerViewModel(player: player)
+        player.sendTime(current: 0, total: 1_000)
+
+        sut.seek(toSeconds: 250)
+        #expect(sut.progress == 0.25)
+    }
 }

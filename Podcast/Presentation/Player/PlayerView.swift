@@ -9,9 +9,11 @@ struct PlayerView: View {
     
     let episode: Episode
     @State private var mode: PlayerMode = .normal
-    /// The listener asked for the transcript while it was still being generated:
-    /// open it by itself as soon as it's ready. No intermediate screen.
-    @State private var wantsTranscript = false
+    /// Which tab is open under the cover.
+    @State private var tab: PlayerTab = .player
+    /// From the show notes; empty = no Chapters tab.
+    @State private var chapters: [EpisodeChapter]
+    @Namespace private var tabNamespace
     /// How far the finger has pulled the player down (follows it 1:1).
     @State private var dismissOffset: CGFloat = 0
     /// Set on the first movement of a drag: only a vertical drag pulls the
@@ -36,6 +38,7 @@ struct PlayerView: View {
     init(episode: Episode) {
         self.episode = episode
         _actionViewModel = State(initialValue: EpisodeActionViewModel(episode: episode))
+        _chapters = State(initialValue: EpisodeChapter.parse(showNotes: episode.description))
     }
     
     // MARK: - Style (soft white, near-black ink, lavender accent)
@@ -71,12 +74,8 @@ struct PlayerView: View {
         .onChange(of: episode.streamUrl) { _, _ in
             // @State ignores new init values, so rebuild the VM when the episode changes.
             actionViewModel = EpisodeActionViewModel(episode: episode)
-            wantsTranscript = false
-        }
-        .onChange(of: transcript.segments.isEmpty) { _, isEmpty in
-            guard !isEmpty, wantsTranscript, mode == .normal else { return }
-            wantsTranscript = false
-            mode = .transcript
+            chapters = EpisodeChapter.parse(showNotes: episode.description)
+            tab = .player
         }
     }
     
@@ -93,17 +92,28 @@ struct PlayerView: View {
                 }
 
             VStack(spacing: 0) {
-                progressBar
-                controlsSection
-                    .padding(.top, 22)
-                lineWheel
-                    .padding(.top, 18)
-                Spacer(minLength: 8)
-                secondaryActions
-                    .padding(.bottom, 30)
+                tabPicker
+                    .padding(.top, 2)
+
+                Group {
+                    switch tab {
+                    case .player: playerTab
+                    case .text: textTab
+                    case .chapters: chaptersTab
+                    }
+                }
+                .frame(maxHeight: .infinity)
+                .transition(.opacity)
+
+                // Text and Chapters: no buttons, just how far along it is.
+                if tab != .player {
+                    thinProgress
+                        .padding(.bottom, 24)
+                        .transition(.opacity)
+                }
             }
             .padding(.horizontal, 28)
-            .padding(.top, 4)
+            .animation(AppAnimation.playerTab, value: tab)
         }
         .ignoresSafeArea(.container, edges: .top)
     }
@@ -143,81 +153,290 @@ struct PlayerView: View {
             .accessibilityHidden(true)
     }
 
-    // MARK: - Line wheel
-    
-    private struct WheelLines {
-        let id: String
-        let previous: String?
-        let current: String
-        let next: String?
+    // MARK: - Tabs
+
+    private var availableTabs: [PlayerTab] {
+        PlayerTab.available(hasChapters: !chapters.isEmpty)
     }
-    
-    /// With a transcript: the sentence before, the one being said, and the next.
-    /// Without one: the episode title and, below, who's talking (the show).
-    private var wheelLines: WheelLines {
-        let segments = transcript.segments
-        if let index = transcript.currentIndex, segments.indices.contains(index) {
-            return WheelLines(
-                id: "\(index)",
-                previous: index > 0 ? segments[index - 1].text : nil,
-                current: segments[index].text,
-                next: index + 1 < segments.count ? segments[index + 1].text : nil
-            )
+
+    /// Player · Text · Chapters. The white pill slides to the chosen one.
+    private var tabPicker: some View {
+        HStack(spacing: 2) {
+            ForEach(availableTabs, id: \.self) { item in
+                tabButton(item)
+            }
         }
-        return WheelLines(id: episode.streamUrl, previous: nil, current: episode.title, next: episode.author)
+        .padding(3)
+        .background(Capsule().fill(Self.ink.opacity(0.06)))
+        .padding(.horizontal, 22)
+        .sensoryFeedback(.selection, trigger: tab)
     }
-    
-    /// Lines rolling like a picker wheel: the past one tilts back and fades,
-    /// the current one is bold, the next one waits in grey.
-    private var lineWheel: some View {
-        let lines = wheelLines
+
+    private func tabButton(_ item: PlayerTab) -> some View {
+        let isOn = tab == item
+        let textColor: Color = isOn ? Self.ink : Self.ink.opacity(0.45)
         return Button {
-            toggleTranscript()
+            tab = item
         } label: {
-            VStack(spacing: 6) {
-                Text(lines.previous ?? " ")
-                    .font(rounded(18))
-                    .foregroundStyle(Self.ink.opacity(0.16))
-                    .lineLimit(1)
-                    .rotation3DEffect(.degrees(42), axis: (x: 1, y: 0, z: 0), anchor: .bottom, perspective: 0.45)
-                
-                Text(lines.current)
-                    .font(rounded(23, .semibold))
+            Text(item.title)
+                .font(rounded(14, .semibold))
+                .foregroundStyle(textColor)
+                .frame(maxWidth: .infinity)
+                .frame(height: 34)
+                .background {
+                    if isOn {
+                        Capsule()
+                            .fill(Color.white)
+                            .shadow(color: Color.black.opacity(0.08), radius: 4, y: 2)
+                            .matchedGeometryEffect(id: "tab", in: tabNamespace)
+                    }
+                }
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isOn ? .isSelected : [])
+    }
+
+    // MARK: - Player tab
+
+    private var playerTab: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Spacer(minLength: 12)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(episode.title)
+                    .font(rounded(22, .bold))
                     .foregroundStyle(Self.ink)
                     .lineLimit(2)
                     .minimumScaleFactor(0.85)
-                
-                Text(lines.next ?? " ")
-                    .font(rounded(19))
-                    .foregroundStyle(Self.ink.opacity(0.38))
+                Text(episode.author)
+                    .font(rounded(15))
+                    .foregroundStyle(Self.ink.opacity(0.5))
                     .lineLimit(1)
-                    .rotation3DEffect(.degrees(-24), axis: (x: 1, y: 0, z: 0), anchor: .top, perspective: 0.45)
             }
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity)
-            .id(lines.id)
-            .transition(.wheelLine)
-            .contentShape(Rectangle())
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            progressSection
+                .padding(.top, 20)
+
+            controlsSection
+                .padding(.top, 18)
+            Spacer(minLength: 16)
+        }
+    }
+
+    // MARK: - Text tab
+
+    @ViewBuilder
+    private var textTab: some View {
+        if !transcript.segments.isEmpty {
+            transcriptList
+        } else if transcript.isLoading {
+            tabMessage(
+                icon: nil,
+                title: Text("Making the transcript…"),
+                detail: Text(verbatim: transcript.progress)
+            ) { ProgressView() }
+        } else if transcript.error != nil {
+            tabMessage(
+                icon: "exclamationmark.bubble",
+                title: Text("Couldn't make the transcript"),
+                detail: Text(verbatim: transcript.error ?? "")
+            ) {
+                tabActionButton("Try again") { Task { await runTranscription() } }
+            }
+        } else {
+            tabMessage(
+                icon: "captions.bubble",
+                title: Text("Transcribe this episode"),
+                detail: Text("It's made on your iPhone and can take a few minutes.")
+            ) {
+                tabActionButton("Transcribe") { Task { await runTranscription() } }
+            }
+        }
+    }
+
+    /// Every line; the one being said is dark and stays in view. Tap = jump.
+    private var transcriptList: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 14) {
+                    ForEach(transcript.segments) { segment in
+                        transcriptRow(segment)
+                            .id(segment.id)
+                    }
+                }
+                .padding(.vertical, 18)
+            }
+            .scrollIndicators(.hidden)
+            // Lines fade in and out at the edges instead of being cut.
+            .mask(Self.edgeFade)
+            .overlay(alignment: .topTrailing) { fullScreenButton }
+            .onAppear {
+                if let id = transcript.currentSegment?.id { proxy.scrollTo(id, anchor: .center) }
+            }
+            .onChange(of: transcript.currentSegment?.id) { _, id in
+                guard let id else { return }
+                withAnimation(AppAnimation.subtitleLine) { proxy.scrollTo(id, anchor: .center) }
+            }
+        }
+    }
+
+    private func transcriptRow(_ segment: LocalTranscriptSegment) -> some View {
+        let isCurrent = transcript.currentSegment?.id == segment.id
+        let size: CGFloat = isCurrent ? 19 : 17
+        let weight: Font.Weight = isCurrent ? .semibold : .regular
+        let opacity: Double = isCurrent ? 1 : 0.38
+        return Button {
+            viewModel.seek(toSeconds: segment.startTime)
+        } label: {
+            Text(segment.text)
+                .font(rounded(size, weight))
+                .foregroundStyle(Self.ink.opacity(opacity))
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .buttonStyle(.plain)
-        .frame(height: 132)
-        .clipped()
-        .animation(AppAnimation.lineWheel, value: lines.id)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(lines.current)
-        .accessibilityHint("Opens the transcript")
+        .animation(AppAnimation.subtitleLine, value: isCurrent)
     }
-    
-    /// Bookmark and transcript: small and quiet, out of the main row.
-    private var secondaryActions: some View {
-        HStack {
-//            bookmarkButton
-            Spacer()
-            transcriptButton
+
+    /// Lines fade in and out at the top and bottom edges instead of being cut.
+    private static let edgeFade = LinearGradient(
+        stops: [
+            Gradient.Stop(color: Color.clear, location: 0),
+            Gradient.Stop(color: Color.black, location: 0.08),
+            Gradient.Stop(color: Color.black, location: 0.85),
+            Gradient.Stop(color: Color.clear, location: 1)
+        ],
+        startPoint: .top,
+        endPoint: .bottom
+    )
+
+    /// Opens the full-screen subtitles (TranscriptSubtitleView).
+    private var fullScreenButton: some View {
+        Button {
+            mode = .transcript
+        } label: {
+            Image(systemName: "arrow.up.left.and.arrow.down.right")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(Self.ink.opacity(0.55))
+                .frame(width: 32, height: 32)
+                .background(Circle().fill(Self.ink.opacity(0.06)))
         }
-        .foregroundStyle(Self.ink.opacity(0.55))
+        .buttonStyle(.plain)
+        .padding(.top, 6)
+        .accessibilityLabel("Full screen")
     }
-    
+
+    // MARK: - Chapters tab
+
+    /// The chapter being played: the last one that already started.
+    private var currentChapter: EpisodeChapter? {
+        let now = viewModel.currentPlaybackSeconds
+        return chapters.last(where: { $0.start <= now })
+    }
+
+    private var chaptersTab: some View {
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                ForEach(chapters) { chapter in
+                    chapterRow(chapter)
+                }
+            }
+            .padding(.vertical, 10)
+        }
+        .scrollIndicators(.hidden)
+    }
+
+    private func chapterRow(_ chapter: EpisodeChapter) -> some View {
+        let isCurrent = currentChapter?.id == chapter.id
+        let isPast = !isCurrent && chapter.start < viewModel.currentPlaybackSeconds
+        let dotColor: Color = isCurrent ? Self.accent : Color.clear
+        let titleColor: Color = isCurrent ? AppColor.lavenderInk : Self.ink.opacity(isPast ? 0.45 : 1)
+        let titleWeight: Font.Weight = isCurrent ? .bold : .medium
+        return Button {
+            viewModel.seek(toSeconds: chapter.start)
+        } label: {
+            HStack(spacing: 12) {
+                Circle()
+                    .fill(dotColor)
+                    .frame(width: 8, height: 8)
+                Text(chapter.title)
+                    .font(rounded(16, titleWeight))
+                    .foregroundStyle(titleColor)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text(AVPlayerViewModel.shortTime(chapter.start))
+                    .font(rounded(13))
+                    .monospacedDigit()
+                    .foregroundStyle(Self.ink.opacity(0.45))
+            }
+            .frame(height: 46)
+            .contentShape(Rectangle())
+            .overlay(alignment: .bottom) {
+                Rectangle().fill(Self.ink.opacity(0.06)).frame(height: 1)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isCurrent ? .isSelected : [])
+    }
+
+    // MARK: - Tab pieces
+
+    /// A thin, read-only progress line for Text and Chapters.
+    private var thinProgress: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Capsule().fill(Self.ink.opacity(0.08))
+                Capsule()
+                    .fill(Self.accent)
+                    .frame(width: geo.size.width * CGFloat(viewModel.progress))
+            }
+        }
+        .frame(height: 3)
+        .accessibilityElement()
+        .accessibilityLabel("Progress")
+        .accessibilityValue("\(Int(viewModel.progress * 100)) percent")
+    }
+
+    private func tabMessage<Action: View>(
+        icon: String?,
+        title: Text,
+        detail: Text,
+        @ViewBuilder action: () -> Action
+    ) -> some View {
+        VStack(spacing: 10) {
+            if let icon {
+                Image(systemName: icon)
+                    .font(.system(size: 28, weight: .regular))
+                    .foregroundStyle(AppColor.lavenderInk)
+                    .accessibilityHidden(true)
+            }
+            title
+                .font(rounded(18, .semibold))
+                .foregroundStyle(Self.ink)
+            detail
+                .font(rounded(14))
+                .foregroundStyle(Self.ink.opacity(0.5))
+                .multilineTextAlignment(.center)
+            action()
+                .padding(.top, 6)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 12)
+    }
+
+    private func tabActionButton(_ title: LocalizedStringKey, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(rounded(15, .semibold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 22)
+                .frame(height: 44)
+                .background(Capsule().fill(AppColor.lavenderInk))
+        }
+        .buttonStyle(.plain)
+    }
+
     // MARK: - Transcription
     
     private func runTranscription() async {
@@ -359,18 +578,6 @@ struct PlayerView: View {
         .frame(maxWidth: .infinity)
     }
     
-//    private var bookmarkButton: some View {
-//        Button {
-//            actionViewModel.toggleBookmark()
-//        } label: {
-//            Image(systemName: actionViewModel.isBookmarked ? "bookmark.fill" : "bookmark")
-//                .font(.system(size: 19, weight: .regular))
-//                .contentTransition(.symbolEffect(.replace))
-//                .frame(width: 44, height: 44)
-//        }
-//        .accessibilityLabel(actionViewModel.isBookmarked ? Text("Remove from saved") : Text("Save episode"))
-//    }
-    
     private var seekBackwardButton: some View {
         Button {
             viewModel.seekBackward()
@@ -413,52 +620,6 @@ struct PlayerView: View {
                 .frame(width: 56, height: 56)
         }
         .accessibilityLabel("Skip forward 15 seconds")
-    }
-    
-    private var transcriptButton: some View {
-        Button {
-            toggleTranscript()
-        } label: {
-            // The only loading feedback: the icon itself breathes while the
-            // transcript is generated. The player stays exactly as it is.
-            Image(systemName: transcriptIcon)
-                .font(.system(size: 20, weight: .regular))
-                .symbolEffect(.pulse, options: .repeating, isActive: transcript.isLoading)
-                .contentTransition(.symbolEffect(.replace))
-                .frame(width: 44, height: 44)
-        }
-        .accessibilityLabel(transcriptAccessibilityLabel)
-    }
-    
-    private var transcriptIcon: String {
-        if transcript.error != nil { return "exclamationmark.bubble" }
-        return transcript.segments.isEmpty ? "captions.bubble" : "captions.bubble.fill"
-    }
-    
-    private var transcriptAccessibilityLabel: String {
-        if mode == .transcript { return String(localized: "Close transcript") }
-        if transcript.isLoading { return String(localized: "Preparing transcript") }
-        if transcript.error != nil { return String(localized: "Retry transcript") }
-        return String(localized: "Transcript")
-    }
-    
-    /// Opens the transcript screen (closes it if it's already open).
-    /// Only generates the first time: a cached or in-progress transcript just opens.
-    private func toggleTranscript() {
-        if mode == .transcript {
-            mode = .normal
-            return
-        }
-        // Ready (cached or already generated): open it right away.
-        guard transcript.segments.isEmpty else {
-            mode = .transcript
-            return
-        }
-        // Not ready: stay on the player; it opens by itself when done.
-        wantsTranscript = true
-        if !transcript.isLoading {
-            Task { await runTranscription() }
-        }
     }
     
     // MARK: - Helpers

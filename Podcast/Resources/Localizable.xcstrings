@@ -159,6 +159,16 @@
         }
       }
     },
+    "Chapters" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capítulos"
+          }
+        }
+      }
+    },
     "Clear" : {
       "localizations" : {
         "es" : {
@@ -200,6 +210,7 @@
       }
     },
     "Close transcript" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -265,6 +276,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No se pudieron cargar las categorías."
+          }
+        }
+      }
+    },
+    "Couldn't make the transcript" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo hacer la transcripción"
           }
         }
       }
@@ -379,6 +400,16 @@
         }
       }
     },
+    "Full screen" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pantalla completa"
+          }
+        }
+      }
+    },
     "Goes to %@" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -416,6 +447,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Inicio"
+          }
+        }
+      }
+    },
+    "It's made on your iPhone and can take a few minutes." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se hace en tu iPhone y puede tardar unos minutos."
           }
         }
       }
@@ -490,6 +531,16 @@
         }
       }
     },
+    "Making the transcript…" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haciendo la transcripción…"
+          }
+        }
+      }
+    },
     "Minimize player" : {
       "localizations" : {
         "es" : {
@@ -541,6 +592,7 @@
       }
     },
     "Opens the transcript" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -590,6 +642,16 @@
         }
       }
     },
+    "Player" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Player"
+          }
+        }
+      }
+    },
     "Playing" : {
       "localizations" : {
         "es" : {
@@ -601,6 +663,7 @@
       }
     },
     "Preparing transcript" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -681,6 +744,7 @@
       }
     },
     "Remove from saved" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -701,6 +765,7 @@
       }
     },
     "Retry transcript" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -731,6 +796,7 @@
       }
     },
     "Save episode" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -871,12 +937,42 @@
         }
       }
     },
+    "Text" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Texto"
+          }
+        }
+      }
+    },
     "Time remaining %@" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tiempo restante %@"
+          }
+        }
+      }
+    },
+    "Transcribe" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transcribir"
+          }
+        }
+      }
+    },
+    "Transcribe this episode" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transcribir este episodio"
           }
         }
       }
@@ -892,6 +988,7 @@
       }
     },
     "Transcript" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {

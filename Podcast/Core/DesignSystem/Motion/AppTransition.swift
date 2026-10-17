@@ -38,15 +38,6 @@ extension AnyTransition {
         .move(edge: .bottom)
     }
 
-    /// Lines in the player's wheel: the new one comes up from below, the old
-    /// one leaves through the top, like a rolling drum.
-    static var wheelLine: AnyTransition {
-        .asymmetric(
-            insertion: .move(edge: .bottom).combined(with: .opacity),
-            removal: .move(edge: .top).combined(with: .opacity)
-        )
-    }
-
     /// Subtitle sentences: the new one rises a little and fades in, the old
     /// one keeps going up and fades out. Small offsets, so it reads as a
     /// gentle roll, not a slide.

@@ -116,6 +116,12 @@ class AVPlayerViewModel {
         player.seek(to: target)
     }
 
+    /// Jumps to a second of the episode (a chapter, a transcript line).
+    func seek(toSeconds seconds: Double) {
+        guard currentDurationSeconds > 0 else { return }
+        seek(to: Float(seconds / currentDurationSeconds))
+    }
+
     /// "12:04" for a point of the episode, while the finger scrubs.
     func timeText(at percentage: Float) -> String {
         Self.shortTime(Double(percentage) * currentDurationSeconds)
