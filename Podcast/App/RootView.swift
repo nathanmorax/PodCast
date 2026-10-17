@@ -30,7 +30,12 @@ struct RootView: View {
     /// Hidden while the full player is open, and on screens opened from
     /// Search when nothing is playing (there the bar is just the mini player).
     private var showsBottomBar: Bool {
-        manager.presentation != .expanded && barLayout.isVisible
+        manager.presentation != .expanded && hasBar
+    }
+
+    /// The current screen has a bar (the podcast page has none).
+    private var hasBar: Bool {
+        barLayout.isVisible && !navigator.hidesBarCompletely
     }
     
     var body: some View {
@@ -39,7 +44,7 @@ struct RootView: View {
             // The inset doesn't depend on the full player: opening/closing it
             // must not resize the list behind it (that showed up as a jump
             // peeking out while the player slid down).
-            MainNavigationRepresentable(bottomInset: barLayout.isVisible ? reservedBottomSpace : 0)
+            MainNavigationRepresentable(bottomInset: hasBar ? reservedBottomSpace : 0)
                 .ignoresSafeArea(.container)
             
             // The bar's animations live on its own container. On the ZStack

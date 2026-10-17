@@ -8,6 +8,8 @@ import SwiftUI
 
 struct EpisodeContextMenuButton: UIViewRepresentable {
     let viewModel: EpisodeActionViewModel
+    /// "Details" at the top of the menu (hidden when nil).
+    var onInfo: (() -> Void)? = nil
 
     func makeUIView(context: Context) -> UIButton {
         let button = UIButton(type: .system)
@@ -21,18 +23,21 @@ struct EpisodeContextMenuButton: UIViewRepresentable {
 
     func updateUIView(_ uiView: UIButton, context: Context) {
         context.coordinator.viewModel = viewModel
+        context.coordinator.onInfo = onInfo
         uiView.menu = context.coordinator.makeMenu()
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(viewModel: viewModel)
+        Coordinator(viewModel: viewModel, onInfo: onInfo)
     }
 
     class Coordinator: NSObject {
         var viewModel: EpisodeActionViewModel
+        var onInfo: (() -> Void)?
 
-        init(viewModel: EpisodeActionViewModel) {
+        init(viewModel: EpisodeActionViewModel, onInfo: (() -> Void)?) {
             self.viewModel = viewModel
+            self.onInfo = onInfo
         }
 
         @MainActor func makeMenu() -> UIMenu {
@@ -52,7 +57,17 @@ struct EpisodeContextMenuButton: UIViewRepresentable {
                 self?.viewModel.toggleBookmark()
             }
 
-            return UIMenu(children: [download, bookmark])
+            var items: [UIMenuElement] = []
+            if onInfo != nil {
+                items.append(UIAction(
+                    title: String(localized: "Details"),
+                    image: UIImage(systemName: "info.circle")
+                ) { [weak self] _ in
+                    self?.onInfo?()
+                })
+            }
+            items += [download, bookmark]
+            return UIMenu(children: items)
         }
     }
 }

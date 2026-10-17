@@ -19,12 +19,21 @@ enum HostingCellBackground {
 }
 
 extension UICollectionView {
+    /// - Parameter margins: space around the SwiftUI content. Nil keeps the
+    ///   system cell margins (~11 pt top/bottom); fixed-height rows pass 0 so
+    ///   their content gets the whole height and can't spill out.
     static func hostingRegistration<Item, Content: View>(
         backgroundStyle: HostingCellBackground = .card,
+        margins: CGFloat? = nil,
         @ViewBuilder content: @escaping @MainActor (Item) -> Content
     ) -> UICollectionView.CellRegistration<UICollectionViewCell, Item> {
         .init { cell, _, item in
-            let base = UIHostingConfiguration { content(item) }
+            var base = UIHostingConfiguration { content(item) }
+            if let margins {
+                base = base.margins(.all, margins)
+                // Nothing from this row may draw over the next one.
+                cell.clipsToBounds = true
+            }
             
             switch backgroundStyle {
             case .none:

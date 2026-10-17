@@ -33,6 +33,8 @@ final class AppNavigator {
     /// True on screens opened from Search (a category, a podcast): no bottom
     /// bar there. Set by MainContainerController as screens are shown.
     var hidesBottomBar = false
+    /// The podcast page shows no bottom bar at all (not even the mini player).
+    var hidesBarCompletely = false
 
     /// Scrolling down folds the bar into one row; scrolling up (or reaching the
     /// top) brings it back. Driven by BottomBarScrollTracker.

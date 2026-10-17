@@ -435,6 +435,11 @@ extension MainContainerController: UINavigationControllerDelegate {
         if navigator.hidesBottomBar != isSearchDetail {
             navigator.hidesBottomBar = isSearchDetail
         }
+        // A podcast's page, from any tab: no bar, not even the mini player.
+        let isPodcastPage = viewController is EpisodesController
+        if navigator.hidesBarCompletely != isPodcastPage {
+            navigator.hidesBarCompletely = isPodcastPage
+        }
     }
 
     func navigationController(_ navigationController: UINavigationController,

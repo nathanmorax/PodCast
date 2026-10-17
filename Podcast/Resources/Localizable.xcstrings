@@ -300,6 +300,16 @@
         }
       }
     },
+    "Details" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detalles"
+          }
+        }
+      }
+    },
     "Download" : {
       "localizations" : {
         "es" : {
@@ -361,6 +371,7 @@
       }
     },
     "Episode details" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -572,6 +583,7 @@
       }
     },
     "Loading description…" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -894,6 +906,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Buscar podcasts"
+          }
+        }
+      }
+    },
+    "Share" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compartir"
           }
         }
       }

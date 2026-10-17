@@ -31,8 +31,7 @@ struct EpisodeHeaderView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             heroSection
-            aboutText
-            listenButton
+            actionsRow
             episodesCaption
         }
     }
@@ -105,59 +104,55 @@ struct EpisodeHeaderView: View {
             .joined(separator: " · ")
     }
 
-    // MARK: - About (two lines + ⓘ)
+    // MARK: - Actions
 
-    /// Always two lines tall (even while loading), so the header never
-    /// changes height. The full text opens from the ⓘ.
-    private var aboutText: some View {
-        let description = podcastDescription ?? ""
-        let shown = isLoadingDescription ? String(localized: "Loading description…") : description
-        return HStack(alignment: .top, spacing: 8) {
-            Text(shown)
-                .font(.system(size: 15))
-                .foregroundStyle(.secondary)
-                .lineSpacing(2)
-                .lineLimit(2, reservesSpace: true)
-                .redacted(reason: isLoadingDescription ? .placeholder : [])
-                .frame(maxWidth: .infinity, alignment: .leading)
+    /// Listen (newest episode), the podcast's info, and share. The
+    /// description isn't shown here: it's in the ⓘ sheet.
+    private var actionsRow: some View {
+        HStack(spacing: 10) {
+            Button {
+                actions.send(.play)
+            } label: {
+                Label("Listen to podcast", systemImage: "play.fill")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .background(Capsule().fill(AppColor.ink))
+            }
+            .buttonStyle(.plain)
 
             Button {
                 actions.send(.about)
             } label: {
-                Image(systemName: "info.circle")
-                    .font(.system(size: 20, weight: .regular))
-                    .foregroundStyle(AppColor.lavenderInk)
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
+                roundIcon("info.circle")
             }
             .buttonStyle(.plain)
-            .disabled(description.isEmpty)
-            .opacity(description.isEmpty ? 0.3 : 1)
-            .padding(.top, -10)
             .accessibilityLabel("About this podcast")
-        }
-        .padding(.leading, HeaderStyle.horizontalPadding)
-        .padding(.trailing, HeaderStyle.horizontalPadding - 12)
-        .padding(.top, 14)
-    }
 
-    // MARK: - Listen
-
-    /// The only action: plays the newest episode.
-    private var listenButton: some View {
-        Button {
-            actions.send(.play)
-        } label: {
-            Label("Listen to podcast", systemImage: "play.fill")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 50)
-                .background(Capsule().fill(AppColor.ink))
+            if let shareURL {
+                ShareLink(item: shareURL, subject: Text(podcast.trackName ?? "")) {
+                    roundIcon("square.and.arrow.up")
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Share")
+            }
         }
-        .buttonStyle(.plain)
         .padding(.horizontal, HeaderStyle.horizontalPadding)
         .padding(.top, 18)
+    }
+
+    private func roundIcon(_ name: String) -> some View {
+        Image(systemName: name)
+            .font(.system(size: 18, weight: .semibold))
+            .foregroundStyle(AppColor.ink)
+            .frame(width: 50, height: 50)
+            .background(Circle().fill(AppColor.ink.opacity(0.07)))
+    }
+
+    /// The podcast on Apple Podcasts (opens in any app or browser).
+    private var shareURL: URL? {
+        URL(string: "https://podcasts.apple.com/podcast/id\(podcast.trackId)")
     }
 
     // MARK: - List title

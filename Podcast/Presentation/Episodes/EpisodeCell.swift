@@ -10,7 +10,7 @@ import SwiftUI
 
 struct EpisodeCell: View {
     let viewModel: EpisodeActionViewModel
-    /// Opens the episode's details (the ⓘ button). Nil hides the button.
+    /// Opens the episode's details ("Details" in the ••• menu).
     var onInfo: (() -> Void)? = nil
 
     var body: some View {
@@ -56,26 +56,12 @@ struct EpisodeCell: View {
                     .frame(width: 100, height: 100)
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
-                HStack(spacing: 0) {
-                    if let onInfo {
-                        Button(action: onInfo) {
-                            Image(systemName: "info.circle")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundStyle(.black)
-                                .frame(width: 36, height: 36)
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Episode details")
-                    }
-                    EpisodeContextMenuButton(viewModel: viewModel)
-                        .frame(width: 36, height: 36)
-                }
+                EpisodeContextMenuButton(viewModel: viewModel, onInfo: onInfo)
+                    .frame(width: 36, height: 36)
             }
         }
-        // The row has a fixed height (EpisodesController.Layout.cellHeight);
-        // fixed font sizes and line limits keep the content inside it.
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        // Full width; the height is whatever the content needs.
+        .frame(maxWidth: .infinity, alignment: .topLeading)
         .onAppear {
             PerformanceLogger.rendering.event("EpisodeCellUI appeared", "title: \(viewModel.episode.title)")
         }
