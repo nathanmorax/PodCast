@@ -4,6 +4,7 @@
 //
 
 import Testing
+import Foundation
 @testable import Podcast
 
 @MainActor
@@ -83,5 +84,18 @@ struct ForYouViewModelTests {
         let mixed = ForYouViewModel.interleave([a, b], excluding: [3], limit: 4)
 
         #expect(mixed.map(\.trackId) == [1, 10, 2, 20])
+    }
+
+    @Test("The recommendation changes from one day to the next and is stable within a day")
+    func dailyRecommendation() {
+        let mix = [1, 2, 3].map { Fixtures.podcast(id: $0) }
+        let morning = Date(timeIntervalSince1970: 1_800_000_000)
+        let evening = morning.addingTimeInterval(3_600)
+        let tomorrow = morning.addingTimeInterval(86_400)
+
+        let today = ForYouViewModel.recommendation(in: mix, on: morning)
+        #expect(today?.trackId == ForYouViewModel.recommendation(in: mix, on: evening)?.trackId)
+        #expect(today?.trackId != ForYouViewModel.recommendation(in: mix, on: tomorrow)?.trackId)
+        #expect(ForYouViewModel.recommendation(in: [], on: morning) == nil)
     }
 }

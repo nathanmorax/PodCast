@@ -1,9 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "-%@" : {
-
-    },
     "%@, current tab" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -106,6 +103,7 @@
         }
       }
     },
+    "-%@" : {},
     "About this podcast" : {
       "localizations" : {
         "es" : {
@@ -223,6 +221,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cerrar transcripción"
+          }
+        }
+      }
+    },
+    "Collections" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Colecciones"
           }
         }
       }
@@ -644,32 +652,6 @@
         }
       }
     },
-    "New · %@" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nuevo · %@"
-          }
-        }
-      }
-    },
-    "New episode of %@: %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "New episode of %1$@: %2$@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nuevo episodio de %1$@: %2$@"
-          }
-        }
-      }
-    },
     "News" : {
       "localizations" : {
         "es" : {
@@ -686,16 +668,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aún no sigues nada"
-          }
-        }
-      }
-    },
-    "Open podcast" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abrir podcast"
           }
         }
       }
@@ -940,12 +912,12 @@
         }
       }
     },
-    "Search for a podcast and follow it. Its new episodes will show up here." : {
+    "Search for a podcast and follow it. It'll show up here." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Busca un podcast y síguelo. Sus episodios nuevos aparecerán aquí."
+            "value" : "Busca un podcast y síguelo. Aparecerá aquí."
           }
         }
       }
@@ -1053,12 +1025,12 @@
         }
       }
     },
-    "Swipe the pile for the next one" : {
+    "TV & Film" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Desliza la pila para ver el siguiente"
+            "value" : "Cine y TV"
           }
         }
       }
@@ -1190,16 +1162,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Convirtiendo las voces en texto…"
-          }
-        }
-      }
-    },
-    "TV & Film" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cine y TV"
           }
         }
       }

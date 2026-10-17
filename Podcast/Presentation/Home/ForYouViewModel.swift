@@ -3,10 +3,12 @@
 //  Podcast
 //
 
+import Foundation
 import Observation
 
-/// "For you" in Library: ONE row that mixes the genres chosen in onboarding
-/// (one of each in turn), so the screen doesn't grow with every genre.
+/// "For you" in Library: a mix of the genres chosen in onboarding (one of
+/// each in turn), from which Library shows a single recommendation, so the
+/// screen doesn't grow with every genre.
 ///
 /// Each genre searches its name for now; when we use a "top by genre" API,
 /// only `fetch` changes. Results are kept in memory, so going back to
@@ -22,6 +24,11 @@ final class ForYouViewModel {
     private(set) var podcasts: [Podcast] = []
     private(set) var isLoading = false
 
+    /// The one Library shows: changes each day, through the whole mix.
+    var recommendation: Podcast? {
+        Self.recommendation(in: podcasts, on: .now)
+    }
+
     @ObservationIgnored private let repository: any SearchPodcastRepository
     @ObservationIgnored private var cache: [String: [Podcast]] = [:]
     /// Internal read access so tests can await it.
@@ -32,7 +39,7 @@ final class ForYouViewModel {
     }
 
     /// Builds the mix for these genres, leaving out podcasts you already
-    /// follow (they're in the pile and in Following).
+    /// follow (they're already in Library).
     func load(genres: [Genre], excluding followingIDs: Set<Int>) {
         loadTask?.cancel()
         let wanted = Array(genres.prefix(Self.maxGenres))
@@ -68,6 +75,13 @@ final class ForYouViewModel {
 
     private func mix(_ genres: [Genre], excluding ids: Set<Int>) -> [Podcast] {
         Self.interleave(genres.compactMap { cache[$0.id] }, excluding: ids, limit: Self.maxPodcasts)
+    }
+
+    /// Pure: which podcast of the mix is today's (a different one each day).
+    static func recommendation(in podcasts: [Podcast], on date: Date, calendar: Calendar = .current) -> Podcast? {
+        guard !podcasts.isEmpty else { return nil }
+        let day = calendar.ordinality(of: .day, in: .era, for: date) ?? 0
+        return podcasts[day % podcasts.count]
     }
 
     /// Pure: one from each list in turn (1st of each, then 2nd of each…),
