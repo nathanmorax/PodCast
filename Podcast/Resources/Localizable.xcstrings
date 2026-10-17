@@ -1,8 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "-%@" : {},
-    "·" : {},
     "%@, current tab" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -105,6 +103,7 @@
         }
       }
     },
+    "-%@" : {},
     "About this podcast" : {
       "localizations" : {
         "es" : {
@@ -226,6 +225,16 @@
         }
       }
     },
+    "Collections" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Colecciones"
+          }
+        }
+      }
+    },
     "Comedy" : {
       "localizations" : {
         "es" : {
@@ -247,6 +256,7 @@
       }
     },
     "Continue listening" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -337,7 +347,6 @@
       }
     },
     "Downloads" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -419,6 +428,7 @@
       }
     },
     "Finished" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -591,6 +601,7 @@
       }
     },
     "Listened %lld percent" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -734,6 +745,7 @@
       }
     },
     "Playing" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -771,16 +783,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Leer más"
-          }
-        }
-      }
-    },
-    "Recently played" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escuchado recientemente"
           }
         }
       }
@@ -827,6 +829,7 @@
       }
     },
     "Resume" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -909,12 +912,12 @@
         }
       }
     },
-    "Search for a podcast and start listening. You'll pick it up here right where you left off." : {
+    "Search for a podcast and follow it. It'll show up here." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Busca un podcast y empieza a escuchar. Aquí podrás retomarlo donde lo dejaste."
+            "value" : "Busca un podcast y síguelo. Aparecerá aquí."
           }
         }
       }
@@ -1018,6 +1021,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Seguimos trabajando, vale la pena esperar."
+          }
+        }
+      }
+    },
+    "TV & Film" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cine y TV"
           }
         }
       }
@@ -1153,16 +1166,6 @@
         }
       }
     },
-    "TV & Film" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cine y TV"
-          }
-        }
-      }
-    },
     "Unfollow" : {
       "localizations" : {
         "es" : {
@@ -1194,12 +1197,12 @@
         }
       }
     },
-    "Your home is empty" : {
+    "Your library is empty" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tu inicio está vacío"
+            "value" : "Tu biblioteca está vacía"
           }
         }
       }

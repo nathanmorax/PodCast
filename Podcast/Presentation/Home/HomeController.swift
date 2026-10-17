@@ -30,6 +30,9 @@ final class HomeController: UIViewController {
             },
             onOpenFavorites: { [weak self] in
                 self?.navigationController?.pushViewController(BookMarkEpisodeController(), animated: true)
+            },
+            onOpenDownloads: { [weak self] in
+                self?.navigationController?.pushViewController(DownloadEpisodeViewController(), animated: true)
             }
         )
         let hosting = UIHostingController(rootView: home)
