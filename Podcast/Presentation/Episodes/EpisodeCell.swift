@@ -10,6 +10,8 @@ import SwiftUI
 
 struct EpisodeCell: View {
     let viewModel: EpisodeActionViewModel
+    /// Opens the episode's details (the ⓘ button). Nil hides the button.
+    var onInfo: (() -> Void)? = nil
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -17,7 +19,7 @@ struct EpisodeCell: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(viewModel.episode.pubDate, style: .date)
                     .foregroundStyle(AppColor.dustyBlue)
-                    .font(.subheadline)
+                    .font(.system(size: 13, weight: .medium))
 
                 Text(viewModel.episode.title)
                     .font(.system(size: 17, weight: .semibold))
@@ -54,11 +56,26 @@ struct EpisodeCell: View {
                     .frame(width: 100, height: 100)
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
-                EpisodeContextMenuButton(viewModel: viewModel)
-                    .frame(width: 36, height: 36)
+                HStack(spacing: 0) {
+                    if let onInfo {
+                        Button(action: onInfo) {
+                            Image(systemName: "info.circle")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(.black)
+                                .frame(width: 36, height: 36)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Episode details")
+                    }
+                    EpisodeContextMenuButton(viewModel: viewModel)
+                        .frame(width: 36, height: 36)
+                }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // The row has a fixed height (EpisodesController.Layout.cellHeight);
+        // fixed font sizes and line limits keep the content inside it.
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .onAppear {
             PerformanceLogger.rendering.event("EpisodeCellUI appeared", "title: \(viewModel.episode.title)")
         }

@@ -24,18 +24,19 @@ struct EpisodeHeaderView: View {
     var podcastDescription: String?
     var isLoadingDescription: Bool = false
     let actions: EpisodeHeaderActions
+    /// Pull-down distance from the list (nil in previews).
+    var stretch: HeaderStretch?
     
-    @State private var isAboutExpanded = false
     
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(alignment: .leading, spacing: 0) {
             heroSection
-            actionsRow
-            metaRow
-            aboutSection
+            aboutText
+            listenButton
+            episodesCaption
         }
-    }//
-    
+    }
+
     // MARK: - Hero
     
 
@@ -44,13 +45,20 @@ struct EpisodeHeaderView: View {
     }
 
     /// The cover, edge to edge and under the status bar. It fades into the
-    /// page at the bottom, where the podcast's name sits. It's the only
-    /// flexible part, so pulling down past the top stretches it.
+    /// page at the bottom, where the podcast's name sits.
+    ///
+    /// Fixed height (the header measures itself). Pulling the list down makes
+    /// only the image taller, anchored at the bottom, so it grows upward into
+    /// the gap without changing the header's size.
     private var heroSection: some View {
         Color.clear
-            .frame(maxWidth: .infinity, minHeight: HeaderStyle.heroHeight, maxHeight: .infinity)
-            .overlay {
+            .frame(maxWidth: .infinity)
+            .frame(height: HeaderStyle.heroHeight)
+            .background(alignment: .bottom) {
                 PodcastImage(source: artworkURL, contentMode: .fill)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: HeaderStyle.heroHeight + (stretch?.pull ?? 0))
+                    .clipped()
             }
             // Keeps the status bar and the back button readable on any cover.
             .overlay(alignment: .top) {
@@ -69,8 +77,8 @@ struct EpisodeHeaderView: View {
             }
             .overlay(alignment: .bottomLeading) {
                 VStack(alignment: .leading, spacing: 2) {
-                    if let artist = podcast.artistName, !artist.isEmpty {
-                        Text(artist)
+                    if !heroCaption.isEmpty {
+                        Text(heroCaption)
                             .font(.system(size: 13, weight: .bold))
                             .textCase(.uppercase)
                             .foregroundStyle(.secondary)
@@ -87,105 +95,84 @@ struct EpisodeHeaderView: View {
                 .accessibilityElement(children: .combine)
                 .accessibilityAddTraits(.isHeader)
             }
-            .clipped()
     }
     
-    // MARK: - Acciones
-    
-    private var actionsRow: some View {
-        HStack(spacing: 10) {
-            Button(action: { actions.send(.play) }) {
-                HStack(spacing: 10) {
-                    Image(systemName: "play.circle.fill")
-                        .font(.system(size: 32, weight: .regular))
-                    Text("Play Podcast")
-                        .font(.system(size: 16, weight: .semibold))
-                }
-                .foregroundStyle(.black)
-                .padding(.vertical, 10)
-                .padding(.leading, 8)
-                .padding(.trailing, 24)
-            }
-            
-            Spacer(minLength: 8)
-            
-            CircleIconButton(
-                systemName: isFavorite ? "bookmark.fill" : "bookmark",
-                isHighlighted: isFavorite,
-                action: { /*actions.send(.bookmark(podcast))*/ }
-            )
-            CircleIconButton(systemName: "arrow.down.to.line", action:{ actions.send(.download)})
-        }
-        .padding(.horizontal, HeaderStyle.horizontalPadding)
-        .padding(.top, 20)
+    /// "RAÍZ PROFUNDA · CIENCIA" over the name.
+    private var heroCaption: String {
+        [podcast.artistName, podcast.primaryGenreName]
+            .compactMap { $0 }
+            .filter { !$0.isEmpty }
+            .joined(separator: " · ")
     }
-    
-    // MARK: - Meta
-    
-    private var metaRow: some View {
-        HStack {
-            if let count = podcast.trackCount {
-                Text("\(count) episodes")
-            }
-            Spacer()
-            if let genre = podcast.primaryGenreName {
-                Text(genre)
-            }
-        }
-        .font(.system(size: 13, weight: .medium))
-        .foregroundStyle(.secondary)
-        .padding(.horizontal, HeaderStyle.horizontalPadding)
-        .padding(.top, 16)
-    }
-    
-    // MARK: - About this podcast (colapsable)
-    
-    private var aboutSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("About this podcast")
-                .font(.system(size: 18, weight: .bold))
-                .foregroundStyle(.primary)
-            
-            if isLoadingDescription {
-                HStack(spacing: 8) {
-                    ProgressView()
-                    Text("Loading description…")
-                        .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
-                }
-            } else if let description = podcastDescription, !description.isEmpty {
-                expandableDescription(description)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, HeaderStyle.horizontalPadding)
-        .padding(.top, 20)
-    }
-    
-    @ViewBuilder
-    private func expandableDescription(_ description: String) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(description)
+
+    // MARK: - About (two lines + ⓘ)
+
+    /// Always two lines tall (even while loading), so the header never
+    /// changes height. The full text opens from the ⓘ.
+    private var aboutText: some View {
+        let description = podcastDescription ?? ""
+        let shown = isLoadingDescription ? String(localized: "Loading description…") : description
+        return HStack(alignment: .top, spacing: 8) {
+            Text(shown)
                 .font(.system(size: 15))
                 .foregroundStyle(.secondary)
                 .lineSpacing(2)
-                .lineLimit(isAboutExpanded ? nil : HeaderStyle.collapsedLineLimit)
-            
+                .lineLimit(2, reservesSpace: true)
+                .redacted(reason: isLoadingDescription ? .placeholder : [])
+                .frame(maxWidth: .infinity, alignment: .leading)
+
             Button {
-                withAnimation(AppAnimation.disclosure) {
-                    isAboutExpanded.toggle()
-                }
+                actions.send(.about)
             } label: {
-                (isAboutExpanded ? Text("Show less") : Text("Read more"))
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(Color(AppColor.lavender))
+                Image(systemName: "info.circle")
+                    .font(.system(size: 20, weight: .regular))
+                    .foregroundStyle(AppColor.lavenderInk)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            .disabled(description.isEmpty)
+            .opacity(description.isEmpty ? 0.3 : 1)
+            .padding(.top, -10)
+            .accessibilityLabel("About this podcast")
         }
-        .contentShape(Rectangle())
-        .onTapGesture {
-            withAnimation(AppAnimation.disclosure) {
-                isAboutExpanded.toggle()
-            }
+        .padding(.leading, HeaderStyle.horizontalPadding)
+        .padding(.trailing, HeaderStyle.horizontalPadding - 12)
+        .padding(.top, 14)
+    }
+
+    // MARK: - Listen
+
+    /// The only action: plays the newest episode.
+    private var listenButton: some View {
+        Button {
+            actions.send(.play)
+        } label: {
+            Label("Listen to podcast", systemImage: "play.fill")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
+                .background(Capsule().fill(AppColor.ink))
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, HeaderStyle.horizontalPadding)
+        .padding(.top, 18)
+    }
+
+    // MARK: - List title
+
+    @ViewBuilder
+    private var episodesCaption: some View {
+        if let count = podcast.trackCount {
+            Text("\(count) episodes")
+                .font(.system(size: 13, weight: .bold))
+                .textCase(.uppercase)
+                .tracking(0.4)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, HeaderStyle.horizontalPadding)
+                .padding(.top, 26)
+                .padding(.bottom, 4)
         }
     }
 }

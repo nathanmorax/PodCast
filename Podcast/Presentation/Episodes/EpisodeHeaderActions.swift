@@ -9,6 +9,8 @@ import SwiftUI
 
 enum EpisodeHeaderEvent {
     case play
+    /// The ⓘ next to the description: the full "About" in a sheet.
+    case about
     case bookmark(Episode)
     case download
 }

@@ -9,14 +9,16 @@ import UIKit
 import SwiftUI
 
 private enum Layout {
-    static let headerHeight: CGFloat = 720
+    /// First guess only: the header measures itself (it grows with "Read more").
+    static let estimatedHeaderHeight: CGFloat = 640
     /// The cover part of the header (EpisodeHeaderView's hero). Past it, the
     /// navigation bar becomes solid and shows the podcast's name.
     static let heroHeight: CGFloat = 420
-    // Content needs ~160pt: date + 2-line title + 2-line description + 32pt button + 16pt padding.
-    // At 150 the 100pt artwork + 36pt menu button column overflowed into the next row.
-    static let cellHeight: CGFloat   = 164
-    static let sectionInset          = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
+    /// Every row is exactly this tall. Fixed on purpose: with self-sizing rows
+    /// the real heights only became known while scrolling, and each
+    /// correction moved the rows (worst when scrolling back up).
+    static let cellHeight: CGFloat = 172
+    static let spacing: CGFloat = 8
 }
 
 class EpisodesController: UIViewController {
@@ -25,6 +27,7 @@ class EpisodesController: UIViewController {
 
     private var lastHeaderState: HeaderState?
     private var headerActions = EpisodeHeaderActions()
+    private let headerStretch = HeaderStretch()
     private var eventsTaks: Task<Void, Never>?
 
     var podcast: Podcast? {
@@ -35,11 +38,7 @@ class EpisodesController: UIViewController {
     }
 
     private lazy var collectionView: UICollectionView = {
-        let layout = StretchyHeaderLayout()
-        layout.minimumLineSpacing      = 0
-        layout.minimumInteritemSpacing = 0
-        layout.sectionInset            = Layout.sectionInset
-        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        let cv = UICollectionView(frame: .zero, collectionViewLayout: Self.makeLayout())
         cv.translatesAutoresizingMaskIntoConstraints = false
         // The cover goes all the way up, under the status bar and the
         // (transparent) navigation bar; the bottom inset is set by hand.
@@ -76,17 +75,71 @@ class EpisodesController: UIViewController {
         return EpisodesViewModel(repository: repository)
     }()
 
-    private let episodeCellRegistration = UICollectionView.hostingRegistration { (episode: Episode) in
-        EpisodeCell(viewModel: EpisodeActionViewModel(episode: episode))
+    /// Created in viewDidLoad, never lazily: UIKit crashes ("Attempted to
+    /// dequeue a cell using a registration that was created inside
+    /// -collectionView:cellForItemAtIndexPath:") if a registration is first
+    /// made while a cell is being dequeued. A `lazy var` did exactly that.
+    private var episodeCellRegistration: UICollectionView.CellRegistration<UICollectionViewCell, Episode>!
+
+    private func setupCellRegistration() {
+        episodeCellRegistration = UICollectionView.hostingRegistration { [weak self] (episode: Episode) in
+            EpisodeCell(viewModel: EpisodeActionViewModel(episode: episode)) {
+                self?.showInfo(for: episode)
+            }
+        }
     }
 
     private var headerRegistration: UICollectionView.SupplementaryRegistration<HostingHeaderView>!
+
+    /// Self-sizing rows and header.
+    ///
+    /// Before, a flow layout gave every row a fixed 164 pt and the header a
+    /// fixed 720 pt, while their SwiftUI content had its own size: long titles
+    /// or bigger text spilled into the next row (rows on top of each other),
+    /// "Read more" made the header taller than its slot (covering the first
+    /// episodes), and the hosted cells tried to resize themselves during the
+    /// scroll (rows moving). Now each row and the header measure their content.
+    private static func makeLayout() -> UICollectionViewCompositionalLayout {
+        let size = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1),
+            heightDimension: .absolute(Layout.cellHeight)
+        )
+        let item = NSCollectionLayoutItem(layoutSize: size)
+        let group = NSCollectionLayoutGroup.vertical(layoutSize: size, subitems: [item])
+
+        let section = NSCollectionLayoutSection(group: group)
+        section.interGroupSpacing = Layout.spacing
+        section.contentInsets = NSDirectionalEdgeInsets(
+            top: Layout.spacing, leading: Layout.spacing,
+            bottom: Layout.spacing, trailing: Layout.spacing
+        )
+
+        let header = NSCollectionLayoutBoundarySupplementaryItem(
+            layoutSize: NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1),
+                heightDimension: .estimated(Layout.estimatedHeaderHeight)
+            ),
+            elementKind: UICollectionView.elementKindSectionHeader,
+            alignment: .top
+        )
+        section.boundarySupplementaryItems = [header]
+        // The cover goes edge to edge and under the status bar: insets are
+        // never measured from the safe area, and the side insets are only
+        // for the rows.
+        section.contentInsetsReference = .none
+        section.supplementaryContentInsetsReference = .none
+
+        let configuration = UICollectionViewCompositionalLayoutConfiguration()
+        configuration.contentInsetsReference = .none
+        return UICollectionViewCompositionalLayout(section: section, configuration: configuration)
+    }
 
     // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
         perf.measure("viewDidLoad") {
+            setupCellRegistration()
             setupHeaderRegistration()
             setupCollectionView()
             listenerHeaderEvents()
@@ -219,7 +272,7 @@ class EpisodesController: UIViewController {
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            loaderContainerView.topAnchor.constraint(equalTo: collectionView.topAnchor, constant: Layout.headerHeight),
+            loaderContainerView.topAnchor.constraint(equalTo: collectionView.topAnchor, constant: Layout.estimatedHeaderHeight),
             loaderContainerView.leadingAnchor.constraint(equalTo: collectionView.leadingAnchor),
             loaderContainerView.trailingAnchor.constraint(equalTo: collectionView.trailingAnchor),
             loaderContainerView.widthAnchor.constraint(equalTo: collectionView.widthAnchor)
@@ -229,9 +282,9 @@ class EpisodesController: UIViewController {
     private func setupHeaderRegistration() {
         headerRegistration = UICollectionView.SupplementaryRegistration<HostingHeaderView>(
             elementKind: UICollectionView.elementKindSectionHeader
-        ) { [weak self] supplementaryView, _, _ in
+        ) { [weak self] header, _, _ in
             guard let self, let podcast = self.podcast else { return }
-            supplementaryView.host(self.makeHeaderView(for: podcast), parent: self)
+            header.host(self.makeHeaderView(for: podcast), parent: self)
         }
     }
 
@@ -242,7 +295,8 @@ class EpisodesController: UIViewController {
                 isFavorite: viewModel.isFavorite(podcast),
                 podcastDescription: viewModel.podcastDescription,
                 isLoadingDescription: viewModel.isLoadingDescription,
-                actions: headerActions
+                actions: headerActions,
+                stretch: headerStretch
             )
         }
     }
@@ -263,6 +317,7 @@ class EpisodesController: UIViewController {
                 guard !Task.isCancelled else { break }
                 switch event {
                 case .play:     self.handlePlayPodcast()
+                case .about:    self.showAbout()
                 case .bookmark: self.handleFavoritePodcast()
                 case .download: self.handleDownloadPodcast()
                 }
@@ -277,9 +332,40 @@ class EpisodesController: UIViewController {
         viewModel.toggleFavorite(podcast: podcast)
     }
 
+    /// "Listen to podcast": the newest episode by date (most feeds list it
+    /// first, but not all).
     private func handlePlayPodcast() {
-        guard let firstEpisode = viewModel.episodes.first else { return }
-        PlayerManager.shared.play(firstEpisode)
+        guard let newest = viewModel.episodes.max(by: { $0.pubDate < $1.pubDate }) else { return }
+        PlayerManager.shared.play(newest)
+    }
+
+    /// The podcast's full description in a sheet (the ⓘ next to it).
+    private func showAbout() {
+        guard let podcast else { return }
+        let sheet = UIHostingController(rootView: PodcastAboutSheet(
+            podcast: podcast,
+            description: viewModel.podcastDescription ?? ""
+        ))
+        if let presentation = sheet.sheetPresentationController {
+            presentation.detents = [.medium(), .large()]
+            presentation.prefersGrabberVisible = true
+            presentation.preferredCornerRadius = 28
+        }
+        present(sheet, animated: true)
+    }
+
+    /// The episode's details in a sheet (half screen, can grow).
+    private func showInfo(for episode: Episode) {
+        let sheet = UIHostingController(rootView: EpisodeInfoSheet(episode: episode) { [weak self] in
+            PlayerManager.shared.play(episode)
+            self?.dismiss(animated: true)
+        })
+        if let presentation = sheet.sheetPresentationController {
+            presentation.detents = [.medium(), .large()]
+            presentation.prefersGrabberVisible = true
+            presentation.preferredCornerRadius = 28
+        }
+        present(sheet, animated: true)
     }
 
     private func handleDownloadPodcast() {
@@ -341,27 +427,17 @@ extension EpisodesController: UICollectionViewDelegate {
     }
 }
 
-// MARK: - FlowLayout
-
-extension EpisodesController: UICollectionViewDelegateFlowLayout {
-    
-    func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        sizeForItemAt indexPath: IndexPath) -> CGSize {
-        CGSize(width: collectionView.bounds.width, height: Layout.cellHeight)
-    }
-    
-    func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        referenceSizeForHeaderInSection section: Int) -> CGSize {
-        CGSize(width: collectionView.bounds.width, height: Layout.headerHeight)
-    }
-}
-
 extension EpisodesController: UIScrollViewDelegate {
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         updateNavigationBar()
+
+        // Pulled past the top: the cover grows into the gap. Written only
+        // when it changes, so normal scrolling doesn't touch the header.
+        let pull = max(0, -scrollView.contentOffset.y)
+        if headerStretch.pull != pull {
+            headerStretch.pull = pull
+        }
         
         let offsetY = scrollView.contentOffset.y
         let contentHeight = scrollView.contentSize.height

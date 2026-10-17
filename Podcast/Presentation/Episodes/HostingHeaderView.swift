@@ -8,6 +8,11 @@ import UIKit
 import SwiftUI
 
 
+/// Hosts the SwiftUI header in the list.
+///
+/// A UIHostingController (not a hosting configuration) because it can ignore
+/// the safe area (`safeAreaRegions = []`): the cover must start under the
+/// status bar. It reports its own height to the layout.
 final class HostingHeaderView: UICollectionReusableView {
     
     private var hostingController: UIHostingController<AnyView>?
@@ -47,6 +52,19 @@ final class HostingHeaderView: UICollectionReusableView {
         self.parentViewController = parent
     }
     
+    /// The layout asks how tall the header is for this width.
+    override func preferredLayoutAttributesFitting(
+        _ layoutAttributes: UICollectionViewLayoutAttributes
+    ) -> UICollectionViewLayoutAttributes {
+        guard let hostingController else { return layoutAttributes }
+        let fitting = hostingController.sizeThatFits(
+            in: CGSize(width: layoutAttributes.size.width, height: .greatestFiniteMagnitude)
+        )
+        let attributes = layoutAttributes.copy() as! UICollectionViewLayoutAttributes
+        attributes.size.height = ceil(fitting.height)
+        return attributes
+    }
+
     override func prepareForReuse() {
         super.prepareForReuse()
         hostingController?.willMove(toParent: nil)
