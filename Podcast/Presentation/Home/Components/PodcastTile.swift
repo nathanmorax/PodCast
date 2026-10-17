@@ -15,13 +15,13 @@ struct PodcastTile: View {
                 .overlay { PodcastImage(source: podcast.artworkUrl600) }
                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             Text(podcast.trackName ?? "")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.black)
+                .font(AppFont.itemTitle)
+                .foregroundStyle(AppColor.Text.primary)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
             Text(podcast.artistName ?? "")
-                .font(.system(size: 12))
-                .foregroundStyle(.black.opacity(0.5))
+                .font(AppFont.caption)
+                .foregroundStyle(AppColor.Text.secondary)
                 .lineLimit(1)
         }
         .frame(width: 132, alignment: .leading)

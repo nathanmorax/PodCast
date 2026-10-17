@@ -30,7 +30,7 @@ struct EpisodeInfoSheet: View {
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text(episode.title)
-                            .font(.system(size: 19, weight: .bold))
+                            .font(AppFont.sheetTitle)
                             .foregroundStyle(AppColor.ink)
                             .fixedSize(horizontal: false, vertical: true)
                         HStack(spacing: 6) {
@@ -38,25 +38,25 @@ struct EpisodeInfoSheet: View {
                             Text(verbatim: "·")
                             Text(episode.durationDisplayText)
                         }
-                        .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
+                        .font(AppFont.footnote)
+                        .foregroundStyle(AppColor.Text.secondary)
                     }
                 }
                 .padding(.top, 8)
 
                 Button(action: onPlay) {
                     Label("Listen to episode", systemImage: "play.fill")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(AppFont.button)
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
-                        .background(Capsule().fill(AppColor.ink))
+                        .background(Capsule().fill(AppColor.Accent.strong))
                 }
                 .buttonStyle(.plain)
 
                 if !notes.isEmpty {
                     Text(notes)
-                        .font(.system(size: 15))
+                        .font(AppFont.body)
                         .foregroundStyle(AppColor.ink.opacity(0.8))
                         .lineSpacing(3)
                         .textSelection(.enabled)

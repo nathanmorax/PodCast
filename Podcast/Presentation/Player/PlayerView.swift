@@ -187,7 +187,7 @@ struct PlayerView: View {
                 .background {
                     if isOn {
                         Capsule()
-                            .fill(Color.white)
+                            .fill(AppColor.Surface.raised)
                             .shadow(color: Color.black.opacity(0.08), radius: 4, y: 2)
                             .matchedGeometryEffect(id: "tab", in: tabNamespace)
                     }
@@ -598,7 +598,7 @@ struct PlayerView: View {
                 
                 Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
                     .font(.system(size: 30, weight: .black))
-                    .foregroundStyle(Self.ink)
+                    .foregroundStyle(AppColor.Text.onPastel)
                     .contentTransition(.symbolEffect(.replace))
                     .offset(x: viewModel.isPlaying ? 0 : 3)
             }

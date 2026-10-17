@@ -29,8 +29,8 @@ struct RecentUpdateCard: View {
                 .overlay(alignment: .bottomLeading) {
                     if isCurrent {
                         Label("Playing", systemImage: "waveform")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(.black)
+                            .font(AppFont.captionStrong)
+                            .foregroundStyle(AppColor.Text.onPastel)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
                             .background(Capsule().fill(AppColor.lavender))
@@ -39,8 +39,8 @@ struct RecentUpdateCard: View {
                 }
 
             Text(item.episode.title)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.black) // was .white on a light background: unreadable
+                .font(AppFont.itemTitle)
+                .foregroundStyle(AppColor.Text.primary) // was .white on a light background: unreadable
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
 
@@ -49,8 +49,8 @@ struct RecentUpdateCard: View {
                 Text("·")
                 Text(item.episode.author)
             }
-            .font(.system(size: 12))
-            .foregroundStyle(.black.opacity(0.5))
+            .font(AppFont.caption)
+            .foregroundStyle(AppColor.Text.secondary)
             .lineLimit(1)
 
             if progress > 0.01 {

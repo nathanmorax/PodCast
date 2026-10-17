@@ -25,18 +25,18 @@ struct PodcastCellUI: View {
 //                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             VStack(alignment: .leading, spacing: 4) {
                 Text(podcast?.trackName ?? "")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(.primary)
+                    .font(AppFont.cardTitle)
+                    .foregroundStyle(AppColor.Text.primary)
                     .lineLimit(2)
                 
                 Text(podcast?.artistName ?? "")
-                    .font(.system(size: 14))
-                    .foregroundStyle(.secondary)
+                    .font(AppFont.callout)
+                    .foregroundStyle(AppColor.Text.secondary)
                     .lineLimit(1)
                 
                 Text("\(podcast?.trackCount ?? 0) episodes")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.tertiary)
+                    .font(AppFont.caption)
+                    .foregroundStyle(AppColor.Text.tertiary)
             }
             
             Spacer()
@@ -47,7 +47,7 @@ struct PodcastCellUI: View {
                 isFollow.toggle()
             } label: {
                 Image(systemName: isFollow ? "checkmark.circle.fill" : "plus")
-                    .foregroundStyle(.black)
+                    .foregroundStyle(AppColor.Text.primary)
             }
             
         }

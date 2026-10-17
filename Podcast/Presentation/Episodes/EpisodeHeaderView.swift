@@ -78,14 +78,14 @@ struct EpisodeHeaderView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     if !heroCaption.isEmpty {
                         Text(heroCaption)
-                            .font(.system(size: 13, weight: .bold))
+                            .font(AppFont.overline)
                             .textCase(.uppercase)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(AppColor.Text.secondary)
                             .lineLimit(1)
                     }
                     Text(podcast.trackName ?? "")
-                        .font(.system(size: 32, weight: .heavy))
-                        .foregroundStyle(.primary)
+                        .font(AppFont.hero)
+                        .foregroundStyle(AppColor.Text.primary)
                         .lineLimit(2)
                         .minimumScaleFactor(0.8)
                 }
@@ -114,13 +114,25 @@ struct EpisodeHeaderView: View {
                 actions.send(.play)
             } label: {
                 Label("Listen to podcast", systemImage: "play.fill")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(AppFont.button)
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
-                    .background(Capsule().fill(AppColor.ink))
+                    .background(Capsule().fill(AppColor.Accent.strong))
             }
             .buttonStyle(.plain)
+
+            // Follow: + while not following, ✓ (filled violet) once followed.
+            // Followed podcasts live in Library → "Following" and in Home.
+            Button {
+                actions.send(.follow)
+            } label: {
+                roundIcon(isFavorite ? "checkmark" : "plus", isOn: isFavorite)
+                    .contentTransition(.symbolEffect(.replace))
+            }
+            .buttonStyle(.plain)
+            .sensoryFeedback(.success, trigger: isFavorite)
+            .accessibilityLabel(isFavorite ? Text("Unfollow") : Text("Follow"))
 
             Button {
                 actions.send(.about)
@@ -142,12 +154,12 @@ struct EpisodeHeaderView: View {
         .padding(.top, 18)
     }
 
-    private func roundIcon(_ name: String) -> some View {
+    private func roundIcon(_ name: String, isOn: Bool = false) -> some View {
         Image(systemName: name)
             .font(.system(size: 18, weight: .semibold))
-            .foregroundStyle(AppColor.ink)
+            .foregroundStyle(isOn ? AppColor.Text.inverse : AppColor.Accent.strong)
             .frame(width: 50, height: 50)
-            .background(Circle().fill(AppColor.ink.opacity(0.07)))
+            .background(Circle().fill(isOn ? AppColor.Accent.strong : AppColor.Accent.wash))
     }
 
     /// The podcast on Apple Podcasts (opens in any app or browser).
@@ -161,10 +173,10 @@ struct EpisodeHeaderView: View {
     private var episodesCaption: some View {
         if let count = podcast.trackCount {
             Text("\(count) episodes")
-                .font(.system(size: 13, weight: .bold))
+                .font(AppFont.overline)
                 .textCase(.uppercase)
                 .tracking(0.4)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(AppColor.Text.secondary)
                 .padding(.horizontal, HeaderStyle.horizontalPadding)
                 .padding(.top, 26)
                 .padding(.bottom, 4)

@@ -25,12 +25,12 @@ struct OnboardingView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("What do you like to listen to?")
-                        .font(.system(size: 34, weight: .heavy))
+                        .font(AppFont.display)
                         .tracking(-0.7)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityAddTraits(.isHeader)
-                    Text("Pick 3 or more.")
-                        .font(.system(size: 16))
+                    Text("Pick at least one.")
+                        .font(AppFont.body)
                         .opacity(0.85)
 
                     FlowLayout(spacing: 10, lineSpacing: 10) {
@@ -39,6 +39,9 @@ struct OnboardingView: View {
                         }
                     }
                     .padding(.top, 28)
+
+                    chooseForMeButton
+                        .padding(.top, 18)
                 }
                 .foregroundStyle(.white)
                 .padding(.horizontal, 20)
@@ -51,7 +54,10 @@ struct OnboardingView: View {
                 .padding(.horizontal, 24)
                 .padding(.bottom, 12)
         }
-        .overlay(alignment: .topTrailing) { skipButton }
+        // Only when reopened from Home: a way out without changes.
+        .overlay(alignment: .topTrailing) {
+            if interests.isEditing { cancelButton }
+        }
     }
 
     // MARK: - Pieces
@@ -68,7 +74,7 @@ struct OnboardingView: View {
                         .transition(.scale.combined(with: .opacity))
                 }
                 Text(genre.name)
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(AppFont.headline)
             }
             .foregroundStyle(isOn ? Color.white : AppColor.lavenderInk)
             .padding(.horizontal, isOn ? 16 : 20)
@@ -87,7 +93,7 @@ struct OnboardingView: View {
         } label: {
             HStack(spacing: 8) {
                 Text("Continue")
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(AppFont.headline)
                 Text(model.selectedIDs.count, format: .number)
                     .font(.system(size: 13, weight: .bold))
                     .monospacedDigit()
@@ -107,11 +113,25 @@ struct OnboardingView: View {
         .accessibilityValue(Text("\(model.selectedIDs.count) selected"))
     }
 
-    private var skipButton: some View {
-        Button("Skip") {
-            withAnimation(AppAnimation.onboarding) { model.skip(into: interests) }
+    /// For people who don't want to think about it: the popular genres,
+    /// which they can still change before continuing.
+    private var chooseForMeButton: some View {
+        Button {
+            withAnimation(AppAnimation.selection) { model.chooseForMe() }
+        } label: {
+            Label("Choose for me", systemImage: "sparkles")
+                .font(AppFont.link)
+                .foregroundStyle(.white)
+                .underline()
         }
-        .font(.system(size: 15, weight: .semibold))
+        .buttonStyle(.plain)
+    }
+
+    private var cancelButton: some View {
+        Button("Cancel") {
+            withAnimation(AppAnimation.onboarding) { model.cancel(into: interests) }
+        }
+        .font(AppFont.link)
         .foregroundStyle(.white.opacity(0.85))
         .padding(.horizontal, 20)
         .frame(minHeight: 44)

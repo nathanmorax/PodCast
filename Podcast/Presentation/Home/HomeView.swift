@@ -18,6 +18,13 @@ struct HomeView: View {
 
     let onOpenPodcast: (Podcast) -> Void
     let onSearch: () -> Void
+    /// "Following" under the title: the podcasts you follow.
+    let onOpenFollowing: () -> Void
+    /// "Favorites" under the title: the episodes you saved.
+    let onOpenFavorites: () -> Void
+
+    /// Saved episodes, only for the count next to "Favorites".
+    private let bookmarks = BookMarkEpisodeManager.shared
 
     private var favorites: [Podcast] { favoritesManager.favorites }
 
@@ -87,14 +94,14 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 22) {
             HStack(alignment: .firstTextBaseline) {
                 Text("For you")
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundStyle(.black)
+                    .font(AppFont.sectionTitle)
+                    .foregroundStyle(AppColor.Text.primary)
                     .accessibilityAddTraits(.isHeader)
                 Spacer()
                 Button("Edit") {
                     withAnimation(AppAnimation.onboarding) { interests.edit() }
                 }
-                .font(.system(size: 15, weight: .semibold))
+                .font(AppFont.link)
                 .foregroundStyle(AppColor.lavenderInk)
                 .accessibilityLabel("Edit interests")
             }
@@ -108,7 +115,7 @@ struct HomeView: View {
             ForEach(forYou.rows) { row in
                 VStack(alignment: .leading, spacing: 10) {
                     Text(row.genre.name)
-                        .font(.system(size: 13, weight: .bold))
+                        .font(AppFont.overline)
                         .textCase(.uppercase)
                         .tracking(0.6)
                         .foregroundStyle(AppColor.lavenderInk)
@@ -138,21 +145,47 @@ struct HomeView: View {
 
     // MARK: - Header
 
-    /// The title "Inicio" is the navigation bar's large title (same height as
-    /// Biblioteca and Buscar); under it, today's date.
+    /// Under the title "Home" (the navigation bar's): two violet links,
+    /// Following and Favorites, each with its count. Then today's date.
     private var header: some View {
-        Text(Date.now, format: .dateTime.weekday(.wide).day().month(.wide))
-            .font(.system(size: 13, weight: .semibold))
-            .foregroundStyle(.black.opacity(0.45))
-            .textCase(.uppercase)
-            .padding(.horizontal, 20)
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 18) {
+                libraryLink("Following", count: favorites.count, action: onOpenFollowing)
+                libraryLink("Favorites", count: bookmarks.episodes.count, action: onOpenFavorites)
+            }
+
+            Text(Date.now, format: .dateTime.weekday(.wide).day().month(.wide))
+                .font(AppFont.overline)
+                .foregroundStyle(AppColor.Text.secondary)
+                .textCase(.uppercase)
+        }
+        .padding(.horizontal, 20)
+    }
+
+    /// Plain text: the name in violet, the count in gray. Opens its list.
+    private func libraryLink(_ title: LocalizedStringKey, count: Int, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(title)
+                    .font(AppFont.link)
+                    .foregroundStyle(AppColor.Text.link)
+                Text(count, format: .number)
+                    .font(AppFont.body)
+                    .foregroundStyle(AppColor.Text.secondary)
+                    .contentTransition(.numericText())
+            }
+            .padding(.vertical, 6) // a comfortable tap target
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .animation(AppAnimation.stateChange, value: count)
     }
 
     private func section<Content: View>(_ title: LocalizedStringKey, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             Text(title)
-                .font(.system(size: 22, weight: .bold))
-                .foregroundStyle(.black)
+                .font(AppFont.sectionTitle)
+                .foregroundStyle(AppColor.Text.primary)
                 .padding(.horizontal, 20)
                 .accessibilityAddTraits(.isHeader)
             content()
@@ -210,19 +243,19 @@ struct HomeView: View {
                 .foregroundStyle(AppColor.lavenderInk)
                 .accessibilityHidden(true)
             Text("Your home is empty")
-                .font(.system(size: 20, weight: .bold))
-                .foregroundStyle(.black)
+                .font(AppFont.sectionTitle)
+                .foregroundStyle(AppColor.Text.primary)
             Text("Search for a podcast and start listening. You'll pick it up here right where you left off.")
-                .font(.system(size: 15))
-                .foregroundStyle(.black.opacity(0.55))
+                .font(AppFont.body)
+                .foregroundStyle(AppColor.Text.secondary)
                 .multilineTextAlignment(.center)
             Button(action: onSearch) {
                 Label("Search podcasts", systemImage: "magnifyingglass")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(.black)
+                    .font(AppFont.link)
+                    .foregroundStyle(AppColor.Text.inverse)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)
-                    .background(Capsule().fill(AppColor.lavender))
+                    .background(Capsule().fill(AppColor.Accent.strong))
             }
             .buttonStyle(.plain)
             .padding(.top, 6)
@@ -238,7 +271,9 @@ struct HomeView: View {
 #Preview {
     HomeView(
         onOpenPodcast: { _ in },
-        onSearch: {}
+        onSearch: {},
+        onOpenFollowing: {},
+        onOpenFavorites: {}
     )
     .environment(\.recentlyPlayed, .preview)
     .environment(\.playerManager, .preview)

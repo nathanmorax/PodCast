@@ -57,6 +57,20 @@ final class EpisodesController: UIViewController {
         updateNavigationBar()
     }
 
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        learnInterestIfListened()
+    }
+
+    /// Played something from this podcast? Its genre joins the listener's
+    /// interests, so Home's "For you" learns from what they actually hear.
+    private func learnInterestIfListened() {
+        guard let current = PlayerManager.shared.currentEpisode,
+              viewModel.episodes.contains(where: { $0.streamUrl == current.streamUrl }),
+              let genreID = Genre.catalogID(forITunesGenre: podcast?.primaryGenreName) else { return }
+        InterestsManager.shared.learn(genreID: genreID)
+    }
+
     deinit {
         eventsTask?.cancel()
     }
@@ -145,6 +159,7 @@ final class EpisodesController: UIViewController {
                 switch event {
                 case .play:     self.playNewest()
                 case .about:    self.showAbout()
+                case .follow:   self.toggleFavorite()
                 case .bookmark: self.toggleFavorite()
                 case .download: break
                 }

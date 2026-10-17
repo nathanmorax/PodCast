@@ -15,7 +15,7 @@ struct EpisodeContextMenuButton: UIViewRepresentable {
         let button = UIButton(type: .system)
         let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)
         button.setImage(UIImage(systemName: "ellipsis", withConfiguration: config), for: .normal)
-        button.tintColor = .black
+        button.tintColor = .label
         button.showsMenuAsPrimaryAction = true  // ← abre el menú con tap, sin long press
         button.menu = context.coordinator.makeMenu()
         return button

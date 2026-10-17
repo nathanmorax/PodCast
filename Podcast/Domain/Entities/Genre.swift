@@ -35,6 +35,33 @@ extension Genre {
         Genre(id: "1305", name: String(localized: "Kids & Family")),
     ]
 
+    /// iTunes' English genre names (`Podcast.primaryGenreName`) → catalog id.
+    /// Subgenres map to their parent ("Improv" → Comedy).
+    private static let iTunesNames: [String: String] = [
+        "comedy": "1303", "comedy interviews": "1303", "improv": "1303", "stand-up": "1303",
+        "news": "1489", "daily news": "1489", "politics": "1489", "news commentary": "1489",
+        "true crime": "1488",
+        "society & culture": "1324", "documentary": "1324", "personal journals": "1324", "relationships": "1324",
+        "business": "1321", "careers": "1321", "entrepreneurship": "1321", "investing": "1321", "management": "1321",
+        "health & fitness": "1512", "mental health": "1512", "fitness": "1512", "nutrition": "1512",
+        "sports": "1545", "soccer": "1545", "football": "1545", "basketball": "1545",
+        "history": "1487",
+        "science": "1533", "natural sciences": "1533", "nature": "1533", "physics": "1533", "astronomy": "1533",
+        "technology": "1318",
+        "education": "1304", "self-improvement": "1304", "language learning": "1304", "how to": "1304",
+        "arts": "1301", "books": "1301", "design": "1301",
+        "tv & film": "1309", "film reviews": "1309", "tv reviews": "1309",
+        "music": "1310", "music commentary": "1310",
+        "fiction": "1483", "drama": "1483", "science fiction": "1483",
+        "kids & family": "1305", "parenting": "1305",
+    ]
+
+    /// The catalog id for a podcast's iTunes genre, if it's one we offer.
+    static func catalogID(forITunesGenre name: String?) -> String? {
+        guard let name else { return nil }
+        return iTunesNames[name.lowercased()]
+    }
+
     /// The catalog genre with this id (its name in the current language).
     static func catalog(id: String) -> Genre? {
         podcastCatalog.first { $0.id == id }

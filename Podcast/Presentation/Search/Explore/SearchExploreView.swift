@@ -50,7 +50,7 @@ struct SearchExploreView: View {
                 Button("Clear") {
                     withAnimation(AppAnimation.listChange) { recentSearches.clear() }
                 }
-                .font(.system(size: 14, weight: .semibold))
+                .font(AppFont.link)
                 .foregroundStyle(AppColor.lavenderInk)
                 .accessibilityLabel("Clear recent searches")
             }
@@ -116,12 +116,12 @@ struct SearchExploreView: View {
     private var errorState: some View {
         VStack(spacing: 10) {
             Text("Couldn't load the categories.")
-                .font(.system(size: 15))
-                .foregroundStyle(.black.opacity(0.55))
+                .font(AppFont.body)
+                .foregroundStyle(AppColor.Text.secondary)
             Button("Try again") {
                 genresViewModel.loadGenre()
             }
-            .font(.system(size: 15, weight: .semibold))
+            .font(AppFont.link)
             .foregroundStyle(AppColor.lavenderInk)
         }
         .frame(maxWidth: .infinity)
@@ -130,7 +130,7 @@ struct SearchExploreView: View {
 
     private func sectionTitle(_ text: LocalizedStringKey) -> some View {
         Text(text)
-            .font(.system(size: 20, weight: .bold))
+            .font(AppFont.sectionTitle)
             .foregroundStyle(AppColor.ink)
             .accessibilityAddTraits(.isHeader)
     }
@@ -149,7 +149,7 @@ private struct RecentSearchItem: View {
                 .overlay { PodcastImage(source: podcast.artworkUrl600) }
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             Text(podcast.trackName ?? "")
-                .font(.system(size: 12, weight: .medium))
+                .font(AppFont.captionStrong)
                 .foregroundStyle(AppColor.ink.opacity(0.8))
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)

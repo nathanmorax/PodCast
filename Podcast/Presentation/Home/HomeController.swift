@@ -12,19 +12,25 @@ final class HomeController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = String(localized: "Home")
+        title = String(localized: "Library")
         showTitleOnLeading()
         navigationItem.largeTitleDisplayMode = .never
         // Same gray as the content, so the large title area doesn't show a
         // white band above it.
-        view.backgroundColor = AppColor.screenBackground.uiColor
+        view.backgroundColor = ColorName.screenBackground.uiColor
         setupHosting()
     }
 
     private func setupHosting() {
         let home = HomeView(
             onOpenPodcast: { [weak self] podcast in self?.open(podcast) },
-            onSearch: { AppNavigator.shared.showSearch() }
+            onSearch: { AppNavigator.shared.showSearch() },
+            onOpenFollowing: { [weak self] in
+                self?.navigationController?.pushViewController(FollowingController(), animated: true)
+            },
+            onOpenFavorites: { [weak self] in
+                self?.navigationController?.pushViewController(BookMarkEpisodeController(), animated: true)
+            }
         )
         let hosting = UIHostingController(rootView: home)
         hosting.view.translatesAutoresizingMaskIntoConstraints = false

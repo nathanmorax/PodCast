@@ -13,8 +13,6 @@ struct MiniPlayerCapsule: View {
     let episode: Episode
     /// Author and remaining time; hidden when the bar is folded.
     let showsSubtitle: Bool
-    /// Just artwork + play/pause (next to the search field in Search).
-    var isCompact: Bool = false
 
     var body: some View {
         HStack(spacing: 4) {
@@ -24,29 +22,27 @@ struct MiniPlayerCapsule: View {
                 HStack(spacing: 10) {
                     artwork
 
-                    if !isCompact {
                     VStack(alignment: .leading, spacing: 1) {
                         Text(episode.title)
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.black)
+                            .font(AppFont.itemTitle)
+                            .foregroundStyle(AppColor.Text.primary)
                             .lineLimit(1)
                         if showsSubtitle {
                             Text(subtitle)
-                                .font(.system(size: 11))
+                                .font(AppFont.caption)
                                 .monospacedDigit()
-                                .foregroundStyle(.black.opacity(0.55))
+                                .foregroundStyle(AppColor.Text.secondary)
                                 .lineLimit(1)
                         }
                     }
 
                     Spacer(minLength: 0)
-                    }
                 }
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityElement(children: .combine)
-            .accessibilityLabel(isCompact || !showsSubtitle ? Text(verbatim: episode.title) : Text(verbatim: "\(episode.title), \(subtitle)"))
+            .accessibilityLabel(!showsSubtitle ? Text(verbatim: episode.title) : Text(verbatim: "\(episode.title), \(subtitle)"))
             .accessibilityHint("Opens the player")
 
             Button {
@@ -55,7 +51,7 @@ struct MiniPlayerCapsule: View {
                 Image(systemName: manager.viewModel.isPlaying ? "pause.fill" : "play.fill")
                     .font(.system(size: 17, weight: .semibold))
                     .contentTransition(.symbolEffect(.replace))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(AppColor.Text.primary)
                     .frame(width: 40, height: 40)
                     .contentShape(Circle())
             }
@@ -65,7 +61,6 @@ struct MiniPlayerCapsule: View {
         .padding(.leading, 9)
         .padding(.trailing, 6)
         .frame(maxHeight: .infinity)
-        .fixedSize(horizontal: isCompact, vertical: false)
         .glassCapsule()
     }
 

@@ -34,6 +34,8 @@ enum ColorName: String, CaseIterable {
     case lavenderInk
     case readingBackground
     case readingText
+    case surfaceRaised
+    case inkOnPastel
 }
 
 extension Color {

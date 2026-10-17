@@ -17,8 +17,8 @@ struct GenrePodcastCell: View {
 
     var body: some View {
         Text(genre.name)
-            .font(.system(size: 16, weight: .bold))
-            .foregroundStyle(AppColor.ink)
+            .font(AppFont.cardTitle)
+            .foregroundStyle(AppColor.Text.onPastel)
             .lineLimit(2)
             .multilineTextAlignment(.leading)
             .padding(.trailing, 40)
@@ -54,7 +54,7 @@ struct GenrePodcastCell: View {
                 if url == nil {
                     Image(systemName: "waveform")
                         .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(.black.opacity(0.22))
+                        .foregroundStyle(AppColor.Text.tertiary)
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))

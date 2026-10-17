@@ -6,16 +6,12 @@
 import SwiftUI
 
 /// The app's bottom bar. One row that changes with where you are:
-/// - Inicio / Biblioteca: the mini player and, next to it, a search circle.
-///   (Nothing playing: just the search field.) Tabs change by swiping the
-///   screen sideways (MainContainerController), so they aren't listed here.
-/// - Search: the search field, plus a button to close Search (or ✕ to
-///   cancel while typing). If something is playing, a small mini player
-///   (artwork + play) sits right of the field (hidden while typing). Swiping
-///   down on the field closes Search too.
-/// - Screens opened from Search (a genre, a podcast): only the mini player,
-///   if something is playing. See `BottomBarLayout`.
-/// - Scrolling down a list makes the row a little smaller.
+/// - Library (the main screen): the mini player and, next to it, a search
+///   circle. (Nothing playing: just the search field.)
+/// - Search: only the search field (with its clear button). ⌄ to close
+///   Search is at the top right of the screen; swiping down on the field or
+///   pulling the screen down closes it too.
+/// - Screens opened from Search (a genre, a podcast): no bar.
 /// - Swiping up on the search circle/field opens Search (no slide: the
 ///   keyboard coming up is the only motion).
 struct BottomBar: View {
@@ -27,11 +23,10 @@ struct BottomBar: View {
     @FocusState private var isFieldFocused: Bool
 
     enum Metrics {
+        /// Every piece of the row (mini player, search circle/field, ⌄) has
+        /// this height, always: the bar never changes size.
         static let rowHeight: CGFloat = 62
-        static let compactHeight: CGFloat = 52
         static let spacing: CGFloat = 10
-        /// The mini player's own row in Search.
-        static let playerRowHeight: CGFloat = 56
     }
 
     static func layout(navigator: AppNavigator, isPlaying: Bool) -> BottomBarLayout {
@@ -45,7 +40,7 @@ struct BottomBar: View {
 
     /// Height of the bar at rest. RootView reserves it so lists end above it.
     static func restingHeight(_ layout: BottomBarLayout) -> CGFloat {
-        layout.height(row: Metrics.rowHeight, playerRow: Metrics.playerRowHeight, spacing: Metrics.spacing)
+        layout.height(row: Metrics.rowHeight)
     }
 
     private var layout: BottomBarLayout {
@@ -56,36 +51,20 @@ struct BottomBar: View {
 
     private var showsMiniPlayer: Bool { layout.player == .inline }
 
-    private var isCompact: Bool {
-        navigator.isBarCompact && showsMiniPlayer
-    }
-
-    private var height: CGFloat {
-        isCompact ? Metrics.compactHeight : Metrics.rowHeight
-    }
+    private var height: CGFloat { Metrics.rowHeight }
 
     // The search element always sits at the same place in this structure, so
     // the field keeps its identity (and the keyboard) while the bar changes.
     var body: some View {
-        VStack(spacing: Metrics.spacing) {
-            if let episode = manager.currentEpisode,
-               layout.player == .alone {
-                MiniPlayerCapsule(episode: episode, showsSubtitle: true)
-                    .matchedGeometryEffect(id: "player", in: namespace)
-                    .frame(height: Metrics.rowHeight)
-                    .transition(.barPlayerRow)
-            }
-
+        Group {
             if layout.showsSearchRow {
                 mainRow
             }
         }
         .animation(AppAnimation.bar, value: layout)
-        .animation(AppAnimation.bar, value: isCompact)
         .animation(AppAnimation.bar, value: inSearch)
         .animation(AppAnimation.bar, value: navigator.isSearching)
         .animation(AppAnimation.bar, value: manager.currentEpisode?.streamUrl)
-        .sensoryFeedback(.selection, trigger: navigator.selectedTab)
         // Keep the keyboard and the navigator in sync, both ways.
         .onChange(of: isFieldFocused) { _, focused in
             if navigator.isSearching != focused { navigator.isSearching = focused }
@@ -93,16 +72,13 @@ struct BottomBar: View {
         .onChange(of: navigator.isSearching) { _, searching in
             if isFieldFocused != searching { isFieldFocused = searching }
         }
-        // VoiceOver can't swipe the screen like a finger: offer the tabs here.
         .accessibilityElement(children: .contain)
-        .accessibilityAction(named: Text("Next tab")) { navigator.swipeTab(towardNext: true) }
-        .accessibilityAction(named: Text("Previous tab")) { navigator.swipeTab(towardNext: false) }
     }
 
     private var mainRow: some View {
         HStack(spacing: Metrics.spacing) {
             if showsMiniPlayer, let episode = manager.currentEpisode {
-                MiniPlayerCapsule(episode: episode, showsSubtitle: !isCompact)
+                MiniPlayerCapsule(episode: episode, showsSubtitle: true)
                     .matchedGeometryEffect(id: "player", in: namespace)
                     .transition(.barLeadingItem)
             }
@@ -110,19 +86,8 @@ struct BottomBar: View {
             searchElement
                 .matchedGeometryEffect(id: "search", in: namespace)
 
-            if layout.player == .trailing, let episode = manager.currentEpisode {
-                MiniPlayerCapsule(episode: episode, showsSubtitle: false, isCompact: true)
-                    .matchedGeometryEffect(id: "player", in: namespace)
-                    .transition(.barAccessory)
-            }
-
-            // ✕ while typing. ⌄ only when nothing is playing: with the mini
-            // player next to the field, the row is just field + player
-            // (swiping down on the field still closes Search).
-            if inSearch && layout.player != .trailing {
-                trailingSearchButton
-                    .transition(.barAccessory)
-            }
+            // In Search the row is only the field: ⌄ (close) lives at the top
+            // right of the screen, in its navigation bar.
         }
         .frame(height: height)
     }
@@ -148,10 +113,10 @@ struct BottomBar: View {
             HStack(spacing: 10) {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(AppColor.Text.primary)
                 Text(navigator.searchQuery.isEmpty ? String(localized: "Search podcasts") : navigator.searchQuery)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(.black.opacity(0.5))
+                    .font(AppFont.link)
+                    .foregroundStyle(AppColor.Text.secondary)
                     .lineLimit(1)
                 Spacer(minLength: 0)
             }
@@ -172,7 +137,7 @@ struct BottomBar: View {
         } label: {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 19, weight: .semibold))
-                .foregroundStyle(.black)
+                .foregroundStyle(AppColor.Text.primary)
                 .frame(width: height, height: height)
                 .glassCapsule()
         }
@@ -193,7 +158,7 @@ struct BottomBar: View {
                 get: { navigator.searchQuery },
                 set: { navigator.searchQuery = $0 }
             ))
-            .font(.system(size: 16))
+            .font(AppFont.body)
             .foregroundStyle(AppColor.ink)
             .focused($isFieldFocused)
             .submitLabel(.search)
@@ -211,7 +176,7 @@ struct BottomBar: View {
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 17))
-                        .foregroundStyle(.black.opacity(0.3))
+                        .foregroundStyle(AppColor.Text.tertiary)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Clear text")
@@ -219,33 +184,11 @@ struct BottomBar: View {
         }
         .padding(.horizontal, 18)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background {
-            Capsule().fill(navigator.isSearching ? Color.white : AppColor.lavender.opacity(0.3))
-        }
+        // No fill behind the field: only glass, so what's behind shows through.
         .glassCapsule()
         .contentShape(Capsule())
         .onTapGesture { isFieldFocused = true }
         .gesture(swipeDownToClose)
-    }
-
-    /// ✕ while typing (clears and drops the keyboard); otherwise ⌄ closes Search.
-    private var trailingSearchButton: some View {
-        Button {
-            if navigator.isSearching {
-                navigator.cancelSearchEditing()
-            } else {
-                navigator.closeSearch()
-            }
-        } label: {
-            Image(systemName: navigator.isSearching ? "xmark" : "chevron.down")
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(.black)
-                .contentTransition(.symbolEffect(.replace))
-                .frame(width: Metrics.rowHeight, height: Metrics.rowHeight)
-                .glassCapsule()
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(navigator.isSearching ? Text("Cancel search") : Text("Close search"))
     }
 
     // MARK: - Gestures

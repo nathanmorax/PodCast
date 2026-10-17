@@ -36,10 +36,6 @@ final class AppNavigator {
     /// The podcast page shows no bottom bar at all (not even the mini player).
     var hidesBarCompletely = false
 
-    /// Scrolling down folds the bar into one row; scrolling up (or reaching the
-    /// top) brings it back. Driven by BottomBarScrollTracker.
-    var isBarCompact = false
-
     @ObservationIgnored
     weak var container: (any NavigationContainer)?
 
@@ -50,7 +46,6 @@ final class AppNavigator {
 
     /// Tapping the tab you're already in goes back to its first screen.
     func select(_ tab: AppTab) {
-        isBarCompact = false
         if !isShowingSearch, tab == selectedTab {
             if let stack = currentNavigationController {
                 // Animate only what's on screen; off screen the pop happens
@@ -62,41 +57,6 @@ final class AppNavigator {
         isShowingSearch = false
         selectedTab = tab
         container?.show(tab)
-    }
-
-    func expandBar() {
-        isBarCompact = false
-    }
-
-    // MARK: - Swipe between tabs
-
-    /// The tab a horizontal swipe on the bar lands on: the one beside the
-    /// current tab, or nil at either end. From Search, the tab at that end.
-    func tab(forSwipeTowardNext next: Bool) -> AppTab? {
-        if isShowingSearch {
-            return next ? AppTab.allCases.last : AppTab.allCases.first
-        }
-        return selectedTab.neighbor(towardNext: next)
-    }
-
-    /// Finger to the left → the tab on the right (like Safari's tab bar).
-    /// Returns false at the ends, where the bar only bounces.
-    @discardableResult
-    func swipeTab(towardNext next: Bool) -> Bool {
-        guard let tab = tab(forSwipeTowardNext: next) else { return false }
-        select(tab)
-        return true
-    }
-
-    /// Tapping the tab pill: the other tab. From Search, back to the tab you
-    /// came from.
-    func showOtherTab() {
-        if isShowingSearch {
-            select(selectedTab)
-            return
-        }
-        let hasNext = selectedTab.neighbor(towardNext: true) != nil
-        swipeTab(towardNext: hasNext)
     }
 
     // MARK: - Search field
@@ -114,10 +74,10 @@ final class AppNavigator {
         isSearching = false
     }
 
-    /// Shows Search with the keyboard up. If Search is already on screen,
-    /// goes back to its first screen and focuses the field.
+    /// Shows Search without the keyboard (tap the bar's field to type). If
+    /// Search is already on screen, goes back to its first screen and focuses
+    /// the field.
     func showSearch() {
-        isBarCompact = false
         guard let container else { return }
         if isShowingSearch {
             container.focusSearch()

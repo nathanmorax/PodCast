@@ -30,10 +30,11 @@ class BookMarkEpisodeController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        title = String(localized: "Favorites")
         configureCellRegistration()
         configureCollection()
         
-        view.backgroundColor = AppColor.slateGray.uiColor
+        view.backgroundColor = ColorName.screenBackground.uiColor
         collectionView.backgroundColor = .clear
 
     }

@@ -42,7 +42,8 @@ class PodcastSearchContainerController: UIViewController {
         super.viewDidLoad()
         title = String(localized: "Search")
         showTitleOnLeading()
-        view.backgroundColor = AppColor.screenBackground.uiColor
+        view.backgroundColor = ColorName.screenBackground.uiColor
+        setupCloseButton()
 
         setupChildControllers()
     }
@@ -59,6 +60,17 @@ class PodcastSearchContainerController: UIViewController {
         super.viewWillDisappear(animated)
         // Leaving with the keyboard up must not leave the bar in typing mode.
         navigator.isSearching = false
+    }
+
+    /// ⌄ at the top right: closes Search (it goes back down). The bottom bar
+    /// keeps only the search field.
+    private func setupCloseButton() {
+        let close = UIBarButtonItem(
+            image: UIImage(systemName: "chevron.down"),
+            primaryAction: UIAction { [weak self] _ in self?.navigator.closeSearch() }
+        )
+        close.accessibilityLabel = String(localized: "Close search")
+        navigationItem.rightBarButtonItem = close
     }
 
     /// Brings up the keyboard on the bar's search field.

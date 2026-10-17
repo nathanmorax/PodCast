@@ -44,9 +44,25 @@ final class InterestsManager {
         finish()
     }
 
-    /// "Skip": don't ask again; keeps whatever was chosen before.
+    /// Closes the screen when it was opened from Home ("Cancel"), keeping
+    /// the picks it had. (There's no skip on first launch.)
     func skip() {
         finish()
+    }
+
+    /// At most this many genres are learned from listening.
+    static let maxGenres = 8
+
+    /// Listening teaches Home: the genre of a podcast the listener played is
+    /// added to their interests, after the ones they picked. Fixes a careless
+    /// pick at onboarding over time.
+    func learn(genreID: String) {
+        guard hasCompletedOnboarding,
+              Genre.catalog(id: genreID) != nil,
+              !genreIDs.contains(genreID),
+              genreIDs.count < Self.maxGenres else { return }
+        genreIDs.append(genreID)
+        userDefaults.set(genreIDs, forKey: Key.genres)
     }
 
     func edit() {

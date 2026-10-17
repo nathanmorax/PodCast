@@ -9,6 +9,8 @@ import SwiftUI
 
 enum EpisodeHeaderEvent {
     case play
+    /// The + / ✓ in the header: follow or unfollow the podcast.
+    case follow
     /// The ⓘ next to the description: the full "About" in a sheet.
     case about
     case bookmark(Episode)

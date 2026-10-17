@@ -35,7 +35,7 @@ final class GenrePodcastsController: UIViewController {
         super.viewDidLoad()
         title = genre.name
         navigationItem.largeTitleDisplayMode = .never
-        view.backgroundColor = AppColor.screenBackground.uiColor
+        view.backgroundColor = ColorName.screenBackground.uiColor
         embedResults()
         load()
     }

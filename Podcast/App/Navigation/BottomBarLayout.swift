@@ -10,21 +10,16 @@ import CoreGraphics
 ///
 /// | Where                         | Playing                      | Not playing      |
 /// |-------------------------------|------------------------------|------------------|
-/// | Inicio / Biblioteca           | mini player + search circle  | search field     |
-/// | Search (not typing)           | field + small mini player    | search field     |
-/// | Search (typing)               | search field only            | search field     |
-/// | Inside Search (genre/podcast) | mini player only             | nothing          |
+/// | Library                       | mini player + search circle  | search field     |
+/// | Search                        | search field only            | search field     |
+/// | Inside Search (genre/podcast) | nothing                      | nothing          |
 struct BottomBarLayout: Equatable {
 
     enum PlayerPlacement: Equatable {
         /// No mini player.
         case none
-        /// In the row, next to the search circle (tabs).
+        /// In the row, next to the search circle (Library).
         case inline
-        /// Small (artwork + play), right of the search field (Search).
-        case trailing
-        /// The only thing in the bar (screens opened from Search).
-        case alone
     }
 
     let isPlaying: Bool
@@ -32,11 +27,11 @@ struct BottomBarLayout: Equatable {
     let isTyping: Bool
     let isSearchDetail: Bool
 
+    /// The mini player only shows on Library. Search is
+    /// for searching: no mini player there, nor in the screens it opens.
     var player: PlayerPlacement {
-        guard isPlaying else { return .none }
-        if isSearchDetail { return .alone }
-        if !inSearch { return .inline }
-        return isTyping ? .none : .trailing
+        guard isPlaying, !inSearch, !isSearchDetail else { return .none }
+        return .inline
     }
 
     /// The search row (circle, button or field) is hidden only inside Search
@@ -47,10 +42,7 @@ struct BottomBarLayout: Equatable {
     var isVisible: Bool { showsSearchRow || player != .none }
 
     /// Space the lists leave at the bottom for the bar (without margins).
-    func height(row: CGFloat, playerRow: CGFloat, spacing: CGFloat) -> CGFloat {
-        switch player {
-        case .alone, .trailing: return row
-        case .none, .inline: return isVisible ? row : 0
-        }
+    func height(row: CGFloat) -> CGFloat {
+        isVisible ? row : 0
     }
 }

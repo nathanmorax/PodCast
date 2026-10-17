@@ -33,7 +33,7 @@ class DownloadEpisodeViewController: UIViewController {
         configureCellRegistration()
         configureCollection()
         
-        view.backgroundColor = AppColor.slateGray.uiColor
+        view.backgroundColor = ColorName.screenBackground.uiColor
         collectionView.backgroundColor = .clear
 
     }

@@ -22,17 +22,17 @@ struct BookMarkView: View {
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(viewModel.episode.author)
-                    .font(.system(size: 12, weight: .regular))
-                    .foregroundStyle(.gray)
+                    .font(AppFont.caption)
+                    .foregroundStyle(AppColor.Text.secondary)
                 
                 Text(viewModel.episode.title)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(.primary)
+                    .font(AppFont.itemTitle)
+                    .foregroundStyle(AppColor.Text.primary)
                     .lineLimit(2)
                 
                 Text(viewModel.episode.description)
-                    .font(.system(size: 12))
-                    .foregroundStyle(.gray)
+                    .font(AppFont.caption)
+                    .foregroundStyle(AppColor.Text.secondary)
                     .lineLimit(2) // was unlimited: long descriptions made the row grow without end
                 
 
@@ -49,9 +49,9 @@ struct BookMarkView: View {
                                 .font(.system(size: 10, weight: .semibold))
 
                             Text(viewModel.episode.durationDisplayText)
-                                .font(.system(size: 12, weight: .semibold))
+                                .font(AppFont.captionStrong)
                         }
-                        .foregroundStyle(.black)
+                        .foregroundStyle(AppColor.Text.primary)
                         .padding(.horizontal, 10)
                         .frame(height: 28)
                         .background(
@@ -67,10 +67,10 @@ struct BookMarkView: View {
                         viewModel.toggleBookmark()
                     } label: {
                         Image(systemName: "bookmark.fill")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(AppFont.itemTitle)
                             .frame(width: 36, height: 36)
                     }
-                    .foregroundStyle(.black)
+                    .foregroundStyle(AppColor.Text.primary)
                     
                     DownloadButton(episode: viewModel.episode)
                     

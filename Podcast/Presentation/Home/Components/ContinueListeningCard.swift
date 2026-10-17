@@ -37,12 +37,12 @@ struct ContinueListeningCard: View {
 
                     VStack(alignment: .leading, spacing: 6) {
                         Text(item.episode.author)
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(.black.opacity(0.5))
+                            .font(AppFont.captionStrong)
+                            .foregroundStyle(AppColor.Text.secondary)
                             .lineLimit(1)
                         Text(item.episode.title)
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(.black)
+                            .font(AppFont.cardTitle)
+                            .foregroundStyle(AppColor.Text.primary)
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
                         ProgressView(value: min(max(progress, 0), 1))
@@ -67,7 +67,7 @@ struct ContinueListeningCard: View {
                 Image(systemName: isPlaying ? "pause.fill" : "play.fill")
                     .font(.system(size: 18, weight: .bold))
                     .contentTransition(.symbolEffect(.replace))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(AppColor.Text.onPastel)
                     .frame(width: 52, height: 52)
                     .background(Circle().fill(AppColor.lavender))
             }
@@ -75,6 +75,6 @@ struct ContinueListeningCard: View {
             .accessibilityLabel(isPlaying ? Text("Pause") : Text("Resume"))
         }
         .padding(.bottom, 14)
-        .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(.white))
+        .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(AppColor.Surface.elevated))
     }
 }

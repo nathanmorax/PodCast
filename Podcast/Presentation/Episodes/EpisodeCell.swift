@@ -18,17 +18,17 @@ struct EpisodeCell: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(viewModel.episode.pubDate, style: .date)
-                    .foregroundStyle(AppColor.dustyBlue)
-                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(AppColor.Accent.strong)
+                    .font(AppFont.footnote)
 
                 Text(viewModel.episode.title)
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(.primary)
+                    .font(AppFont.headline)
+                    .foregroundStyle(AppColor.Text.primary)
                     .lineLimit(2)
 
                 Text(viewModel.episode.description)
-                    .font(.system(size: 14))
-                    .foregroundStyle(.secondary)
+                    .font(AppFont.callout)
+                    .foregroundStyle(AppColor.Text.secondary)
                     .lineLimit(2)
 
                 Spacer()
@@ -40,12 +40,12 @@ struct EpisodeCell: View {
                         Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
                             .font(.system(size: 10, weight: .semibold))
                         Text(viewModel.episode.durationDisplayText)
-                            .font(.system(size: 12, weight: .semibold))
+                            .font(AppFont.captionStrong)
                     }
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(AppColor.Accent.strong)
                     .padding(.horizontal, 12)
                     .frame(height: 32)
-                    .background(Capsule().fill(Color.primary.opacity(0.08)))
+                    .background(Capsule().fill(AppColor.Accent.wash))
                 }
                 .buttonStyle(.plain)
             }
