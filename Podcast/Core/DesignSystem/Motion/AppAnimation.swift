@@ -62,6 +62,14 @@ enum AppAnimation {
     /// Switching the transcript between Noche and Papel.
     static var readingTheme: Animation { .easeInOut(duration: 0.3) }
 
+    // MARK: - Onboarding
+
+    /// A genre pill switching on/off.
+    static var selection: Animation { motion(.spring(duration: 0.25, bounce: 0.2)) }
+
+    /// The onboarding screen fading in/out over the app.
+    static var onboarding: Animation { motion(.easeInOut(duration: 0.35)) }
+
     // MARK: - Content
 
     /// Items added to or removed from a list or row (recents, searches).

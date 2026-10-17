@@ -57,6 +57,14 @@ extension AnyTransition {
         )
     }
 
+    // MARK: - Onboarding
+
+    /// The onboarding screen over the app: fades, and grows a touch on its way
+    /// out, as if the app came forward from behind it.
+    static var onboarding: AnyTransition {
+        .asymmetric(insertion: .opacity, removal: .opacity.combined(with: .scale(scale: 1.04)))
+    }
+
     // MARK: - Content
 
     /// A section appearing at the top of a list (e.g. "Recently searched").

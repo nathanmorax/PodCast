@@ -11,6 +11,7 @@ import SwiftUI
 struct RootView: View {
     
     @Environment(\.playerManager) private var manager
+    @Environment(\.interestsManager) private var interests
     let headerActions = EpisodeHeaderActions()
     
     private var navigator: AppNavigator { .shared }
@@ -59,7 +60,15 @@ struct RootView: View {
             .animation(AppAnimation.barVisibility, value: navigator.isSearching)
             
             playerOverlay
+
+            // First launch (and "Edit" in Home): what do you like to listen to?
+            if interests.needsOnboarding {
+                OnboardingView(selectedIDs: interests.genreIDs)
+                    .transition(.onboarding)
+                    .zIndex(2)
+            }
         }
+        .animation(AppAnimation.onboarding, value: interests.needsOnboarding)
     }
     
     @ViewBuilder

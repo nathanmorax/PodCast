@@ -25,4 +25,5 @@ extension EnvironmentValues {
     @Entry var recentlyPlayed: RecentlyPlayedManager = MainActor.assumeIsolated { RecentlyPlayedManager.shared }
     @Entry var recentSearches: RecentSearchesManager = MainActor.assumeIsolated { RecentSearchesManager.shared }
     @Entry var favoritesManager: FavoritesPodcastManager = MainActor.assumeIsolated { FavoritesPodcastManager.shared }
+    @Entry var interestsManager: InterestsManager = MainActor.assumeIsolated { InterestsManager.shared }
 }

@@ -65,4 +65,13 @@ extension PlayerManager {
         PlayerManager(downloadManager: .preview, recentlyPlayed: .preview)
     }
 }
+extension InterestsManager {
+    /// Onboarding already done, with three genres chosen.
+    static var preview: InterestsManager {
+        let manager = InterestsManager(userDefaults: UserDefaults(suiteName: "preview.interests") ?? .standard)
+        manager.save(["1303", "1533", "1488"])
+        return manager
+    }
+}
+
 #endif

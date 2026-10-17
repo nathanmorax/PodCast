@@ -28,6 +28,10 @@ class AVPlayerViewModel {
     @ObservationIgnored private let player: PlayerDataSource
     @ObservationIgnored private var currentURL: URL?
     @ObservationIgnored private var currentDurationSeconds: Double = 0
+    /// Where the last seek is going. Until the player gets there, the time
+    /// observer still reports the old position; ignoring it keeps the bar
+    /// from jumping back for a moment after letting go.
+    @ObservationIgnored private var pendingSeek: (target: Float, startedAt: Date)?
 
     var currentPlaybackSeconds: Double {
         Double(progress) * currentDurationSeconds
@@ -63,7 +67,14 @@ class AVPlayerViewModel {
             guard total.isFinite, total > 0, current.isFinite else { return }
 
             currentDurationSeconds = total
-            progress = Float(current / total)
+            let reported = Float(current / total)
+            if let seek = pendingSeek {
+                let arrived = abs(reported - seek.target) < 0.01
+                let gaveUp = Date().timeIntervalSince(seek.startedAt) > 2
+                guard arrived || gaveUp else { return }
+                pendingSeek = nil
+            }
+            progress = reported
             remainingTimeText = Self.shortTime(max(total - current, 0))
         }
         player.onStateChange = { [weak self] in self?.isPlaying = $0 }
@@ -97,6 +108,22 @@ class AVPlayerViewModel {
 
     func seekForward()  { player.seek(by: 15)  }
     func seekBackward() { player.seek(by: -15) }
-    func seek(to percentage: Float) { player.seek(to: percentage) }
+    /// Jumps there now in the UI (no waiting for the stream), then seeks.
+    func seek(to percentage: Float) {
+        let target = min(max(percentage, 0), 1)
+        progress = target
+        pendingSeek = (target, Date())
+        player.seek(to: target)
+    }
+
+    /// "12:04" for a point of the episode, while the finger scrubs.
+    func timeText(at percentage: Float) -> String {
+        Self.shortTime(Double(percentage) * currentDurationSeconds)
+    }
+
+    /// Time left from a point of the episode, while the finger scrubs.
+    func remainingText(at percentage: Float) -> String {
+        Self.shortTime(max(currentDurationSeconds * (1 - Double(percentage)), 0))
+    }
     func setVolume(_ value: Float)  { player.setVolume(value) }
 }

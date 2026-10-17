@@ -17,6 +17,8 @@ struct PlayerView: View {
     /// Set on the first movement of a drag: only a vertical drag pulls the
     /// player down; a sideways one (scrubbing, the line wheel) is left alone.
     @State private var dragAxis: Axis?
+    /// Where the finger is on the progress bar while scrubbing (nil otherwise).
+    @State private var scrubProgress: Float?
     
     @Environment(\.playerManager) private var playerManager
     
@@ -209,7 +211,7 @@ struct PlayerView: View {
     /// Bookmark and transcript: small and quiet, out of the main row.
     private var secondaryActions: some View {
         HStack {
-            bookmarkButton
+//            bookmarkButton
             Spacer()
             transcriptButton
         }
@@ -280,6 +282,15 @@ struct PlayerView: View {
         }
     }
     
+    /// What the bar shows: the finger while scrubbing, the player otherwise.
+    private var shownProgress: Float {
+        scrubProgress ?? viewModel.progress
+    }
+
+    /// Scrubbing follows the finger 1:1 and seeks ONCE, on release.
+    /// Before, every finger movement called seek(): each one cancelled the
+    /// previous seek on the stream, and the bar only moved when the player
+    /// reported a new time, so it advanced in jumps.
     private var progressBar: some View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
@@ -288,9 +299,10 @@ struct PlayerView: View {
                 
                 Capsule()
                     .fill(Self.accent)
-                    .frame(width: geo.size.width * CGFloat(viewModel.progress))
+                    .frame(width: geo.size.width * CGFloat(shownProgress))
             }
-            .frame(height: 4)
+            // Grows while held, like the system scrubbers.
+            .frame(height: scrubProgress == nil ? 4 : 10)
             .frame(maxHeight: .infinity)
             .contentShape(Rectangle())
             .gesture(
@@ -299,21 +311,36 @@ struct PlayerView: View {
                         // Use the bar's real width, not the screen's.
                         guard geo.size.width > 0 else { return }
                         let percentage = Float(value.location.x / geo.size.width)
-                        viewModel.seek(to: min(max(percentage, 0), 1))
+                        scrubProgress = min(max(percentage, 0), 1)
+                    }
+                    .onEnded { _ in
+                        if let target = scrubProgress {
+                            viewModel.seek(to: target)
+                        }
+                        scrubProgress = nil
                     }
             )
+            .animation(AppAnimation.selection, value: scrubProgress == nil)
         }
         .frame(height: 24) // taller touch area than the 4pt line
+        .sensoryFeedback(.selection, trigger: scrubProgress == nil)
         .accessibilityElement()
         .accessibilityLabel("Progress")
         .accessibilityValue("\(Int(viewModel.progress * 100)) percent")
+        .accessibilityAdjustableAction { direction in
+            switch direction {
+            case .increment: viewModel.seekForward()
+            case .decrement: viewModel.seekBackward()
+            @unknown default: break
+            }
+        }
     }
     
     private var progressLabels: some View {
         HStack {
-            Text(viewModel.currentTimeText)
+            Text(scrubProgress.map(viewModel.timeText(at:)) ?? viewModel.currentTimeText)
             Spacer()
-            Text("-\(viewModel.remainingTimeText)")
+            Text("-\(scrubProgress.map(viewModel.remainingText(at:)) ?? viewModel.remainingTimeText)")
         }
         .font(rounded(12))
         .monospacedDigit()
@@ -332,17 +359,17 @@ struct PlayerView: View {
         .frame(maxWidth: .infinity)
     }
     
-    private var bookmarkButton: some View {
-        Button {
-            actionViewModel.toggleBookmark()
-        } label: {
-            Image(systemName: actionViewModel.isBookmarked ? "bookmark.fill" : "bookmark")
-                .font(.system(size: 19, weight: .regular))
-                .contentTransition(.symbolEffect(.replace))
-                .frame(width: 44, height: 44)
-        }
-        .accessibilityLabel(actionViewModel.isBookmarked ? Text("Remove from saved") : Text("Save episode"))
-    }
+//    private var bookmarkButton: some View {
+//        Button {
+//            actionViewModel.toggleBookmark()
+//        } label: {
+//            Image(systemName: actionViewModel.isBookmarked ? "bookmark.fill" : "bookmark")
+//                .font(.system(size: 19, weight: .regular))
+//                .contentTransition(.symbolEffect(.replace))
+//                .frame(width: 44, height: 44)
+//        }
+//        .accessibilityLabel(actionViewModel.isBookmarked ? Text("Remove from saved") : Text("Save episode"))
+//    }
     
     private var seekBackwardButton: some View {
         Button {

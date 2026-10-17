@@ -69,4 +69,32 @@ struct AVPlayerViewModelTests {
         #expect(player.pauseCount == 1)
         #expect(player.resumeCount == 1)
     }
+
+    @Test("Seeking moves the bar at once and ignores stale times until the player arrives")
+    func seekDoesNotJumpBack() {
+        let player = FakePlayerDataSource()
+        let sut = AVPlayerViewModel(player: player)
+        player.sendTime(current: 100, total: 1_000)
+
+        sut.seek(to: 0.5)
+        #expect(sut.progress == 0.5)
+
+        // The stream hasn't moved yet: the old time must not pull the bar back.
+        player.sendTime(current: 101, total: 1_000)
+        #expect(sut.progress == 0.5)
+
+        // Arrived: normal updates again.
+        player.sendTime(current: 502, total: 1_000)
+        #expect(abs(sut.progress - 0.502) < 0.0001)
+    }
+
+    @Test("Scrub labels follow the finger's position")
+    func scrubLabels() {
+        let player = FakePlayerDataSource()
+        let sut = AVPlayerViewModel(player: player)
+        player.sendTime(current: 0, total: 600)
+
+        #expect(sut.timeText(at: 0.5) == "5:00")
+        #expect(sut.remainingText(at: 0.25) == "7:30")
+    }
 }

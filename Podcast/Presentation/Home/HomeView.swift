@@ -11,6 +11,10 @@ struct HomeView: View {
     @Environment(\.recentlyPlayed) private var recentlyPlayed
     @Environment(\.playerManager) private var playerManager
     @Environment(\.favoritesManager) private var favoritesManager
+    @Environment(\.interestsManager) private var interests
+
+    /// Owned by the view: created once, keeps its results while Home lives.
+    @State private var forYou = ForYouViewModel()
 
     let onOpenPodcast: (Podcast) -> Void
     let onSearch: () -> Void
@@ -27,7 +31,17 @@ struct HomeView: View {
     }
 
     private var isEmpty: Bool {
-        recentlyPlayed.items.isEmpty && favorites.isEmpty
+        recentlyPlayed.items.isEmpty && favorites.isEmpty && interests.genres.isEmpty
+    }
+
+    /// Reload "For you" when the chosen genres or the favorites change.
+    private struct ForYouKey: Hashable {
+        let genreIDs: [String]
+        let favoriteIDs: Set<Int>
+    }
+
+    private var forYouKey: ForYouKey {
+        ForYouKey(genreIDs: interests.genreIDs, favoriteIDs: Set(favorites.map(\.trackId)))
     }
 
     var body: some View {
@@ -41,13 +55,13 @@ struct HomeView: View {
                             .padding(.horizontal, 20)
                     }
                 }
-
-                if !favorites.isEmpty {
-                    section("Your podcasts") { favoritesRow }
-                }
-
+                
                 if !otherRecents.isEmpty {
                     section("Recently played") { recentsRow }
+                }
+
+                if !interests.genres.isEmpty {
+                    forYouSection
                 }
 
                 if isEmpty {
@@ -55,11 +69,71 @@ struct HomeView: View {
                 }
             }
             .padding(.top, 8)
-            .padding(.bottom, 24) // the bottom bar's space comes from the safe area
+            .padding(.bottom, 24)
         }
         .scrollIndicators(.hidden)
         .background(AppColor.screenBackground.ignoresSafeArea())
         .animation(AppAnimation.listChange, value: recentlyPlayed.items.map(\.id))
+        .animation(AppAnimation.listChange, value: forYou.rows.map(\.id))
+        .task(id: forYouKey) {
+            forYou.load(genres: interests.genres, excluding: forYouKey.favoriteIDs)
+        }
+    }
+
+    // MARK: - For you
+
+    /// One row per genre picked in onboarding. "Edit" reopens that screen.
+    private var forYouSection: some View {
+        VStack(alignment: .leading, spacing: 22) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("For you")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundStyle(.black)
+                    .accessibilityAddTraits(.isHeader)
+                Spacer()
+                Button("Edit") {
+                    withAnimation(AppAnimation.onboarding) { interests.edit() }
+                }
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(AppColor.lavenderInk)
+                .accessibilityLabel("Edit interests")
+            }
+            .padding(.horizontal, 20)
+
+            if forYou.rows.isEmpty && forYou.isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, minHeight: 120)
+            }
+
+            ForEach(forYou.rows) { row in
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(row.genre.name)
+                        .font(.system(size: 13, weight: .bold))
+                        .textCase(.uppercase)
+                        .tracking(0.6)
+                        .foregroundStyle(AppColor.lavenderInk)
+                        .padding(.horizontal, 20)
+                    podcastRow(row.podcasts)
+                }
+            }
+        }
+    }
+
+    private func podcastRow(_ podcasts: [Podcast]) -> some View {
+        ScrollView(.horizontal) {
+            LazyHStack(alignment: .top, spacing: 14) {
+                ForEach(podcasts, id: \.trackId) { podcast in
+                    Button {
+                        onOpenPodcast(podcast)
+                    } label: {
+                        PodcastTile(podcast: podcast)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .contentMargins(.horizontal, 20, for: .scrollContent)
+        .scrollIndicators(.hidden)
     }
 
     // MARK: - Header
@@ -169,4 +243,5 @@ struct HomeView: View {
     .environment(\.recentlyPlayed, .preview)
     .environment(\.playerManager, .preview)
     .environment(\.favoritesManager, .preview)
+    .environment(\.interestsManager, .preview)
 }

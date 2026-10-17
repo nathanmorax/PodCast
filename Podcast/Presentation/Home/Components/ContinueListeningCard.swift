@@ -74,7 +74,7 @@ struct ContinueListeningCard: View {
             .buttonStyle(.plain)
             .accessibilityLabel(isPlaying ? Text("Pause") : Text("Resume"))
         }
-        .padding(14)
+        .padding(.bottom, 14)
         .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(.white))
     }
 }
