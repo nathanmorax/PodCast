@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "-%@" : {
+
+    },
     "%@, current tab" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -103,7 +106,6 @@
         }
       }
     },
-    "-%@" : {},
     "About this podcast" : {
       "localizations" : {
         "es" : {
@@ -347,6 +349,7 @@
       }
     },
     "Edit" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1025,16 +1028,6 @@
         }
       }
     },
-    "TV & Film" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cine y TV"
-          }
-        }
-      }
-    },
     "Tap + on a podcast to follow it. It'll show up here." : {
       "localizations" : {
         "es" : {
@@ -1172,6 +1165,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Convirtiendo las voces en texto…"
+          }
+        }
+      }
+    },
+    "TV & Film" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cine y TV"
           }
         }
       }
