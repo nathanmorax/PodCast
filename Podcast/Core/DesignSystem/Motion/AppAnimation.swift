@@ -42,8 +42,13 @@ enum AppAnimation {
 
     // MARK: - Player
 
-    /// The full player opening and closing, and mini ↔ full.
-    static var playerPresentation: Animation { motion(.spring(duration: 0.5, bounce: 0.3)) }
+    /// The full player opening (mini → full). A little bounce at most: more
+    /// overshoots the top and the screen behind peeks out.
+    static var playerPresentation: Animation { motion(.spring(duration: 0.5, bounce: 0.1)) }
+
+    /// The full player closing (button or the end of a drag). No bounce, so
+    /// it keeps going down from wherever the finger let go.
+    static var playerDismiss: Animation { motion(.spring(duration: 0.38, bounce: 0)) }
 
     /// Switching between the player and its transcript.
     static var transcriptMode: Animation { motion(.spring(duration: 0.5, bounce: 0.15)) }

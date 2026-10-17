@@ -12,6 +12,11 @@ struct PlayerView: View {
     /// The listener asked for the transcript while it was still being generated:
     /// open it by itself as soon as it's ready. No intermediate screen.
     @State private var wantsTranscript = false
+    /// How far the finger has pulled the player down (follows it 1:1).
+    @State private var dismissOffset: CGFloat = 0
+    /// Set on the first movement of a drag: only a vertical drag pulls the
+    /// player down; a sideways one (scrubbing, the line wheel) is left alone.
+    @State private var dragAxis: Axis?
     
     @Environment(\.playerManager) private var playerManager
     
@@ -52,6 +57,10 @@ struct PlayerView: View {
                 transcriptView
             }
         }
+        // Pulled down: the sheet follows the finger and rounds its corners,
+        // like Apple Podcasts. The app behind shows through.
+        .clipShape(RoundedRectangle(cornerRadius: min(dismissOffset / 3, 44), style: .continuous))
+        .offset(y: dismissOffset)
         .gesture(dismissGesture)
         .animation(AppAnimation.transcriptMode, value: mode)
         .onChange(of: viewModel.progress) { _, _ in
@@ -427,11 +436,33 @@ struct PlayerView: View {
     
     // MARK: - Helpers
     
+    /// Interactive close: the player moves with the finger. Let go far enough
+    /// (or fast enough) and it keeps going down; otherwise it springs back.
+    /// Before, the gesture only acted on release, so it jumped closed at once.
     private var dismissGesture: some Gesture {
-        DragGesture(minimumDistance: 30)
+        DragGesture(minimumDistance: 8, coordinateSpace: .global)
+            .onChanged { value in
+                guard mode == .normal else { return }
+                if dragAxis == nil {
+                    dragAxis = abs(value.translation.height) > abs(value.translation.width) ? .vertical : .horizontal
+                }
+                guard dragAxis == .vertical else { return }
+                // Down 1:1; up only a little, with resistance.
+                let y = value.translation.height
+                dismissOffset = y >= 0 ? y : -sqrt(-y) * 2
+            }
             .onEnded { value in
-                if value.translation.height > 100 && mode == .normal {
+                defer { dragAxis = nil }
+                guard mode == .normal, dragAxis == .vertical else { return }
+                if PlayerDismissRule.shouldClose(
+                    translation: value.translation.height,
+                    predictedEnd: value.predictedEndTranslation.height
+                ) {
+                    // The sheet leaves from where it is now (its offset stays
+                    // while the transition moves it the rest of the way).
                     playerManager.collapse()
+                } else {
+                    withAnimation(AppAnimation.gestureRelease) { dismissOffset = 0 }
                 }
             }
     }

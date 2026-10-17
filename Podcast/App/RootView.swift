@@ -35,22 +35,31 @@ struct RootView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             
-            MainNavigationRepresentable(bottomInset: showsBottomBar ? reservedBottomSpace : 0)
+            // The inset doesn't depend on the full player: opening/closing it
+            // must not resize the list behind it (that showed up as a jump
+            // peeking out while the player slid down).
+            MainNavigationRepresentable(bottomInset: barLayout.isVisible ? reservedBottomSpace : 0)
                 .ignoresSafeArea(.container)
             
-            if showsBottomBar {
-                BottomBar(navigator: navigator)
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 8)
-                    // Respects the keyboard: while typing, the search field
-                    // sits right above it.
-                    .transition(.bottomBar)
+            // The bar's animations live on its own container. On the ZStack
+            // they also overrode the player's own close animation (both change
+            // in the same frame), so the player left with the bar's timing.
+            ZStack(alignment: .bottom) {
+                if showsBottomBar {
+                    BottomBar(navigator: navigator)
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 8)
+                        // Respects the keyboard: while typing, the search field
+                        // sits right above it.
+                        .transition(.bottomBar)
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+            .animation(AppAnimation.barVisibility, value: showsBottomBar)
+            .animation(AppAnimation.barVisibility, value: navigator.isSearching)
             
             playerOverlay
         }
-        .animation(AppAnimation.barVisibility, value: showsBottomBar)
-        .animation(AppAnimation.barVisibility, value: navigator.isSearching)
     }
     
     @ViewBuilder

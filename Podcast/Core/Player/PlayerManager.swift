@@ -89,7 +89,7 @@ final class PlayerManager {
     }
     
     func collapse() {
-        withAnimation(AppAnimation.playerPresentation) {
+        withAnimation(AppAnimation.playerDismiss) {
             presentation = .mini
         }
     }
