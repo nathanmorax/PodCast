@@ -22,12 +22,22 @@ class PodcastResultSearchController: UIViewController {
         return cv
     }()
     
-    private let searchPodcastCellRegistration = UICollectionView.hostingListRegistration { (podcast: Podcast) in
-        PodcastCellUI(podcast: podcast)
+    /// A row: the podcast and, in a category, its place in the ranking.
+    private struct Row {
+        let podcast: Podcast
+        let rank: Int?
     }
-    
-    init(viewModel: PodcastSearchViewModel) {
+
+    private let searchPodcastCellRegistration = UICollectionView.hostingListRegistration { (row: Row) in
+        PodcastCellUI(podcast: row.podcast, rank: row.rank)
+    }
+
+    /// Numbers the rows (a category's ranking). Search results aren't numbered.
+    private let showsRank: Bool
+
+    init(viewModel: PodcastSearchViewModel, showsRank: Bool = false) {
         self.viewModel = viewModel
+        self.showsRank = showsRank
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -85,7 +95,7 @@ extension PodcastResultSearchController: UICollectionViewDataSource {
         return collectionView.dequeueConfiguredReusableCell(
             using: searchPodcastCellRegistration,
             for: indexPath,
-            item: podcast
+            item: Row(podcast: podcast, rank: showsRank ? indexPath.item + 1 : nil)
         )
     }
 }

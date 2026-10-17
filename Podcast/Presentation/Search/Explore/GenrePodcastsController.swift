@@ -5,8 +5,8 @@
 
 import UIKit
 
-/// The podcasts of one category, pushed from Search: the category's name
-/// centered in a normal navigation bar, with the back arrow.
+/// The podcasts of one category, pushed from Search, as a numbered ranking
+/// (1, 2, 3…) under the category's name, with the back arrow.
 ///
 /// For now it searches the category's name; when the API gives us each
 /// category's top podcasts, only `load()` changes.
@@ -20,7 +20,7 @@ final class GenrePodcastsController: UIViewController {
         return PodcastSearchViewModel(repository: repository)
     }()
 
-    private lazy var resultsController = PodcastResultSearchController(viewModel: viewModel)
+    private lazy var resultsController = PodcastResultSearchController(viewModel: viewModel, showsRank: true)
 
     init(genre: Genre) {
         self.genre = genre
