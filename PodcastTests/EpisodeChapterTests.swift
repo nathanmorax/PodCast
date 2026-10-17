@@ -49,3 +49,23 @@ struct PlayerTabTests {
         #expect(PlayerTab.available(hasChapters: true) == [.player, .text, .chapters])
     }
 }
+
+@Suite("Show notes")
+struct ShowNotesTests {
+    @Test("HTML show notes keep one line per paragraph, so chapters are found")
+    func htmlNotes() {
+        let html = "<p>Hoy:</p><p>00:00 Intro</p><p>04:30 Mañana &amp; siempre</p><br>09:10 La trampa"
+        let text = html.plainTextFromHTML()
+        let chapters = EpisodeChapter.parse(showNotes: text)
+        #expect(chapters.map(\.title) == ["Intro", "Mañana & siempre", "La trampa"])
+    }
+
+    @Test("Chapters come from the full notes, not the short subtitle")
+    func source() {
+        let episode = Episode(
+            title: "T", author: "A", pubDate: .now, description: "Short subtitle",
+            streamUrl: "https://example.com/1.mp3", showNotes: "00:00 A\n01:00 B\n02:00 C"
+        )
+        #expect(EpisodeChapter.parse(showNotes: episode.chapterSource).count == 3)
+    }
+}

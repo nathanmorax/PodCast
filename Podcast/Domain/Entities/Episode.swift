@@ -19,6 +19,11 @@ struct Episode: Codable, Sendable {
     let durationSeconds: TimeInterval?
     let streamUrl: String
     var imageUrl: String?
+    /// The full show notes (RSS <description>, or itunes:summary), as plain
+    /// text. `description` above is the short subtitle shown in lists; the
+    /// chapters ("00:00 Intro…") live here. Optional so episodes saved before
+    /// this field existed still decode.
+    var showNotes: String?
         
     init(feedItem: RSSFeedItem) {
         self.title = feedItem.title ?? ""
@@ -37,6 +42,12 @@ struct Episode: Codable, Sendable {
         
         self.streamUrl = feedItem.enclosure?.attributes?.url ?? ""
         self.imageUrl = feedItem.iTunes?.image?.attributes?.href ?? ""
+        self.showNotes = (feedItem.description ?? feedItem.iTunes?.summary)?.plainTextFromHTML()
+    }
+
+    /// Where to look for chapters: the full notes, or the short text.
+    var chapterSource: String {
+        showNotes ?? description
     }
     
     var durationDisplayText: String {
@@ -88,7 +99,8 @@ extension Episode {
         duration: String? = nil,
         durationSeconds: TimeInterval? = nil,
         streamUrl: String,
-        imageUrl: String? = nil
+        imageUrl: String? = nil,
+        showNotes: String? = nil
     ) {
         self.title = title
         self.author = author
@@ -98,6 +110,7 @@ extension Episode {
         self.durationSeconds = durationSeconds ?? Self.parseDuration(duration)
         self.streamUrl = streamUrl
         self.imageUrl = imageUrl
+        self.showNotes = showNotes
     }
 }
 

@@ -10,9 +10,9 @@ import SwiftUI
 ///   (Nothing playing: just the search field.) Tabs change by swiping the
 ///   screen sideways (MainContainerController), so they aren't listed here.
 /// - Search: the search field, plus a button to close Search (or ✕ to
-///   cancel while typing). If something is playing, the mini player sits in
-///   its own row above the field (hidden while typing). Swiping down on the
-///   field closes Search too.
+///   cancel while typing). If something is playing, a small mini player
+///   (artwork + play) sits right of the field (hidden while typing). Swiping
+///   down on the field closes Search too.
 /// - Screens opened from Search (a genre, a podcast): only the mini player,
 ///   if something is playing. See `BottomBarLayout`.
 /// - Scrolling down a list makes the row a little smaller.
@@ -69,10 +69,10 @@ struct BottomBar: View {
     var body: some View {
         VStack(spacing: Metrics.spacing) {
             if let episode = manager.currentEpisode,
-               layout.player == .above || layout.player == .alone {
+               layout.player == .alone {
                 MiniPlayerCapsule(episode: episode, showsSubtitle: true)
                     .matchedGeometryEffect(id: "player", in: namespace)
-                    .frame(height: layout.player == .alone ? Metrics.rowHeight : Metrics.playerRowHeight)
+                    .frame(height: Metrics.rowHeight)
                     .transition(.barPlayerRow)
             }
 
@@ -110,7 +110,16 @@ struct BottomBar: View {
             searchElement
                 .matchedGeometryEffect(id: "search", in: namespace)
 
-            if inSearch {
+            if layout.player == .trailing, let episode = manager.currentEpisode {
+                MiniPlayerCapsule(episode: episode, showsSubtitle: false, isCompact: true)
+                    .matchedGeometryEffect(id: "player", in: namespace)
+                    .transition(.barAccessory)
+            }
+
+            // ✕ while typing. ⌄ only when nothing is playing: with the mini
+            // player next to the field, the row is just field + player
+            // (swiping down on the field still closes Search).
+            if inSearch && layout.player != .trailing {
                 trailingSearchButton
                     .transition(.barAccessory)
             }

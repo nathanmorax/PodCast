@@ -13,6 +13,8 @@ struct MiniPlayerCapsule: View {
     let episode: Episode
     /// Author and remaining time; hidden when the bar is folded.
     let showsSubtitle: Bool
+    /// Just artwork + play/pause (next to the search field in Search).
+    var isCompact: Bool = false
 
     var body: some View {
         HStack(spacing: 4) {
@@ -22,6 +24,7 @@ struct MiniPlayerCapsule: View {
                 HStack(spacing: 10) {
                     artwork
 
+                    if !isCompact {
                     VStack(alignment: .leading, spacing: 1) {
                         Text(episode.title)
                             .font(.system(size: 13, weight: .semibold))
@@ -37,11 +40,13 @@ struct MiniPlayerCapsule: View {
                     }
 
                     Spacer(minLength: 0)
+                    }
                 }
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityElement(children: .combine)
+            .accessibilityLabel(isCompact || !showsSubtitle ? Text(verbatim: episode.title) : Text(verbatim: "\(episode.title), \(subtitle)"))
             .accessibilityHint("Opens the player")
 
             Button {
@@ -60,6 +65,7 @@ struct MiniPlayerCapsule: View {
         .padding(.leading, 9)
         .padding(.trailing, 6)
         .frame(maxHeight: .infinity)
+        .fixedSize(horizontal: isCompact, vertical: false)
         .glassCapsule()
     }
 

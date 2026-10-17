@@ -32,4 +32,20 @@ extension String {
         }
         return self
     }
+
+    /// Cheap HTML → text that keeps line breaks (one line per <p>/<br>/<li>),
+    /// so "00:00 Intro" lines stay separate. Unlike `strippingHTML()` it doesn't
+    /// use NSAttributedString, so it's fast and safe off the main thread.
+    func plainTextFromHTML() -> String {
+        var text = self
+        for tag in ["<br>", "<br/>", "<br />", "</p>", "</li>", "</div>", "</h1>", "</h2>", "</h3>"] {
+            text = text.replacingOccurrences(of: tag, with: "\n", options: .caseInsensitive)
+        }
+        text = text.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+        let entities = ["&amp;": "&", "&nbsp;": " ", "&quot;": "\"", "&#39;": "'", "&apos;": "'", "&lt;": "<", "&gt;": ">", "&ndash;": "–", "&mdash;": "—"]
+        for (entity, value) in entities {
+            text = text.replacingOccurrences(of: entity, with: value)
+        }
+        return text.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 }

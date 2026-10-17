@@ -38,7 +38,7 @@ struct PlayerView: View {
     init(episode: Episode) {
         self.episode = episode
         _actionViewModel = State(initialValue: EpisodeActionViewModel(episode: episode))
-        _chapters = State(initialValue: EpisodeChapter.parse(showNotes: episode.description))
+        _chapters = State(initialValue: EpisodeChapter.parse(showNotes: episode.chapterSource))
     }
     
     // MARK: - Style (soft white, near-black ink, lavender accent)
@@ -74,7 +74,7 @@ struct PlayerView: View {
         .onChange(of: episode.streamUrl) { _, _ in
             // @State ignores new init values, so rebuild the VM when the episode changes.
             actionViewModel = EpisodeActionViewModel(episode: episode)
-            chapters = EpisodeChapter.parse(showNotes: episode.description)
+            chapters = EpisodeChapter.parse(showNotes: episode.chapterSource)
             tab = .player
         }
     }
@@ -105,8 +105,9 @@ struct PlayerView: View {
                 .frame(maxHeight: .infinity)
                 .transition(.opacity)
 
-                // Text and Chapters: no buttons, just how far along it is.
-                if tab != .player {
+                // Chapters: no buttons, just how far along it is.
+                // Text: nothing at all, the transcript gets the whole space.
+                if tab == .chapters {
                     thinProgress
                         .padding(.bottom, 24)
                         .transition(.opacity)
@@ -231,11 +232,7 @@ struct PlayerView: View {
         if !transcript.segments.isEmpty {
             transcriptList
         } else if transcript.isLoading {
-            tabMessage(
-                icon: nil,
-                title: Text("Making the transcript…"),
-                detail: Text(verbatim: transcript.progress)
-            ) { ProgressView() }
+            TranscribingIndicator()
         } else if transcript.error != nil {
             tabMessage(
                 icon: "exclamationmark.bubble",

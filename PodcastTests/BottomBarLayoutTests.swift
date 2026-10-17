@@ -20,12 +20,12 @@ struct BottomBarLayoutTests {
         #expect(layout(playing: true).showsSearchRow)
     }
 
-    @Test("Search: the mini player gets its own row above the field")
+    @Test("Search: a small mini player sits right of the field, same height")
     func search() {
         let bar = layout(playing: true, inSearch: true)
-        #expect(bar.player == .above)
+        #expect(bar.player == .trailing)
         #expect(bar.showsSearchRow)
-        #expect(bar.height(row: 62, playerRow: 56, spacing: 10) == 128)
+        #expect(bar.height(row: 62, playerRow: 56, spacing: 10) == 62)
     }
 
     @Test("Search while typing: only the field, the keyboard needs the room")
