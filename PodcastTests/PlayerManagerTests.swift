@@ -113,4 +113,38 @@ struct PlayerManagerTests {
         let saved = recentlyPlayed.items.first?.progress ?? 0
         #expect(abs(saved - 0.3) < 0.001)
     }
+
+    @Test("At launch the last episode shows in the mini player, paused and not loaded")
+    func restoreLastPlayed() {
+        recentlyPlayed.record(first)
+        recentlyPlayed.updateProgress(for: first, progress: 0.4)
+
+        sut.restoreLastPlayed()
+
+        #expect(sut.currentEpisode?.streamUrl == first.streamUrl)
+        #expect(sut.presentation == .mini)
+        #expect(abs(sut.viewModel.progress - 0.4) < 0.001)
+        #expect(player.playedURLs.isEmpty)
+    }
+
+    @Test("Pressing play on the restored episode loads it and resumes where it was")
+    func playRestored() {
+        recentlyPlayed.record(first)
+        recentlyPlayed.updateProgress(for: first, progress: 0.5)
+        sut.restoreLastPlayed()
+
+        sut.togglePlayPause()
+        #expect(player.playedURLs.count == 1)
+
+        // First time update with a length: it jumps to the saved position.
+        player.sendTime(current: 0, total: 1_000)
+        #expect(abs(sut.viewModel.progress - 0.5) < 0.001)
+    }
+
+    @Test("Nothing played before: no mini player")
+    func restoreNothing() {
+        sut.restoreLastPlayed()
+        #expect(sut.currentEpisode == nil)
+        #expect(sut.presentation == .hidden)
+    }
 }

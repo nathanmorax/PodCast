@@ -11,8 +11,8 @@ import SwiftUI
 struct GenrePodcastCell: View {
     let genre: Genre
     let index: Int
-    /// Artwork of the category's top two podcasts. Empty until that comes from
-    /// the API: frosted placeholders show instead.
+    /// Artwork of the category's top two podcasts (GenreCoversViewModel).
+    /// Frosted placeholders show until they arrive.
     var coverURLs: [String] = []
 
     var body: some View {

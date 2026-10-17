@@ -74,6 +74,8 @@ struct RootView: View {
             }
         }
         .animation(AppAnimation.onboarding, value: interests.needsOnboarding)
+        // Something was played before: the mini player shows it from the start.
+        .task { manager.restoreLastPlayed() }
     }
     
     @ViewBuilder

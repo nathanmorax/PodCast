@@ -32,6 +32,8 @@ class AVPlayerViewModel {
     /// observer still reports the old position; ignoring it keeps the bar
     /// from jumping back for a moment after letting go.
     @ObservationIgnored private var pendingSeek: (target: Float, startedAt: Date)?
+    /// Where to start once the new episode reports its length (resume).
+    @ObservationIgnored private var startAt: Float?
 
     var currentPlaybackSeconds: Double {
         Double(progress) * currentDurationSeconds
@@ -67,6 +69,12 @@ class AVPlayerViewModel {
             guard total.isFinite, total > 0, current.isFinite else { return }
 
             currentDurationSeconds = total
+            // First update of a resumed episode: jump to where it was left.
+            if let start = startAt {
+                startAt = nil
+                seek(to: start)
+                return
+            }
             let reported = Float(current / total)
             if let seek = pendingSeek {
                 let arrived = abs(reported - seek.target) < 0.01
@@ -89,8 +97,10 @@ class AVPlayerViewModel {
     }
 
     // MARK: - Playback API
-    func playEpisode(url: URL) {
+    /// - Parameter progress: 0...1 to resume from (nil or 0 = the beginning).
+    func playEpisode(url: URL, startingAt progress: Float? = nil) {
         currentURL = url
+        startAt = (progress ?? 0) > 0 ? progress : nil
         player.play(url: url)
     }
 

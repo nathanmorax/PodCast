@@ -453,7 +453,7 @@ struct PlayerView: View {
             lineID: transcript.displayedSegment?.id,
             isPlaying: viewModel.isPlaying,
             timeText: "\(viewModel.currentTimeText) / \(viewModel.durationText)",
-            onTogglePlay: { viewModel.togglePlayPause() },
+            onTogglePlay: { playerManager.togglePlayPause() },
             onClose: { mode = .normal }
         )
     }
@@ -589,7 +589,7 @@ struct PlayerView: View {
     
     private var playPauseButton: some View {
         Button {
-            viewModel.togglePlayPause()
+            playerManager.togglePlayPause()
         } label: {
             ZStack {
                 Circle()

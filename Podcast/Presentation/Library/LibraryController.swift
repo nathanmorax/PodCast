@@ -18,7 +18,8 @@ final class LibraryController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = String(localized: "Library")
-        navigationItem.largeTitleDisplayMode = .always
+        showTitleOnLeading()
+        navigationItem.largeTitleDisplayMode = .never
         // Same gray as the content, so the large title area doesn't show a
         // white band above it.
         view.backgroundColor = AppColor.screenBackground.uiColor

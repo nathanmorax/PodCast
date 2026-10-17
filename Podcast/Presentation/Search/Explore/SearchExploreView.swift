@@ -14,6 +14,8 @@ struct SearchExploreView: View {
     let onSelectGenre: (Genre) -> Void
 
     @Environment(\.recentSearches) private var recentSearches
+    /// Owned by the view: the covers stay while Search lives.
+    @State private var genreCovers = GenreCoversViewModel()
 
     private let columns = [
         GridItem(.flexible(), spacing: 12),
@@ -85,13 +87,19 @@ struct SearchExploreView: View {
 
             if !genresViewModel.genre.isEmpty {
                 LazyVGrid(columns: columns, spacing: 12) {
-                    ForEach(Array(genresViewModel.genre.enumerated()), id: \.offset) { index, genre in
+                    // Stable identity: the genre's id, not its position.
+                    ForEach(Array(genresViewModel.genre.enumerated()), id: \.element.id) { index, genre in
                         Button {
                             onSelectGenre(genre)
                         } label: {
-                            GenrePodcastCell(genre: genre, index: index)
+                            GenrePodcastCell(
+                                genre: genre,
+                                index: index,
+                                coverURLs: genreCovers.coverURLs(for: genre)
+                            )
                         }
                         .buttonStyle(.plain)
+                        .task { await genreCovers.load(genre) }
                     }
                 }
                 .padding(.horizontal, 20)

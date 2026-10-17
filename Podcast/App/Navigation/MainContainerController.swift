@@ -45,9 +45,9 @@ final class MainContainerController: UIViewController, NavigationContainer {
     private static func makeStack(root: UIViewController) -> UINavigationController {
         let navigation = UINavigationController(rootViewController: root)
         navigation.navigationBar.tintColor = .label
-        // Every root (Inicio, Biblioteca, Buscar) uses the native large title,
-        // so all three headers sit at exactly the same height.
-        navigation.navigationBar.prefersLargeTitles = true
+        // Standard (inline) titles everywhere: no large titles, so every
+        // header sits at the same height.
+        navigation.navigationBar.prefersLargeTitles = false
         return navigation
     }
 
@@ -406,11 +406,8 @@ extension MainContainerController: UINavigationControllerDelegate {
     func navigationController(_ navigationController: UINavigationController,
                               willShow viewController: UIViewController,
                               animated: Bool) {
-        // Big title only on each stack's first screen (Inicio, Biblioteca,
-        // Buscar); screens opened from them (a podcast, a category) keep the
-        // normal bar with the title centered.
-        let isRoot = viewController === navigationController.viewControllers.first
-        viewController.navigationItem.largeTitleDisplayMode = isRoot ? .always : .never
+        // No large titles: every screen uses the standard bar, title centered.
+        viewController.navigationItem.largeTitleDisplayMode = .never
 
         if navigationController === current {
             updateBottomBarVisibility(showing: viewController, in: navigationController)

@@ -43,7 +43,37 @@ final class PlayerManager {
     
     // MARK: - Public API
     
+    /// Set when the mini player shows the last episode at launch without its
+    /// audio loaded yet: where to resume when the listener presses play.
+    @ObservationIgnored private var restoredProgress: Double?
+
+    /// At launch: if something was played before, show the mini player with
+    /// it, paused. The audio isn't loaded (no network, no sound) until the
+    /// listener presses play; then it resumes where it was left.
+    func restoreLastPlayed() {
+        guard currentEpisode == nil, let last = recentlyPlayed.items.first else { return }
+        // Finished episodes start again from the beginning.
+        let progress = last.progress < 0.98 ? last.progress : 0
+        currentEpisode = last.episode
+        restoredProgress = progress
+        viewModel.progress = Float(progress)
+        presentation = .mini
+    }
+
     func play(_ episode: Episode, presentation: PlayerPresentation = .expanded) {
+        // The episode restored at launch: load it now, from where it was left.
+        if let resume = restoredProgress {
+            restoredProgress = nil
+            if currentEpisode?.streamUrl == episode.streamUrl {
+                recentlyPlayed.record(episode)
+                startPlayback(of: episode, startingAt: resume)
+                withAnimation(AppAnimation.playerPresentation) {
+                    self.presentation = presentation
+                }
+                return
+            }
+        }
+
         // Same episode that's already loaded: don't reload it from 0:00.
         // Just make sure it's playing and show the player.
         if currentEpisode?.streamUrl == episode.streamUrl {
@@ -64,7 +94,15 @@ final class PlayerManager {
         recentlyPlayed.record(episode)
         
         currentEpisode = episode
+        startPlayback(of: episode, startingAt: nil)
         
+        withAnimation(AppAnimation.playerPresentation) {
+            self.presentation = presentation
+        }
+    }
+
+    /// Loads the episode's audio (downloaded file if there is one) and plays.
+    private func startPlayback(of episode: Episode, startingAt progress: Double?) {
         let url: URL
         if let localURL = downloadManager.localURL(for: episode) {
             url = localURL
@@ -72,14 +110,10 @@ final class PlayerManager {
             guard let remoteURL = URL(string: episode.streamUrl) else { return }
             url = remoteURL
         }
-        
+
         transcript.reset()
-        viewModel.playEpisode(url: url)
+        viewModel.playEpisode(url: url, startingAt: progress.map(Float.init))
         transcript.loadIfCached(for: episode.streamUrl)
-        
-        withAnimation(AppAnimation.playerPresentation) {
-            self.presentation = presentation
-        }
     }
     
     func expand() {
@@ -96,7 +130,7 @@ final class PlayerManager {
     
     func playOrToggle(_ episode: Episode, presentation: PlayerPresentation = .mini) {
         if currentEpisode?.streamUrl == episode.streamUrl {
-            viewModel.togglePlayPause()
+            togglePlayPause()
             return
         }
         
@@ -104,6 +138,11 @@ final class PlayerManager {
     }
     
     func togglePlayPause() {
+        // Restored at launch and never loaded: the first play loads it.
+        if restoredProgress != nil, let episode = currentEpisode {
+            play(episode, presentation: presentation == .hidden ? .mini : presentation)
+            return
+        }
         viewModel.togglePlayPause()
     }
 

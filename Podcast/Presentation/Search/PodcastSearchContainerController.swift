@@ -41,6 +41,7 @@ class PodcastSearchContainerController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = String(localized: "Search")
+        showTitleOnLeading()
         view.backgroundColor = AppColor.screenBackground.uiColor
 
         setupChildControllers()
