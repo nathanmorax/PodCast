@@ -13,14 +13,22 @@ struct OnboardingViewModelTests {
 
     private let catalog = Genre.podcastCatalog
 
-    @Test("Needs at least 3 genres to continue")
+    @Test("One genre is enough to continue")
     func minimum() {
         let sut = OnboardingViewModel()
-        sut.toggle(catalog[0])
-        sut.toggle(catalog[1])
         #expect(!sut.canContinue)
-        sut.toggle(catalog[2])
+        sut.toggle(catalog[0])
         #expect(sut.canContinue)
+    }
+
+    @Test("Choose for me picks the popular genres and keeps the listener's")
+    func chooseForMe() {
+        let sut = OnboardingViewModel()
+        sut.toggle(catalog[8])
+        sut.chooseForMe()
+        #expect(sut.selectedIDs == [catalog[8].id] + OnboardingViewModel.popularIDs)
+        sut.chooseForMe()
+        #expect(sut.selectedIDs.count == 4)
     }
 
     @Test("Tapping again deselects")
@@ -44,11 +52,10 @@ struct OnboardingViewModelTests {
         #expect(!interests.needsOnboarding)
     }
 
-    @Test("Continue does nothing with fewer than 3")
-    func finishTooFew() {
+    @Test("Continue does nothing with nothing picked")
+    func finishEmpty() {
         let interests = InterestsManager(userDefaults: .isolated())
         let sut = OnboardingViewModel()
-        sut.toggle(catalog[0])
         sut.finish(into: interests)
         #expect(interests.needsOnboarding)
     }

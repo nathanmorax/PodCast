@@ -18,20 +18,11 @@ struct AppNavigatorTests {
         sut.container = container
     }
 
-    @Test("Starts on Inicio, outside Search")
+    @Test("Starts on Library, outside Search")
     func initialState() {
         #expect(sut.selectedTab == .home)
         #expect(!sut.isShowingSearch)
         #expect(sut.currentNavigationController === container.stacks[.home])
-    }
-
-    @Test("Choosing another tab shows its stack")
-    func selectOtherTab() {
-        sut.select(.library)
-
-        #expect(sut.selectedTab == .library)
-        #expect(container.shownTabs == [.library])
-        #expect(sut.currentNavigationController === container.stacks[.library])
     }
 
     @Test("Choosing the tab you're in goes back to its first screen")
@@ -77,76 +68,6 @@ struct AppNavigatorTests {
         #expect(sut.currentNavigationController === container.stacks[tab])
     }
 
-    @Test("Choosing a tab or search unfolds the bar")
-    func navigationUnfoldsBar() {
-        sut.isBarCompact = true
-        sut.select(.library)
-        #expect(!sut.isBarCompact)
-
-        sut.isBarCompact = true
-        sut.showSearch()
-        #expect(!sut.isBarCompact)
-
-        sut.isBarCompact = true
-        sut.expandBar()
-        #expect(!sut.isBarCompact)
-    }
-
-    // MARK: - Swipe between tabs
-
-    @Test("Swiping left on Inicio goes to Biblioteca")
-    func swipeToNext() {
-        let moved = sut.swipeTab(towardNext: true)
-
-        #expect(moved)
-        #expect(sut.selectedTab == .library)
-        #expect(container.shownTabs == [.library])
-    }
-
-    @Test("Swiping right on Biblioteca goes back to Inicio")
-    func swipeToPrevious() {
-        sut.select(.library)
-
-        sut.swipeTab(towardNext: false)
-
-        #expect(sut.selectedTab == .home)
-        #expect(container.shownTabs == [.library, .home])
-    }
-
-    @Test("At either end the swipe does nothing", arguments: [(AppTab.home, false), (AppTab.library, true)])
-    func swipePastTheEnd(start: AppTab, towardNext: Bool) {
-        if start != sut.selectedTab { sut.select(start) }
-        let shownBefore = container.shownTabs
-
-        let moved = sut.swipeTab(towardNext: towardNext)
-
-        #expect(!moved)
-        #expect(sut.selectedTab == start)
-        #expect(container.shownTabs == shownBefore)
-    }
-
-    @Test("From Search, a swipe lands on the tab at that end")
-    func swipeFromSearch() {
-        sut.showSearch()
-        #expect(sut.tab(forSwipeTowardNext: true) == .library)
-        #expect(sut.tab(forSwipeTowardNext: false) == .home)
-
-        sut.swipeTab(towardNext: true)
-
-        #expect(!sut.isShowingSearch)
-        #expect(sut.selectedTab == .library)
-    }
-
-    @Test("Neighbors follow the bar's order", arguments: [
-        (AppTab.home, true, AppTab?.some(.library)),
-        (AppTab.home, false, nil),
-        (AppTab.library, true, nil),
-        (AppTab.library, false, AppTab?.some(.home)),
-    ])
-    func neighbors(tab: AppTab, towardNext: Bool, expected: AppTab?) {
-        #expect(tab.neighbor(towardNext: towardNext) == expected)
-    }
-
     // MARK: - Search field
 
     @Test("The ✕ next to the field clears it and drops the keyboard")
@@ -162,35 +83,10 @@ struct AppNavigatorTests {
         #expect(sut.isShowingSearch)
     }
 
-    // MARK: - Tab pill
-
-    @Test("Tapping the pill on Inicio goes to Biblioteca, and back")
-    func pillAlternates() {
-        sut.showOtherTab()
-        #expect(sut.selectedTab == .library)
-
-        sut.showOtherTab()
-        #expect(sut.selectedTab == .home)
-        #expect(container.shownTabs == [.library, .home])
-    }
-
-    @Test("Tapping the pill from Search goes back to the tab you came from")
-    func pillLeavesSearch() {
-        sut.select(.library)
-        sut.showSearch()
-
-        sut.showOtherTab()
-
-        #expect(!sut.isShowingSearch)
-        #expect(sut.selectedTab == .library)
-        #expect(container.shownTabs == [.library, .library])
-    }
-
     // MARK: - Closing Search
 
     @Test("Closing Search goes back to the tab you came from and drops the keyboard")
     func closeSearch() {
-        sut.select(.library)
         sut.showSearch()
         sut.isSearching = true
 
@@ -198,9 +94,9 @@ struct AppNavigatorTests {
 
         #expect(!sut.isShowingSearch)
         #expect(!sut.isSearching)
-        #expect(sut.selectedTab == .library)
-        #expect(container.shownTabs == [.library, .library])
-        #expect(sut.currentNavigationController === container.stacks[.library])
+        #expect(sut.selectedTab == .home)
+        #expect(container.shownTabs == [.home])
+        #expect(sut.currentNavigationController === container.stacks[.home])
     }
 
     @Test("Closing Search when it isn't open does nothing")
