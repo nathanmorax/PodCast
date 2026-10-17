@@ -30,6 +30,7 @@ class DownloadEpisodeViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        title = String(localized: "Downloads")
         configureCellRegistration()
         configureCollection()
         
