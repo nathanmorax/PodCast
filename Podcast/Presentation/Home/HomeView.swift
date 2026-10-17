@@ -5,93 +5,116 @@
 
 import SwiftUI
 
-/// "Inicio": pick up where you left off, your podcasts, and what you played.
+/// "Library", the main screen. Three things, always the same size:
+/// 1. A pile of what's new from the podcasts you follow (swipe for the next).
+/// 2. Your collections: Following, Favorites, Downloads.
+/// 3. For you: one row mixing your genres (not one row per genre).
+/// What you're listening to lives in the mini player, so it isn't repeated here.
 struct HomeView: View {
 
     @Environment(\.recentlyPlayed) private var recentlyPlayed
     @Environment(\.playerManager) private var playerManager
     @Environment(\.favoritesManager) private var favoritesManager
     @Environment(\.interestsManager) private var interests
+    @Environment(\.downloadManager) private var downloadManager
 
-    /// Owned by the view: created once, keeps its results while Home lives.
+    /// Owned by the view: created once, they keep their results while Library lives.
+    @State private var newEpisodes = NewEpisodesViewModel()
     @State private var forYou = ForYouViewModel()
 
     let onOpenPodcast: (Podcast) -> Void
     let onSearch: () -> Void
-    /// "Following" under the title: the podcasts you follow.
     let onOpenFollowing: () -> Void
-    /// "Favorites" under the title: the episodes you saved.
     let onOpenFavorites: () -> Void
+    let onOpenDownloads: () -> Void
 
     /// Saved episodes, only for the count next to "Favorites".
     private let bookmarks = BookMarkEpisodeManager.shared
 
-    private var favorites: [Podcast] { favoritesManager.favorites }
-
-    /// The most recent episode that isn't finished.
-    private var continueItem: RecentlyPlayed? {
-        recentlyPlayed.items.first { $0.progress < 0.98 }
-    }
-
-    private var otherRecents: [RecentlyPlayed] {
-        Array(recentlyPlayed.items.filter { $0.id != continueItem?.id }.prefix(10))
-    }
+    private var following: [Podcast] { favoritesManager.favorites }
 
     private var isEmpty: Bool {
-        recentlyPlayed.items.isEmpty && favorites.isEmpty && interests.genres.isEmpty
+        following.isEmpty && interests.genres.isEmpty
     }
 
-    /// Reload "For you" when the chosen genres or the favorites change.
+    /// Reload the pile when what you follow, or what you've played, changes.
+    private struct NewKey: Hashable {
+        let followingIDs: [Int]
+        let played: Set<String>
+    }
+
+    private var newKey: NewKey {
+        NewKey(followingIDs: following.map(\.trackId), played: Set(recentlyPlayed.items.map(\.id)))
+    }
+
+    /// Reload "For you" when the chosen genres or what you follow change.
     private struct ForYouKey: Hashable {
         let genreIDs: [String]
-        let favoriteIDs: Set<Int>
+        let followingIDs: Set<Int>
     }
 
     private var forYouKey: ForYouKey {
-        ForYouKey(genreIDs: interests.genreIDs, favoriteIDs: Set(favorites.map(\.trackId)))
+        ForYouKey(genreIDs: interests.genreIDs, followingIDs: Set(following.map(\.trackId)))
     }
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 30) {
-                header
-
-                if let item = continueItem {
-                    section("Continue listening") {
-                        ContinueListeningCard(item: item)
-                            .padding(.horizontal, 20)
-                    }
-                }
-                
-                if !otherRecents.isEmpty {
-                    section("Recently played") { recentsRow }
-                }
-
-                if !interests.genres.isEmpty {
-                    forYouSection
-                }
-
+            VStack(alignment: .leading, spacing: 28) {
                 if isEmpty {
                     emptyState
+                } else {
+                    if !newEpisodes.items.isEmpty {
+                        NewEpisodesPile(
+                            items: newEpisodes.items,
+                            onOpenPodcast: onOpenPodcast,
+                            onPlay: { playerManager.play($0) }
+                        )
+                        .transition(.opacity)
+                    }
+
+                    collections
+
+                    if !interests.genres.isEmpty {
+                        forYouSection
+                    }
                 }
             }
-            .padding(.top, 8)
-            .padding(.bottom, 24)
+            .padding(.top, 12)
+            .padding(.bottom, 24) // the bottom bar's space comes from the safe area
         }
         .scrollIndicators(.hidden)
         .background(AppColor.screenBackground.ignoresSafeArea())
-        .animation(AppAnimation.listChange, value: recentlyPlayed.items.map(\.id))
-        .animation(AppAnimation.listChange, value: forYou.rows.map(\.id))
-        .task(id: forYouKey) {
-            forYou.load(genres: interests.genres, excluding: forYouKey.favoriteIDs)
+        .animation(AppAnimation.listChange, value: newEpisodes.items.map(\.id))
+        .animation(AppAnimation.listChange, value: forYou.podcasts.map(\.trackId))
+        .task(id: newKey) {
+            newEpisodes.load(following: following, played: newKey.played)
         }
+        .task(id: forYouKey) {
+            forYou.load(genres: interests.genres, excluding: forYouKey.followingIDs)
+        }
+    }
+
+    // MARK: - Collections
+
+    /// Plain rows: icon, name, count, ›. Each opens its list.
+    private var collections: some View {
+        VStack(spacing: 0) {
+            CollectionRow(title: "Following", systemImage: "square.stack",
+                          count: following.count, action: onOpenFollowing)
+            CollectionRow(title: "Favorites", systemImage: "heart",
+                          count: bookmarks.episodes.count, action: onOpenFavorites)
+            CollectionRow(title: "Downloads", systemImage: "arrow.down.circle",
+                          count: downloadManager.downloadedEpisodes.count, action: onOpenDownloads,
+                          showsSeparator: false)
+        }
+        .padding(.horizontal, 20)
     }
 
     // MARK: - For you
 
-    /// One row per genre picked in onboarding. "Edit" reopens that screen.
+    /// One row mixing the genres picked in onboarding. "Edit" reopens that screen.
     private var forYouSection: some View {
-        VStack(alignment: .leading, spacing: 22) {
+        VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .firstTextBaseline) {
                 Text("For you")
                     .font(AppFont.sectionTitle)
@@ -107,131 +130,26 @@ struct HomeView: View {
             }
             .padding(.horizontal, 20)
 
-            if forYou.rows.isEmpty && forYou.isLoading {
+            if forYou.podcasts.isEmpty && forYou.isLoading {
                 ProgressView()
                     .frame(maxWidth: .infinity, minHeight: 120)
-            }
-
-            ForEach(forYou.rows) { row in
-                VStack(alignment: .leading, spacing: 10) {
-                    Text(row.genre.name)
-                        .font(AppFont.overline)
-                        .textCase(.uppercase)
-                        .tracking(0.6)
-                        .foregroundStyle(AppColor.lavenderInk)
-                        .padding(.horizontal, 20)
-                    podcastRow(row.podcasts)
-                }
-            }
-        }
-    }
-
-    private func podcastRow(_ podcasts: [Podcast]) -> some View {
-        ScrollView(.horizontal) {
-            LazyHStack(alignment: .top, spacing: 14) {
-                ForEach(podcasts, id: \.trackId) { podcast in
-                    Button {
-                        onOpenPodcast(podcast)
-                    } label: {
-                        PodcastTile(podcast: podcast)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
-        .contentMargins(.horizontal, 20, for: .scrollContent)
-        .scrollIndicators(.hidden)
-    }
-
-    // MARK: - Header
-
-    /// Under the title "Home" (the navigation bar's): two violet links,
-    /// Following and Favorites, each with its count. Then today's date.
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 18) {
-                libraryLink("Following", count: favorites.count, action: onOpenFollowing)
-                libraryLink("Favorites", count: bookmarks.episodes.count, action: onOpenFavorites)
-            }
-
-            Text(Date.now, format: .dateTime.weekday(.wide).day().month(.wide))
-                .font(AppFont.overline)
-                .foregroundStyle(AppColor.Text.secondary)
-                .textCase(.uppercase)
-        }
-        .padding(.horizontal, 20)
-    }
-
-    /// Plain text: the name in violet, the count in gray. Opens its list.
-    private func libraryLink(_ title: LocalizedStringKey, count: Int, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Text(title)
-                    .font(AppFont.link)
-                    .foregroundStyle(AppColor.Text.link)
-                Text(count, format: .number)
-                    .font(AppFont.body)
-                    .foregroundStyle(AppColor.Text.secondary)
-                    .contentTransition(.numericText())
-            }
-            .padding(.vertical, 6) // a comfortable tap target
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .animation(AppAnimation.stateChange, value: count)
-    }
-
-    private func section<Content: View>(_ title: LocalizedStringKey, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text(title)
-                .font(AppFont.sectionTitle)
-                .foregroundStyle(AppColor.Text.primary)
-                .padding(.horizontal, 20)
-                .accessibilityAddTraits(.isHeader)
-            content()
-        }
-    }
-
-    // MARK: - Rows
-
-    private var favoritesRow: some View {
-        ScrollView(.horizontal) {
-            LazyHStack(alignment: .top, spacing: 14) {
-                ForEach(favorites, id: \.trackId) { podcast in
-                    Button {
-                        onOpenPodcast(podcast)
-                    } label: {
-                        PodcastTile(podcast: podcast)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
-        .contentMargins(.horizontal, 20, for: .scrollContent)
-        .scrollIndicators(.hidden)
-    }
-
-    private var recentsRow: some View {
-        ScrollView(.horizontal) {
-            LazyHStack(alignment: .top, spacing: 14) {
-                ForEach(otherRecents) { item in
-                    Button {
-                        playerManager.play(item.episode)
-                    } label: {
-                        RecentUpdateCard(item: item)
-                            .frame(width: 150)
-                    }
-                    .buttonStyle(.plain)
-                    .contextMenu {
-                        Button("Remove from recents", systemImage: "minus.circle", role: .destructive) {
-                            withAnimation(AppAnimation.listChange) { recentlyPlayed.remove(item) }
+            } else {
+                ScrollView(.horizontal) {
+                    LazyHStack(alignment: .top, spacing: 14) {
+                        ForEach(forYou.podcasts, id: \.trackId) { podcast in
+                            Button {
+                                onOpenPodcast(podcast)
+                            } label: {
+                                PodcastTile(podcast: podcast)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
+                .contentMargins(.horizontal, 20, for: .scrollContent)
+                .scrollIndicators(.hidden)
             }
         }
-        .contentMargins(.horizontal, 20, for: .scrollContent)
-        .scrollIndicators(.hidden)
     }
 
     // MARK: - Empty
@@ -242,10 +160,10 @@ struct HomeView: View {
                 .font(.system(size: 40, weight: .semibold))
                 .foregroundStyle(AppColor.lavenderInk)
                 .accessibilityHidden(true)
-            Text("Your home is empty")
+            Text("Your library is empty")
                 .font(AppFont.sectionTitle)
                 .foregroundStyle(AppColor.Text.primary)
-            Text("Search for a podcast and start listening. You'll pick it up here right where you left off.")
+            Text("Search for a podcast and follow it. Its new episodes will show up here.")
                 .font(AppFont.body)
                 .foregroundStyle(AppColor.Text.secondary)
                 .multilineTextAlignment(.center)
@@ -266,6 +184,56 @@ struct HomeView: View {
     }
 }
 
+// MARK: - Collection row
+
+/// A collection as a plain row: violet icon, name, count in gray, ›.
+private struct CollectionRow: View {
+
+    let title: LocalizedStringKey
+    let systemImage: String
+    let count: Int
+    let action: () -> Void
+    var showsSeparator = true
+
+    @Environment(\.displayScale) private var displayScale
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 14) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(AppColor.Accent.strong)
+                    .frame(width: 24)
+                    .accessibilityHidden(true)
+                Text(title)
+                    .font(AppFont.headline)
+                    .foregroundStyle(AppColor.Text.primary)
+                Spacer(minLength: 0)
+                Text(count, format: .number)
+                    .font(AppFont.body)
+                    .foregroundStyle(AppColor.Text.secondary)
+                    .contentTransition(.numericText())
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(AppColor.Text.tertiary)
+                    .accessibilityHidden(true)
+            }
+            .frame(height: 52)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .overlay(alignment: .bottom) {
+            if showsSeparator {
+                Rectangle()
+                    .fill(AppColor.Text.tertiary.opacity(0.5))
+                    .frame(height: 1 / displayScale)
+                    .padding(.leading, 38)
+            }
+        }
+        .animation(AppAnimation.stateChange, value: count)
+    }
+}
+
 // MARK: - Preview
 
 #Preview {
@@ -273,10 +241,12 @@ struct HomeView: View {
         onOpenPodcast: { _ in },
         onSearch: {},
         onOpenFollowing: {},
-        onOpenFavorites: {}
+        onOpenFavorites: {},
+        onOpenDownloads: {}
     )
     .environment(\.recentlyPlayed, .preview)
     .environment(\.playerManager, .preview)
     .environment(\.favoritesManager, .preview)
     .environment(\.interestsManager, .preview)
+    .environment(\.downloadManager, .preview)
 }

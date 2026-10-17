@@ -5,25 +5,21 @@
 
 import Observation
 
-/// "For you" in Home: one row of podcasts per genre chosen in onboarding.
+/// "For you" in Library: ONE row that mixes the genres chosen in onboarding
+/// (one of each in turn), so the screen doesn't grow with every genre.
 ///
-/// Like a category in Search, each row searches the genre's name for now;
-/// when we use a "top by genre" API, only `fetch` changes. Results are kept
-/// in memory, so going back to Home doesn't search again.
+/// Each genre searches its name for now; when we use a "top by genre" API,
+/// only `fetch` changes. Results are kept in memory, so going back to
+/// Library doesn't search again.
 @MainActor
 @Observable
 final class ForYouViewModel {
 
-    struct Row: Identifiable {
-        let genre: Genre
-        let podcasts: [Podcast]
-        var id: String { genre.id }
-    }
+    /// Genres used for the mix (the first ones chosen).
+    static let maxGenres = 4
+    static let maxPodcasts = 12
 
-    static let maxRows = 4
-    static let podcastsPerRow = 12
-
-    private(set) var rows: [Row] = []
+    private(set) var podcasts: [Podcast] = []
     private(set) var isLoading = false
 
     @ObservationIgnored private let repository: any SearchPodcastRepository
@@ -35,21 +31,24 @@ final class ForYouViewModel {
         self.repository = repository
     }
 
-    /// Builds the rows for these genres, leaving out podcasts already in
-    /// favorites (they have their own row in Home).
-    func load(genres: [Genre], excluding favoriteIDs: Set<Int>) {
+    /// Builds the mix for these genres, leaving out podcasts you already
+    /// follow (they're in the pile and in Following).
+    func load(genres: [Genre], excluding followingIDs: Set<Int>) {
         loadTask?.cancel()
-        let wanted = Array(genres.prefix(Self.maxRows))
+        let wanted = Array(genres.prefix(Self.maxGenres))
         let missing = wanted.filter { cache[$0.id] == nil }
 
         // What's cached shows right away.
-        rows = makeRows(wanted, excluding: favoriteIDs)
-        guard !missing.isEmpty else { return }
+        podcasts = mix(wanted, excluding: followingIDs)
+        guard !missing.isEmpty else {
+            isLoading = false
+            return
+        }
 
         isLoading = true
         let repository = self.repository
         loadTask = Task {
-            // All genres at once; a failed one just has no row.
+            // All genres at once; a failed one just adds nothing.
             let fetched = await withTaskGroup(of: (String, [Podcast]?).self) { group in
                 for genre in missing {
                     group.addTask { (genre.id, try? await repository.searchPodcast(query: genre.name)) }
@@ -62,18 +61,35 @@ final class ForYouViewModel {
             }
             guard !Task.isCancelled else { return }
             cache.merge(fetched) { _, new in new }
-            rows = makeRows(wanted, excluding: favoriteIDs)
+            podcasts = mix(wanted, excluding: followingIDs)
             isLoading = false
         }
     }
 
-    private func makeRows(_ genres: [Genre], excluding favoriteIDs: Set<Int>) -> [Row] {
-        genres.compactMap { genre in
-            guard let podcasts = cache[genre.id] else { return nil }
-            let shown = podcasts
-                .filter { !favoriteIDs.contains($0.trackId) }
-                .prefix(Self.podcastsPerRow)
-            return shown.isEmpty ? nil : Row(genre: genre, podcasts: Array(shown))
+    private func mix(_ genres: [Genre], excluding ids: Set<Int>) -> [Podcast] {
+        Self.interleave(genres.compactMap { cache[$0.id] }, excluding: ids, limit: Self.maxPodcasts)
+    }
+
+    /// Pure: one from each list in turn (1st of each, then 2nd of each…),
+    /// without repeats or excluded podcasts, up to `limit`.
+    static func interleave(_ lists: [[Podcast]], excluding ids: Set<Int>, limit: Int) -> [Podcast] {
+        let lists = lists.map { $0.filter { !ids.contains($0.trackId) } }
+        var seen = Set<Int>()
+        var result: [Podcast] = []
+        var position = 0
+        while result.count < limit {
+            var anyLeft = false
+            for list in lists where position < list.count {
+                anyLeft = true
+                let podcast = list[position]
+                if seen.insert(podcast.trackId).inserted {
+                    result.append(podcast)
+                    if result.count == limit { break }
+                }
+            }
+            guard anyLeft else { break }
+            position += 1
         }
+        return result
     }
 }
