@@ -5,7 +5,8 @@
 
 import SwiftUI
 
-/// What's playing: artwork, title, a thin progress bar under it, play/pause.
+/// What's playing: artwork, title, a thin progress bar with the time left
+/// under it, and play/pause.
 /// Tapping the info opens the full player.
 struct MiniPlayerCapsule: View {
 
@@ -61,25 +62,38 @@ struct MiniPlayerCapsule: View {
     }
 }
 
-/// A thin capsule track with the played part in lavender. Reads the progress
-/// itself, so the rest of the mini player doesn't update every tick.
+/// A thin capsule track with the played part in lavender, and the time left
+/// next to it ("−23:10"). Reads the progress itself, so the rest of the mini
+/// player doesn't update every tick.
 private struct MiniProgressBar: View {
 
     @Environment(\.playerManager) private var manager
 
     var body: some View {
         let progress = CGFloat(min(max(manager.viewModel.progress, 0), 1))
-        Capsule()
-            .fill(AppColor.Text.tertiary.opacity(0.35))
-            .frame(height: 4)
-            .overlay(alignment: .leading) {
-                Capsule()
-                    .fill(AppColor.lavender)
-                    .scaleEffect(x: progress, y: 1, anchor: .leading)
+        let remaining = manager.viewModel.remainingTimeText
+        HStack(spacing: 8) {
+            Capsule()
+                .fill(AppColor.Text.tertiary.opacity(0.35))
+                .frame(height: 4)
+                .overlay(alignment: .leading) {
+                    Capsule()
+                        .fill(AppColor.lavender)
+                        .scaleEffect(x: progress, y: 1, anchor: .leading)
+                }
+                .clipShape(Capsule())
+
+            if !remaining.isEmpty {
+                Text(verbatim: "−\(remaining)")
+                    .font(AppFont.caption)
+                    .monospacedDigit()
+                    .foregroundStyle(AppColor.Text.secondary)
+                    .lineLimit(1)
+                    .fixedSize()
             }
-            .clipShape(Capsule())
-            .accessibilityElement()
-            .accessibilityLabel("Progress")
-            .accessibilityValue(Text(progress, format: .percent.precision(.fractionLength(0))))
+        }
+        .accessibilityElement()
+        .accessibilityLabel("Time left")
+        .accessibilityValue(Text(verbatim: remaining))
     }
 }

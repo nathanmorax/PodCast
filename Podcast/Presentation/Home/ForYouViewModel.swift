@@ -6,35 +6,32 @@
 import Foundation
 import Observation
 
-/// "For you" in Library: a mix of the genres chosen in onboarding (one of
-/// each in turn), from which Library shows a few in one row, so the screen
-/// doesn't grow with every genre.
+/// "For you" in Library: the latest episodes of the podcasts you follow,
+/// newest first, in one row.
 ///
-/// Each genre searches its name for now; when we use a "top by genre" API,
-/// only `fetch` changes. Results are kept in memory, so going back to
-/// Library doesn't search again.
+/// Each followed podcast's RSS is read once and kept in memory, so going
+/// back to Library (or following one more) only downloads what's missing.
 @MainActor
 @Observable
 final class ForYouViewModel {
 
-    /// Genres used for the mix (the first ones chosen).
-    static let maxGenres = 4
-    static let maxPodcasts = 12
-
-    private(set) var podcasts: [Podcast] = []
-    private(set) var isLoading = false
-
-    /// How many recommendations Library shows.
-    static let shownCount = 6
-
-    /// What Library shows: `shownCount` from the mix, starting at a different
-    /// place each day so they rotate through the whole mix.
-    var recommendations: [Podcast] {
-        Self.recommendations(in: podcasts, count: Self.shownCount, on: .now)
+    struct Item: Identifiable, Sendable {
+        let podcast: Podcast
+        let episode: Episode
+        var id: String { episode.streamUrl }
     }
 
+    /// How many episodes Library shows.
+    static let shownCount = 10
+    /// At most this many from one podcast, so a daily show doesn't fill the row.
+    static let perPodcast = 2
+
+    private(set) var items: [Item] = []
+    private(set) var isLoading = false
+
     @ObservationIgnored private let repository: any SearchPodcastRepository
-    @ObservationIgnored private var cache: [String: [Podcast]] = [:]
+    /// Episodes per podcast (trackId), newest first.
+    @ObservationIgnored private var episodesByPodcast: [Int: [Episode]] = [:]
     /// Internal read access so tests can await it.
     @ObservationIgnored private(set) var loadTask: Task<Void, Never>?
 
@@ -42,15 +39,12 @@ final class ForYouViewModel {
         self.repository = repository
     }
 
-    /// Builds the mix for these genres, leaving out podcasts you already
-    /// follow (they're already in Library).
-    func load(genres: [Genre], excluding followingIDs: Set<Int>) {
+    func load(following: [Podcast]) {
         loadTask?.cancel()
-        let wanted = Array(genres.prefix(Self.maxGenres))
-        let missing = wanted.filter { cache[$0.id] == nil }
-
         // What's cached shows right away.
-        podcasts = mix(wanted, excluding: followingIDs)
+        items = Self.latest(from: following, episodes: episodesByPodcast)
+
+        let missing = following.filter { episodesByPodcast[$0.trackId] == nil && $0.feedUrl != nil }
         guard !missing.isEmpty else {
             isLoading = false
             return
@@ -59,57 +53,37 @@ final class ForYouViewModel {
         isLoading = true
         let repository = self.repository
         loadTask = Task {
-            // All genres at once; a failed one just adds nothing.
-            let fetched = await withTaskGroup(of: (String, [Podcast]?).self) { group in
-                for genre in missing {
-                    group.addTask { (genre.id, try? await repository.searchPodcast(query: genre.name)) }
+            // All feeds at once; a failed one just adds nothing.
+            let fetched = await withTaskGroup(of: (Int, [Episode]?).self) { group in
+                for podcast in missing {
+                    guard let feedURL = podcast.feedUrl else { continue }
+                    group.addTask {
+                        let feed = try? await repository.fetchFeed(feedURL: feedURL)
+                        return (podcast.trackId, feed?.episodes.sorted { $0.pubDate > $1.pubDate })
+                    }
                 }
-                var results: [String: [Podcast]] = [:]
-                for await (id, podcasts) in group {
-                    if let podcasts { results[id] = podcasts }
+                var results: [Int: [Episode]] = [:]
+                for await (id, episodes) in group {
+                    if let episodes { results[id] = episodes }
                 }
                 return results
             }
             guard !Task.isCancelled else { return }
-            cache.merge(fetched) { _, new in new }
-            podcasts = mix(wanted, excluding: followingIDs)
+            episodesByPodcast.merge(fetched) { _, new in new }
+            items = Self.latest(from: following, episodes: episodesByPodcast)
             isLoading = false
         }
     }
 
-    private func mix(_ genres: [Genre], excluding ids: Set<Int>) -> [Podcast] {
-        Self.interleave(genres.compactMap { cache[$0.id] }, excluding: ids, limit: Self.maxPodcasts)
-    }
-
-    /// Pure: `count` podcasts of the mix, starting at today's position and
-    /// wrapping around. Same result all day; shifts by one the next day.
-    static func recommendations(in podcasts: [Podcast], count: Int, on date: Date, calendar: Calendar = .current) -> [Podcast] {
-        guard !podcasts.isEmpty, count > 0 else { return [] }
-        let day = calendar.ordinality(of: .day, in: .era, for: date) ?? 0
-        let start = day % podcasts.count
-        return (0..<min(count, podcasts.count)).map { podcasts[(start + $0) % podcasts.count] }
-    }
-
-    /// Pure: one from each list in turn (1st of each, then 2nd of each…),
-    /// without repeats or excluded podcasts, up to `limit`.
-    static func interleave(_ lists: [[Podcast]], excluding ids: Set<Int>, limit: Int) -> [Podcast] {
-        let lists = lists.map { $0.filter { !ids.contains($0.trackId) } }
-        var seen = Set<Int>()
-        var result: [Podcast] = []
-        var position = 0
-        while result.count < limit {
-            var anyLeft = false
-            for list in lists where position < list.count {
-                anyLeft = true
-                let podcast = list[position]
-                if seen.insert(podcast.trackId).inserted {
-                    result.append(podcast)
-                    if result.count == limit { break }
-                }
-            }
-            guard anyLeft else { break }
-            position += 1
+    /// Pure: the newest episodes across these podcasts (at most `perPodcast`
+    /// each, `shownCount` in all), newest first.
+    static func latest(from podcasts: [Podcast], episodes: [Int: [Episode]]) -> [Item] {
+        let all = podcasts.flatMap { podcast in
+            (episodes[podcast.trackId] ?? [])
+                .sorted { $0.pubDate > $1.pubDate }
+                .prefix(perPodcast)
+                .map { Item(podcast: podcast, episode: $0) }
         }
-        return result
+        return Array(all.sorted { $0.episode.pubDate > $1.episode.pubDate }.prefix(shownCount))
     }
 }

@@ -356,16 +356,6 @@
         }
       }
     },
-    "Edit interests" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Editar intereses"
-          }
-        }
-      }
-    },
     "Education" : {
       "localizations" : {
         "es" : {
@@ -438,6 +428,16 @@
         }
       }
     },
+    "Follow a podcast and its new episodes will show up here." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sigue un podcast y sus episodios nuevos aparecerán aquí."
+          }
+        }
+      }
+    },
     "Following" : {
       "localizations" : {
         "es" : {
@@ -464,6 +464,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pantalla completa"
+          }
+        }
+      }
+    },
+    "Go to podcast" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ir al podcast"
           }
         }
       }
@@ -745,6 +755,16 @@
         }
       }
     },
+    "Plays the episode" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reproduce el episodio"
+          }
+        }
+      }
+    },
     "Preparing transcript" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -902,16 +922,6 @@
         }
       }
     },
-    "Search for a podcast and follow it. It'll show up here." : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Busca un podcast y síguelo. Aparecerá aquí."
-          }
-        }
-      }
-    },
     "Search podcasts" : {
       "localizations" : {
         "es" : {
@@ -1065,6 +1075,16 @@
         }
       }
     },
+    "Time left" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiempo restante"
+          }
+        }
+      }
+    },
     "Time remaining %@" : {
       "localizations" : {
         "es" : {
@@ -1183,16 +1203,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lo que escuches aparecerá aquí."
-          }
-        }
-      }
-    },
-    "Your library is empty" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tu biblioteca está vacía"
           }
         }
       }
