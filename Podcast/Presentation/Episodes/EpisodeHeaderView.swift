@@ -75,19 +75,21 @@ struct EpisodeHeaderView: View {
                 .frame(height: 190)
             }
             .overlay(alignment: .bottomLeading) {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 6) {
                     if !heroCaption.isEmpty {
                         Text(heroCaption)
                             .font(AppFont.overline)
                             .textCase(.uppercase)
+                            .tracking(0.8)
                             .foregroundStyle(AppColor.Text.secondary)
                             .lineLimit(1)
                     }
+                    // Editorial: the name in serif, like a magazine cover.
                     Text(podcast.trackName ?? "")
-                        .font(AppFont.hero)
+                        .font(AppFont.editorialHero)
                         .foregroundStyle(AppColor.Text.primary)
                         .lineLimit(2)
-                        .minimumScaleFactor(0.8)
+                        .minimumScaleFactor(0.7)
                 }
                 .padding(.horizontal, HeaderStyle.horizontalPadding)
                 .padding(.bottom, 4)
@@ -115,10 +117,10 @@ struct EpisodeHeaderView: View {
             } label: {
                 Label("Listen to podcast", systemImage: "play.fill")
                     .font(AppFont.button)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(AppColor.Text.onPastel)
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
-                    .background(Capsule().fill(AppColor.Accent.strong))
+                    .background(Capsule().fill(AppColor.Accent.soft))
             }
             .buttonStyle(.plain)
 
@@ -157,9 +159,9 @@ struct EpisodeHeaderView: View {
     private func roundIcon(_ name: String, isOn: Bool = false) -> some View {
         Image(systemName: name)
             .font(.system(size: 18, weight: .semibold))
-            .foregroundStyle(isOn ? AppColor.Text.inverse : AppColor.Accent.strong)
+            .foregroundStyle(isOn ? AppColor.Text.onPastel : AppColor.Text.primary)
             .frame(width: 50, height: 50)
-            .background(Circle().fill(isOn ? AppColor.Accent.strong : AppColor.Accent.wash))
+            .background(Circle().fill(isOn ? AppColor.Accent.soft : AppColor.Text.primary.opacity(0.1)))
     }
 
     /// The podcast on Apple Podcasts (opens in any app or browser).
@@ -175,7 +177,7 @@ struct EpisodeHeaderView: View {
             Text("\(count) episodes")
                 .font(AppFont.overline)
                 .textCase(.uppercase)
-                .tracking(0.4)
+                .tracking(0.8)
                 .foregroundStyle(AppColor.Text.secondary)
                 .padding(.horizontal, HeaderStyle.horizontalPadding)
                 .padding(.top, 26)

@@ -85,7 +85,7 @@ private struct EpisodeRow: View {
                     Rectangle()
                         .fill(AppColor.Text.tertiary.opacity(0.5))
                         .frame(height: 1 / displayScale)
-                        .padding(.leading, 24)
+                        .padding(.horizontal, 24)
                 }
             }
             .contentShape(Rectangle())
