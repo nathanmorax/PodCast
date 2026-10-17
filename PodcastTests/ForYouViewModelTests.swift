@@ -86,16 +86,24 @@ struct ForYouViewModelTests {
         #expect(mixed.map(\.trackId) == [1, 10, 2, 20])
     }
 
-    @Test("The recommendation changes from one day to the next and is stable within a day")
-    func dailyRecommendation() {
-        let mix = [1, 2, 3].map { Fixtures.podcast(id: $0) }
+    @Test("Shows a few, stable within a day and shifted the next day")
+    func dailyRecommendations() {
+        let mix = [1, 2, 3, 4].map { Fixtures.podcast(id: $0) }
         let morning = Date(timeIntervalSince1970: 1_800_000_000)
         let evening = morning.addingTimeInterval(3_600)
         let tomorrow = morning.addingTimeInterval(86_400)
 
-        let today = ForYouViewModel.recommendation(in: mix, on: morning)
-        #expect(today?.trackId == ForYouViewModel.recommendation(in: mix, on: evening)?.trackId)
-        #expect(today?.trackId != ForYouViewModel.recommendation(in: mix, on: tomorrow)?.trackId)
-        #expect(ForYouViewModel.recommendation(in: [], on: morning) == nil)
+        let today = ForYouViewModel.recommendations(in: mix, count: 3, on: morning).map(\.trackId)
+        #expect(today.count == 3)
+        #expect(Set(today).count == 3)
+        #expect(today == ForYouViewModel.recommendations(in: mix, count: 3, on: evening).map(\.trackId))
+        #expect(today != ForYouViewModel.recommendations(in: mix, count: 3, on: tomorrow).map(\.trackId))
+    }
+
+    @Test("Never more than the mix has")
+    func fewerThanCount() {
+        let mix = [1, 2].map { Fixtures.podcast(id: $0) }
+        #expect(ForYouViewModel.recommendations(in: mix, count: 6, on: .now).count == 2)
+        #expect(ForYouViewModel.recommendations(in: [], count: 6, on: .now).isEmpty)
     }
 }

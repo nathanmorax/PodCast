@@ -225,16 +225,6 @@
         }
       }
     },
-    "Collections" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Colecciones"
-          }
-        }
-      }
-    },
     "Comedy" : {
       "localizations" : {
         "es" : {

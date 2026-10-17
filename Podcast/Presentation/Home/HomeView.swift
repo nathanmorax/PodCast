@@ -6,9 +6,9 @@
 import SwiftUI
 
 /// "Library", the main screen. Everything fits on one screen:
-/// 1. The podcasts you follow, as a row of covers (no text).
-/// 2. For you: ONE recommendation mixed from your genres.
-/// 3. Collections: Following, Favorites, Downloads.
+/// 1. Collections: Following, Favorites, Downloads, as three small tiles.
+/// 2. The podcasts you follow, as a row of covers (no text).
+/// 3. For you: one row of big covers with the name inside, mixed from your genres.
 /// What you're listening to lives in the mini player, so it isn't repeated here.
 struct HomeView: View {
 
@@ -46,6 +46,8 @@ struct HomeView: View {
                 if isEmpty {
                     emptyState
                 } else {
+                    collectionsSection
+
                     if !following.isEmpty {
                         FollowingCovers(podcasts: following, onOpen: onOpenPodcast)
                     }
@@ -53,8 +55,6 @@ struct HomeView: View {
                     if !interests.genres.isEmpty {
                         forYouSection
                     }
-
-                    collectionsSection
                 }
             }
             .padding(.top, 12)
@@ -70,8 +70,8 @@ struct HomeView: View {
 
     // MARK: - For you
 
-    /// One podcast, picked from the mix of your genres. "Edit" reopens the
-    /// genres screen.
+    /// A few podcasts from the mix of your genres, in one row. "Edit" reopens
+    /// the genres screen.
     private var forYouSection: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .firstTextBaseline) {
@@ -84,34 +84,27 @@ struct HomeView: View {
                 .foregroundStyle(AppColor.lavenderInk)
                 .accessibilityLabel("Edit interests")
             }
+            .padding(.horizontal, 20)
 
-            if let podcast = forYou.recommendation {
-                Button {
-                    onOpenPodcast(podcast)
-                } label: {
-                    RecommendationRow(podcast: podcast)
-                }
-                .buttonStyle(.plain)
-                .transition(.opacity)
-            } else if forYou.isLoading {
+            if forYou.recommendations.isEmpty && forYou.isLoading {
                 ProgressView()
-                    .frame(maxWidth: .infinity, minHeight: 120)
+                    .frame(maxWidth: .infinity, minHeight: 150)
+                    .padding(.horizontal, 20)
+            } else {
+                RecommendationsRow(podcasts: forYou.recommendations, onOpen: onOpenPodcast)
             }
         }
-        .padding(.horizontal, 20)
-        .animation(AppAnimation.stateChange, value: forYou.recommendation?.trackId)
+        .animation(AppAnimation.listChange, value: forYou.recommendations.map(\.trackId))
     }
 
     // MARK: - Collections
 
+    /// Three small tiles in a row. Each opens its list.
     private var collectionsSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            sectionTitle("Collections")
-            VStack(spacing: 10) {
-                CollectionRow(title: "Following", systemImage: "square.stack", action: onOpenFollowing)
-                CollectionRow(title: "Favorites", systemImage: "heart.fill", action: onOpenFavorites)
-                CollectionRow(title: "Downloads", systemImage: "arrow.down", action: onOpenDownloads)
-            }
+        HStack(spacing: 10) {
+            CollectionTile(title: "Following", systemImage: "square.stack.3d.up", action: onOpenFollowing)
+            CollectionTile(title: "Favorites", systemImage: "bookmark", action: onOpenFavorites)
+            CollectionTile(title: "Downloads", systemImage: "arrow.down.to.line", action: onOpenDownloads)
         }
         .padding(.horizontal, 20)
     }
@@ -173,7 +166,7 @@ private struct FollowingCovers: View {
                         Color.clear
                             .frame(width: 104, height: 104)
                             .overlay { PodcastImage(source: podcast.artworkUrl600) }
-                            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: CoverStyle.cornerRadius, style: .continuous))
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(Text(verbatim: podcast.trackName ?? ""))
@@ -185,51 +178,74 @@ private struct FollowingCovers: View {
     }
 }
 
-// MARK: - Recommendation
+// MARK: - Covers
 
-/// Big cover, name, "artist · genre". No card around it.
-private struct RecommendationRow: View {
+/// Every cover in Library: barely rounded, so the artwork reads as a square.
+private enum CoverStyle {
+    static let cornerRadius: CGFloat = 10
+}
 
-    let podcast: Podcast
+// MARK: - Recommendations
 
-    private var subtitle: String {
-        [podcast.artistName, podcast.primaryGenreName]
-            .compactMap { $0 }
-            .joined(separator: " · ")
-    }
+/// Big covers with the name inside, over a dark fade, in one horizontal row.
+private struct RecommendationsRow: View {
+
+    let podcasts: [Podcast]
+    let onOpen: (Podcast) -> Void
+
+    private static let side: CGFloat = 180
 
     var body: some View {
-        HStack(spacing: 14) {
-            Color.clear
-                .frame(width: 120, height: 120)
-                .overlay { PodcastImage(source: podcast.artworkUrl600) }
-                .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text(podcast.trackName ?? "")
-                    .font(AppFont.sheetTitle)
-                    .foregroundStyle(AppColor.Text.primary)
-                    .lineLimit(3)
-                    .multilineTextAlignment(.leading)
-                if !subtitle.isEmpty {
-                    Text(subtitle)
-                        .font(AppFont.footnote)
-                        .foregroundStyle(AppColor.Text.secondary)
-                        .lineLimit(1)
+        ScrollView(.horizontal) {
+            LazyHStack(spacing: 12) {
+                ForEach(podcasts, id: \.trackId) { podcast in
+                    Button {
+                        onOpen(podcast)
+                    } label: {
+                        RecommendationCover(podcast: podcast, side: Self.side)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
-
-            Spacer(minLength: 0)
         }
-        .contentShape(Rectangle())
-        .accessibilityElement(children: .combine)
+        .contentMargins(.horizontal, 20, for: .scrollContent)
+        .scrollIndicators(.hidden)
     }
 }
 
-// MARK: - Collection row
+private struct RecommendationCover: View {
 
-/// A collection: violet icon and name on a rounded surface. No counts, no ›.
-private struct CollectionRow: View {
+    let podcast: Podcast
+    let side: CGFloat
+
+    var body: some View {
+        Color.clear
+            .frame(width: side, height: side)
+            .overlay { PodcastImage(source: podcast.artworkUrl600) }
+            .overlay(alignment: .bottomLeading) {
+                Text(podcast.trackName ?? "")
+                    .font(AppFont.cardTitle)
+                    .foregroundStyle(.white)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    // The fade keeps the name readable on any artwork.
+                    .background(
+                        LinearGradient(colors: [.clear, .black.opacity(0.7)],
+                                       startPoint: .top, endPoint: .bottom)
+                    )
+            }
+            .clipShape(RoundedRectangle(cornerRadius: CoverStyle.cornerRadius, style: .continuous))
+            .contentShape(Rectangle())
+            .accessibilityElement(children: .combine)
+    }
+}
+
+// MARK: - Collection tile
+
+/// A small tile: violet icon on top, name under it.
+private struct CollectionTile: View {
 
     let title: LocalizedStringKey
     let systemImage: String
@@ -237,21 +253,21 @@ private struct CollectionRow: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 8) {
                 Image(systemName: systemImage)
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(AppColor.Accent.strong)
-                    .frame(width: 24)
                     .accessibilityHidden(true)
                 Text(title)
-                    .font(AppFont.headline)
+                    .font(AppFont.itemTitle)
                     .foregroundStyle(AppColor.Text.primary)
-                Spacer(minLength: 0)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
             }
-            .padding(.horizontal, 20)
-            .frame(height: 58)
-            .background(AppColor.Surface.raised, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(AppColor.Surface.raised, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
         .buttonStyle(.plain)
     }

@@ -7,8 +7,8 @@ import Foundation
 import Observation
 
 /// "For you" in Library: a mix of the genres chosen in onboarding (one of
-/// each in turn), from which Library shows a single recommendation, so the
-/// screen doesn't grow with every genre.
+/// each in turn), from which Library shows a few in one row, so the screen
+/// doesn't grow with every genre.
 ///
 /// Each genre searches its name for now; when we use a "top by genre" API,
 /// only `fetch` changes. Results are kept in memory, so going back to
@@ -24,9 +24,13 @@ final class ForYouViewModel {
     private(set) var podcasts: [Podcast] = []
     private(set) var isLoading = false
 
-    /// The one Library shows: changes each day, through the whole mix.
-    var recommendation: Podcast? {
-        Self.recommendation(in: podcasts, on: .now)
+    /// How many recommendations Library shows.
+    static let shownCount = 6
+
+    /// What Library shows: `shownCount` from the mix, starting at a different
+    /// place each day so they rotate through the whole mix.
+    var recommendations: [Podcast] {
+        Self.recommendations(in: podcasts, count: Self.shownCount, on: .now)
     }
 
     @ObservationIgnored private let repository: any SearchPodcastRepository
@@ -77,11 +81,13 @@ final class ForYouViewModel {
         Self.interleave(genres.compactMap { cache[$0.id] }, excluding: ids, limit: Self.maxPodcasts)
     }
 
-    /// Pure: which podcast of the mix is today's (a different one each day).
-    static func recommendation(in podcasts: [Podcast], on date: Date, calendar: Calendar = .current) -> Podcast? {
-        guard !podcasts.isEmpty else { return nil }
+    /// Pure: `count` podcasts of the mix, starting at today's position and
+    /// wrapping around. Same result all day; shifts by one the next day.
+    static func recommendations(in podcasts: [Podcast], count: Int, on date: Date, calendar: Calendar = .current) -> [Podcast] {
+        guard !podcasts.isEmpty, count > 0 else { return [] }
         let day = calendar.ordinality(of: .day, in: .era, for: date) ?? 0
-        return podcasts[day % podcasts.count]
+        let start = day % podcasts.count
+        return (0..<min(count, podcasts.count)).map { podcasts[(start + $0) % podcasts.count] }
     }
 
     /// Pure: one from each list in turn (1st of each, then 2nd of each…),
