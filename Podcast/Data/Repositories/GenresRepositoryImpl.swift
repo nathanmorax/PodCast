@@ -6,16 +6,14 @@
 //
 
 final class GenresRepositoryImpl: GenresRepository {
-    
+
     private let remoteDataSource: PodcastRemoteDataSource
-    
-    
+
     init(remoteDataSource: PodcastRemoteDataSource) {
         self.remoteDataSource = remoteDataSource
     }
-    
-    
-    func fetchGenresPodcast(completion: @escaping (Result<[Genre], any Error>) -> Void) {
-        remoteDataSource.fetchGenresPodcast(completion: completion)
+
+    func fetchGenres() async throws -> [Genre] {
+        try await remoteDataSource.fetchGenres()
     }
 }

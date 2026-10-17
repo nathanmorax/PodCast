@@ -27,3 +27,25 @@ extension UIViewController {
         }
     }
 }
+
+extension UIViewController {
+    /// Shows the screen's `title` on the left of the navigation bar, bold,
+    /// instead of centered (the tabs' first screens: Home, Library, Search).
+    /// Call after setting `title`.
+    func showTitleOnLeading() {
+        let label = UILabel()
+        label.text = title
+        label.font = .systemFont(ofSize: 28, weight: .bold)
+        label.textColor = .label
+        label.accessibilityTraits = .header
+        label.sizeToFit()
+
+        let item = UIBarButtonItem(customView: label)
+        // A plain title, not a button: no glass capsule behind it.
+        item.hidesSharedBackground = true
+        navigationItem.leftBarButtonItem = item
+        // An empty title view hides the centered copy of the title (the
+        // `title` itself stays, for VoiceOver and the back button).
+        navigationItem.titleView = UIView()
+    }
+}

@@ -38,7 +38,6 @@ class PodcastResultSearchController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configure()
-        setupBindings()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -59,17 +58,17 @@ class PodcastResultSearchController: UIViewController {
         ])
     }
     
-    private func setupBindings() {
-        withObservationTracking {
-            _ = viewModel.podcasts
-        } onChange: { [weak self] in
-            // onChange fires BEFORE the new value is stored (willSet),
-            // so hop to the next main-actor turn to read the new podcasts.
-            Task { @MainActor in
-                self?.collectionView.reloadData()
-                self?.setupBindings()
-            }
-        }
+    /// What the list currently shows, to reload only on changes.
+    private var renderedPodcastIDs: [Int] = []
+
+    /// iOS 26: UIKit tracks `viewModel.podcasts` read here and calls this again
+    /// when it changes (the new value is already stored, no extra hop).
+    override func updateProperties() {
+        super.updateProperties()
+        let ids = viewModel.podcasts.map(\.trackId)
+        guard ids != renderedPodcastIDs else { return }
+        renderedPodcastIDs = ids
+        collectionView.reloadData()
     }
 }
 

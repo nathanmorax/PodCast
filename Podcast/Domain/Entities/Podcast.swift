@@ -7,7 +7,9 @@
 
 import Foundation
 
-struct Podcast: Codable {
+/// Sendable: only value fields, so search results can cross from the network
+/// code to the UI.
+struct Podcast: Codable, Sendable {
     let trackId: Int
     let trackName: String?
     let artistName: String?

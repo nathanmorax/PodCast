@@ -17,7 +17,7 @@ struct DownloadButton: View {
 
     var body: some View {
         Button {
-            withAnimation { handleTap() }
+            withAnimation(AppAnimation.stateChange) { handleTap() }
         } label: {
             ZStack {
                 ring
@@ -28,7 +28,7 @@ struct DownloadButton: View {
         .buttonStyle(.plain)
         .onChange(of: isActive) { _, active in
             if active {
-                withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
+                withAnimation(AppAnimation.spin(duration: 1)) {
                     spinAngle = 360
                 }
             } else {
@@ -53,7 +53,7 @@ struct DownloadButton: View {
                 .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 1, lineCap: .round))
                 .rotationEffect(.degrees(spinAngle))
                 .onAppear {
-                    withAnimation(.linear(duration: 0.5).repeatForever(autoreverses: false)) {
+                    withAnimation(AppAnimation.spin(duration: 0.5)) {
                         spinAngle = 360
                     }
                 }
@@ -86,7 +86,7 @@ struct DownloadButton: View {
             .font(.system(size: 14, weight: .semibold))
             .foregroundStyle(iconColor)
             .contentTransition(.symbolEffect(.replace))
-            .animation(.easeInOut(duration: 0.25), value: symbolName)
+            .animation(AppAnimation.stateChange, value: symbolName)
     }
 
     // MARK: - Helpers

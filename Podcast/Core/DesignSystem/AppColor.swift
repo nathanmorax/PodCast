@@ -34,6 +34,11 @@ enum AppColor {
     static let ink              = Color(asset: .ink)
     /// Dark lavender: selected tab, accents on light backgrounds.
     static let lavenderInk      = Color(asset: .lavenderInk)
+    /// Transcript page: sepia paper (light) / warm near-black (dark).
+    /// Softer than white/black: ~13–14:1 contrast without the glare.
+    static let readingBackground = Color(asset: .readingBackground)
+    /// Transcript text: warm ink (light) / cream (dark).
+    static let readingText       = Color(asset: .readingText)
 
     // MARK: - Semantic roles
 
@@ -52,13 +57,41 @@ enum AppColor {
     enum Surface {
         static let primary   = AppColor.paleYellow
         static let secondary = AppColor.dustyRose
-        static let elevated  = Color.white
+        /// Cards on the screen background: white / dark grey.
+        static let elevated  = Color(uiColor: .secondarySystemGroupedBackground)
+        /// The selected pill of a segmented control, a focused field:
+        /// white / a lighter grey than the cards.
+        static let raised    = Color(asset: .surfaceRaised)
     }
 
+    /// Text on the app's light surfaces. One ink at three strengths, so
+    /// titles, subtitles and hints always match.
     enum Text {
-        static let primary   = AppColor.charcoalBrown
-        static let secondary = AppColor.slateGray
+        /// Titles and body.
+        static let primary   = AppColor.ink
+        /// Subtitles, authors, descriptions.
+        static let secondary = AppColor.ink.opacity(0.55)
+        /// Hints, timestamps, chevrons, played items.
+        static let tertiary  = AppColor.ink.opacity(0.35)
+        /// On violet or dark fills.
         static let inverse   = Color.white
+        /// On pastel or light-violet fills (genre cards, play buttons):
+        /// stays dark in dark mode, where `primary` turns light.
+        static let onPastel  = Color(asset: .inkOnPastel)
+        /// Links and text buttons ("Edit", "Clear", "Try again").
+        static let link      = AppColor.lavenderInk
+    }
+
+    /// The app's main color: violet. Primary buttons, links, selection,
+    /// progress and the navigation bar's buttons use it (AccentColor in the
+    /// asset catalog is the same violet, so system controls match).
+    enum Accent {
+        /// Deep violet: filled buttons, links, selected states, icons.
+        static let strong = AppColor.lavenderInk
+        /// Light violet: play buttons, progress, highlights.
+        static let soft   = AppColor.lavender
+        /// A violet tint for backgrounds behind violet icons/text.
+        static let wash   = AppColor.lavender.opacity(0.18)
     }
 
     /// Tile colors for genres.

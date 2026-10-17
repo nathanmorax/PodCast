@@ -4,11 +4,11 @@
 //
 //  Created by Jesus Mora on 28/01/26.
 //
-import Combine
 
-protocol SearchPodcastRepository {
+protocol SearchPodcastRepository: Sendable {
 
     func searchPodcast(query: String) async throws -> [Podcast]
-    func fetchEpisodes(feedURL: String) async throws -> [Episode]
 
+    /// One download of the podcast's RSS: description + episodes.
+    func fetchFeed(feedURL: String) async throws -> PodcastFeed
 }

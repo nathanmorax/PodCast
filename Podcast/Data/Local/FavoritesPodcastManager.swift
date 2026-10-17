@@ -4,71 +4,61 @@
 //
 //  Created by Jesus Mora on 19/03/26.
 //
+
 import Foundation
-import Combine
+import Observation
 
-private enum Keys {
-    static let favorites = "favorite_podcasts"
-}
+/// The podcasts the listener marked as favorite, saved in UserDefaults.
+///
+/// @MainActor @Observable, like RecentlyPlayedManager: it's UI state, and
+/// SwiftUI views and UIKit screens (automatic observation) update by just
+/// reading `favorites`. Replaces the Combine `CurrentValueSubject` it used.
+@MainActor
+@Observable
+final class FavoritesPodcastManager {
 
-class FavoritesPodcastManager {
-    
-    private let userDefaults: UserDefaults
-    
     static let shared = FavoritesPodcastManager()
-    
-    private let favoritesSubject: CurrentValueSubject<[Podcast], Never>
-    
-    var favoritesPublisher: AnyPublisher<[Podcast], Never> {
-        favoritesSubject.eraseToAnyPublisher()
-    }
-    
+
+    private(set) var favorites: [Podcast]
+
+    @ObservationIgnored private let userDefaults: UserDefaults
+    @ObservationIgnored private let key = "favorite_podcasts"
+
     init(userDefaults: UserDefaults = .standard) {
         self.userDefaults = userDefaults
-        
-        let initial = Self.load(from: userDefaults, key: Keys.favorites)
-        self.favoritesSubject = CurrentValueSubject(initial)
+        self.favorites = Self.load(from: userDefaults, key: "favorite_podcasts")
     }
-    
+
     func toggleFavorite(_ podcast: Podcast) {
-        var current = favoritesSubject.value
-        if let index = current.firstIndex(where: { $0.trackId == podcast.trackId }) {
-            current.remove(at: index)
+        if isFavorite(podcast) {
+            favorites.removeAll { $0.trackId == podcast.trackId }
         } else {
-            current.append(podcast)
+            favorites.append(podcast)
         }
-        persist(current)
+        save()
     }
-    
+
     func isFavorite(_ podcast: Podcast) -> Bool {
-        favoritesSubject.value.contains(where: { $0.trackId == podcast.trackId })
+        favorites.contains { $0.trackId == podcast.trackId }
     }
-    
+
     func deleteFavorite(_ podcast: Podcast) {
-        var current = favoritesSubject.value
-        
-        current.removeAll { $0.trackId == podcast.trackId }
-        
-        persist(current)
+        favorites.removeAll { $0.trackId == podcast.trackId }
+        save()
     }
-    
-    private func persist(_ podcasts: [Podcast]) {
+
+    // MARK: - Persistence
+
+    private func save() {
         do {
-            let data = try JSONEncoder().encode(podcasts)
-            userDefaults.set(data, forKey: Keys.favorites)
-            favoritesSubject.send(podcasts)
+            userDefaults.set(try JSONEncoder().encode(favorites), forKey: key)
         } catch {
             print("❌ Error encoding favorites:", error)
         }
     }
-    
+
     private static func load(from userDefaults: UserDefaults, key: String) -> [Podcast] {
         guard let data = userDefaults.data(forKey: key) else { return [] }
         return (try? JSONDecoder().decode([Podcast].self, from: data)) ?? []
     }
-    
 }
-
-//#Preview {
-//    SavedEpisodeRow(episode: .mock)
-//}

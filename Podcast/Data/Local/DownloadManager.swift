@@ -70,7 +70,7 @@ final class DownloadManager {
 
         // This completion handler runs on a URLSession background queue,
         // NOT on the main actor.
-        let task = session.downloadTask(with: url) { [weak self] tempURL, _, error in
+        let task = session.downloadTask(with: url) { @Sendable [weak self] tempURL, _, error in
             guard let self else { return }
 
             if let error {
@@ -102,7 +102,10 @@ final class DownloadManager {
             }
         }
 
-        let observation = task.progress.observe(\.fractionCompleted) { [weak self] progress, _ in
+        // @Sendable: KVO calls this on URLSession's queue. Without it, the
+        // closure would be inferred @MainActor (this class is) and crash on
+        // the first progress tick.
+        let observation = task.progress.observe(\.fractionCompleted) { @Sendable [weak self] progress, _ in
             let fraction = progress.fractionCompleted
             Task { @MainActor in
                 // A late progress tick must not revert .downloaded / .idle back to .downloading.

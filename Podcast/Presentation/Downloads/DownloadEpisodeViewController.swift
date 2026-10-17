@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import Combine
 import SwiftUI
 
 class DownloadEpisodeViewController: UIViewController {
@@ -28,16 +27,13 @@ class DownloadEpisodeViewController: UIViewController {
     private var savedEpisodeCellRegistration: UICollectionView.CellRegistration<UICollectionViewCell, Episode>!
 
     
-    private var cancellables = Set<AnyCancellable>()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         configureCellRegistration()
         configureCollection()
-        observeEpisodes()
-//        observePlayback()
         
-        view.backgroundColor = AppColor.slateGray.uiColor
+        view.backgroundColor = ColorName.screenBackground.uiColor
         collectionView.backgroundColor = .clear
 
     }
@@ -48,28 +44,19 @@ class DownloadEpisodeViewController: UIViewController {
     }
 
     
-    private func observeEpisodes() {
-        withObservationTracking {
-            _ = viewModel.episode
-        } onChange: { [weak self] in
-            Task { @MainActor in
-                self?.collectionView.reloadData()
-                self?.observeEpisodes()
-            }
-        }
+    private var renderedEpisodeIDs: [String] = []
+
+    /// iOS 26: UIKit tracks `viewModel.episode` read here and calls this again
+    /// when it changes. (Each cell's play/pause state updates by itself:
+    /// UIHostingConfiguration tracks its own reads.)
+    override func updateProperties() {
+        super.updateProperties()
+        let ids = viewModel.episode.map(\.streamUrl)
+        guard ids != renderedEpisodeIDs else { return }
+        renderedEpisodeIDs = ids
+        collectionView.reloadData()
     }
 
-//    private func observePlayback() {
-//        withObservationTracking {
-//            _ = PlayerManager.shared.viewModel.isPlaying
-//            _ = PlayerManager.shared.currentEpisode
-//        } onChange: { [weak self] in
-//            DispatchQueue.main.async {
-//                self?.observePlayback()
-//            }
-//        }
-//    }
-    
     private func reloadVisibleCells() {
         let visibleIndexPaths = collectionView.indexPathsForVisibleItems
         visibleIndexPaths.forEach { indexPath in

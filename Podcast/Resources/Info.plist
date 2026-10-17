@@ -42,7 +42,7 @@
 	<array>
 		<string>audio</string>
 	</array>
-	<key>UIUserInterfaceStyle</key>
-	<string>Light</string>
+	<key>UIObservationTrackingEnabled</key>
+	<true/>
 </dict>
 </plist>

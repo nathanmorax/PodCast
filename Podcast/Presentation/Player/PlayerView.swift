@@ -9,11 +9,18 @@ struct PlayerView: View {
     
     let episode: Episode
     @State private var mode: PlayerMode = .normal
-    @State private var showControls: Bool = true
-    @State private var hideControlsTask: Task<Void, Never>?
-    /// The listener asked for the transcript while it was still being generated:
-    /// open it by itself as soon as it's ready. No intermediate screen.
-    @State private var wantsTranscript = false
+    /// Which tab is open under the cover.
+    @State private var tab: PlayerTab = .player
+    /// From the show notes; empty = no Chapters tab.
+    @State private var chapters: [EpisodeChapter]
+    @Namespace private var tabNamespace
+    /// How far the finger has pulled the player down (follows it 1:1).
+    @State private var dismissOffset: CGFloat = 0
+    /// Set on the first movement of a drag: only a vertical drag pulls the
+    /// player down; a sideways one (scrubbing, the line wheel) is left alone.
+    @State private var dragAxis: Axis?
+    /// Where the finger is on the progress bar while scrubbing (nil otherwise).
+    @State private var scrubProgress: Float?
     
     @Environment(\.playerManager) private var playerManager
     
@@ -31,6 +38,7 @@ struct PlayerView: View {
     init(episode: Episode) {
         self.episode = episode
         _actionViewModel = State(initialValue: EpisodeActionViewModel(episode: episode))
+        _chapters = State(initialValue: EpisodeChapter.parse(showNotes: episode.chapterSource))
     }
     
     // MARK: - Style (soft white, near-black ink, lavender accent)
@@ -54,55 +62,75 @@ struct PlayerView: View {
                 transcriptView
             }
         }
+        // Pulled down: the sheet follows the finger and rounds its corners,
+        // like Apple Podcasts. The app behind shows through.
+        .clipShape(RoundedRectangle(cornerRadius: min(dismissOffset / 3, 44), style: .continuous))
+        .offset(y: dismissOffset)
         .gesture(dismissGesture)
-        .animation(.spring(response: 0.5, dampingFraction: 0.85), value: mode)
+        .animation(AppAnimation.transcriptMode, value: mode)
         .onChange(of: viewModel.progress) { _, _ in
             transcript.updateCurrentSegment(playbackSeconds: viewModel.currentPlaybackSeconds)
         }
         .onChange(of: episode.streamUrl) { _, _ in
             // @State ignores new init values, so rebuild the VM when the episode changes.
             actionViewModel = EpisodeActionViewModel(episode: episode)
-            wantsTranscript = false
-        }
-        .onChange(of: transcript.segments.isEmpty) { _, isEmpty in
-            guard !isEmpty, wantsTranscript, mode == .normal else { return }
-            wantsTranscript = false
-            mode = .transcript
+            chapters = EpisodeChapter.parse(showNotes: episode.chapterSource)
+            tab = .player
         }
     }
     
     // MARK: - Normal View
-    
+
     private var normalView: some View {
         VStack(spacing: 0) {
-            topBar
-            // The artwork is the only flexible element: it takes whatever height
-            // is left, so nothing gets pushed off screen on small iPhones.
-            artwork
-                .padding(.top, 8)
-                .padding(.bottom, 26)
-            progressBar
-            controlsSection
-                .padding(.top, 26)
-            lineWheel
-                .padding(.top, 22)
-            secondaryActions
-                .padding(.bottom, 24)
+            // The cover goes edge to edge, under the status bar; the top
+            // controls float on it.
+            heroArtwork
+                .overlay(alignment: .top) {
+                    topBar
+                        .padding(.horizontal, 20)
+                }
+
+            VStack(spacing: 0) {
+                tabPicker
+                    .padding(.top, 2)
+
+                Group {
+                    switch tab {
+                    case .player: playerTab
+                    case .text: textTab
+                    case .chapters: chaptersTab
+                    }
+                }
+                .frame(maxHeight: .infinity)
+                .transition(.opacity)
+
+                // Chapters: no buttons, just how far along it is.
+                // Text: nothing at all, the transcript gets the whole space.
+                if tab == .chapters {
+                    thinProgress
+                        .padding(.bottom, 24)
+                        .transition(.opacity)
+                }
+            }
+            .padding(.horizontal, 28)
+            .animation(AppAnimation.playerTab, value: tab)
         }
-        .padding(.horizontal, 28)
+        .ignoresSafeArea(.container, edges: .top)
     }
-    
+
     // MARK: - Artwork
-    
+
     private var hasArtwork: Bool {
         !(episode.imageUrl ?? "").isEmpty
     }
-    
-    private var artwork: some View {
-        // A clear square defines the box; the image fills it via overlay, so any
-        // aspect ratio is center-cropped to the same square.
+
+    /// About half the screen, full width. It fades into the paper at the
+    /// bottom so the controls sit on a clean background.
+    private var heroArtwork: some View {
         Color.clear
-            .aspectRatio(1, contentMode: .fit)
+            .frame(maxWidth: .infinity)
+            .containerRelativeFrame(.vertical) { height, _ in height * 0.5 }
             .overlay {
                 PodcastImage(source: episode.imageUrl, contentMode: .fill)
             }
@@ -113,93 +141,299 @@ struct PlayerView: View {
                         .foregroundStyle(Self.ink.opacity(0.25))
                 }
             }
-            .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-            .shadow(color: .black.opacity(0.10), radius: 20, x: 0, y: 10)
-            .scaleEffect(viewModel.isPlaying ? 1 : 0.92)
-            .animation(.spring(response: 0.45, dampingFraction: 0.75), value: viewModel.isPlaying)
-            .frame(maxWidth: 320, maxHeight: .infinity)
-            .frame(maxWidth: .infinity)
+            // Keeps the status bar readable on any cover.
+            .overlay(alignment: .top) {
+                LinearGradient(colors: [.black.opacity(0.25), .clear], startPoint: .top, endPoint: .bottom)
+                    .frame(height: 120)
+            }
+            .overlay(alignment: .bottom) {
+                LinearGradient(colors: [Self.paper.opacity(0), Self.paper], startPoint: .top, endPoint: .bottom)
+                    .frame(height: 150)
+            }
+            .clipped()
             .accessibilityHidden(true)
     }
-    
-    // MARK: - Line wheel
-    
-    private struct WheelLines {
-        let id: String
-        let previous: String?
-        let current: String
-        let next: String?
+
+    // MARK: - Tabs
+
+    private var availableTabs: [PlayerTab] {
+        PlayerTab.available(hasChapters: !chapters.isEmpty)
     }
-    
-    /// With a transcript: the sentence before, the one being said, and the next.
-    /// Without one: the episode title and, below, who's talking (the show).
-    private var wheelLines: WheelLines {
-        let segments = transcript.segments
-        if let index = transcript.currentIndex, segments.indices.contains(index) {
-            return WheelLines(
-                id: "\(index)",
-                previous: index > 0 ? segments[index - 1].text : nil,
-                current: segments[index].text,
-                next: index + 1 < segments.count ? segments[index + 1].text : nil
-            )
+
+    /// Player · Text · Chapters. The white pill slides to the chosen one.
+    private var tabPicker: some View {
+        HStack(spacing: 2) {
+            ForEach(availableTabs, id: \.self) { item in
+                tabButton(item)
+            }
         }
-        return WheelLines(id: episode.streamUrl, previous: nil, current: episode.title, next: episode.author)
+        .padding(3)
+        .background(Capsule().fill(Self.ink.opacity(0.06)))
+        .padding(.horizontal, 22)
+        .sensoryFeedback(.selection, trigger: tab)
     }
-    
-    /// Lines rolling like a picker wheel: the past one tilts back and fades,
-    /// the current one is bold, the next one waits in grey.
-    private var lineWheel: some View {
-        let lines = wheelLines
+
+    private func tabButton(_ item: PlayerTab) -> some View {
+        let isOn = tab == item
+        let textColor: Color = isOn ? Self.ink : Self.ink.opacity(0.45)
         return Button {
-            toggleTranscript()
+            tab = item
         } label: {
-            VStack(spacing: 6) {
-                Text(lines.previous ?? " ")
-                    .font(rounded(18))
-                    .foregroundStyle(Self.ink.opacity(0.16))
-                    .lineLimit(1)
-                    .rotation3DEffect(.degrees(42), axis: (x: 1, y: 0, z: 0), anchor: .bottom, perspective: 0.45)
-                
-                Text(lines.current)
-                    .font(rounded(23, .semibold))
+            Text(item.title)
+                .font(rounded(14, .semibold))
+                .foregroundStyle(textColor)
+                .frame(maxWidth: .infinity)
+                .frame(height: 34)
+                .background {
+                    if isOn {
+                        Capsule()
+                            .fill(AppColor.Surface.raised)
+                            .shadow(color: Color.black.opacity(0.08), radius: 4, y: 2)
+                            .matchedGeometryEffect(id: "tab", in: tabNamespace)
+                    }
+                }
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isOn ? .isSelected : [])
+    }
+
+    // MARK: - Player tab
+
+    private var playerTab: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Spacer(minLength: 12)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(episode.title)
+                    .font(rounded(22, .bold))
                     .foregroundStyle(Self.ink)
                     .lineLimit(2)
                     .minimumScaleFactor(0.85)
-                
-                Text(lines.next ?? " ")
-                    .font(rounded(19))
-                    .foregroundStyle(Self.ink.opacity(0.38))
+                Text(episode.author)
+                    .font(rounded(15))
+                    .foregroundStyle(Self.ink.opacity(0.5))
                     .lineLimit(1)
-                    .rotation3DEffect(.degrees(-24), axis: (x: 1, y: 0, z: 0), anchor: .top, perspective: 0.45)
             }
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity)
-            .id(lines.id)
-            .transition(.asymmetric(
-                insertion: .move(edge: .bottom).combined(with: .opacity),
-                removal: .move(edge: .top).combined(with: .opacity)
-            ))
-            .contentShape(Rectangle())
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            progressSection
+                .padding(.top, 20)
+
+            controlsSection
+                .padding(.top, 18)
+            Spacer(minLength: 16)
+        }
+    }
+
+    // MARK: - Text tab
+
+    @ViewBuilder
+    private var textTab: some View {
+        if !transcript.segments.isEmpty {
+            transcriptList
+        } else if transcript.isLoading {
+            TranscribingIndicator()
+        } else if transcript.error != nil {
+            tabMessage(
+                icon: "exclamationmark.bubble",
+                title: Text("Couldn't make the transcript"),
+                detail: Text(verbatim: transcript.error ?? "")
+            ) {
+                tabActionButton("Try again") { Task { await runTranscription() } }
+            }
+        } else {
+            tabMessage(
+                icon: "captions.bubble",
+                title: Text("Transcribe this episode"),
+                detail: Text("It's made on your iPhone and can take a few minutes.")
+            ) {
+                tabActionButton("Transcribe") { Task { await runTranscription() } }
+            }
+        }
+    }
+
+    /// Every line; the one being said is dark and stays in view. Tap = jump.
+    private var transcriptList: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 14) {
+                    ForEach(transcript.segments) { segment in
+                        transcriptRow(segment)
+                            .id(segment.id)
+                    }
+                }
+                .padding(.vertical, 18)
+            }
+            .scrollIndicators(.hidden)
+            // Lines fade in and out at the edges instead of being cut.
+            .mask(Self.edgeFade)
+            .overlay(alignment: .topTrailing) { fullScreenButton }
+            .onAppear {
+                if let id = transcript.currentSegment?.id { proxy.scrollTo(id, anchor: .center) }
+            }
+            .onChange(of: transcript.currentSegment?.id) { _, id in
+                guard let id else { return }
+                withAnimation(AppAnimation.subtitleLine) { proxy.scrollTo(id, anchor: .center) }
+            }
+        }
+    }
+
+    private func transcriptRow(_ segment: LocalTranscriptSegment) -> some View {
+        let isCurrent = transcript.currentSegment?.id == segment.id
+        let size: CGFloat = isCurrent ? 19 : 17
+        let weight: Font.Weight = isCurrent ? .semibold : .regular
+        let opacity: Double = isCurrent ? 1 : 0.38
+        return Button {
+            viewModel.seek(toSeconds: segment.startTime)
+        } label: {
+            Text(segment.text)
+                .font(rounded(size, weight))
+                .foregroundStyle(Self.ink.opacity(opacity))
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .buttonStyle(.plain)
-        .frame(height: 132)
-        .clipped()
-        .animation(.spring(response: 0.5, dampingFraction: 0.9), value: lines.id)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(lines.current)
-        .accessibilityHint("Abre la transcripción")
+        .animation(AppAnimation.subtitleLine, value: isCurrent)
     }
-    
-    /// Bookmark and transcript: small and quiet, out of the main row.
-    private var secondaryActions: some View {
-        HStack {
-            bookmarkButton
-            Spacer()
-            transcriptButton
+
+    /// Lines fade in and out at the top and bottom edges instead of being cut.
+    private static let edgeFade = LinearGradient(
+        stops: [
+            Gradient.Stop(color: Color.clear, location: 0),
+            Gradient.Stop(color: Color.black, location: 0.08),
+            Gradient.Stop(color: Color.black, location: 0.85),
+            Gradient.Stop(color: Color.clear, location: 1)
+        ],
+        startPoint: .top,
+        endPoint: .bottom
+    )
+
+    /// Opens the full-screen subtitles (TranscriptSubtitleView).
+    private var fullScreenButton: some View {
+        Button {
+            mode = .transcript
+        } label: {
+            Image(systemName: "arrow.up.left.and.arrow.down.right")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(Self.ink.opacity(0.55))
+                .frame(width: 32, height: 32)
+                .background(Circle().fill(Self.ink.opacity(0.06)))
         }
-        .foregroundStyle(Self.ink.opacity(0.55))
+        .buttonStyle(.plain)
+        .padding(.top, 6)
+        .accessibilityLabel("Full screen")
     }
-    
+
+    // MARK: - Chapters tab
+
+    /// The chapter being played: the last one that already started.
+    private var currentChapter: EpisodeChapter? {
+        let now = viewModel.currentPlaybackSeconds
+        return chapters.last(where: { $0.start <= now })
+    }
+
+    private var chaptersTab: some View {
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                ForEach(chapters) { chapter in
+                    chapterRow(chapter)
+                }
+            }
+            .padding(.vertical, 10)
+        }
+        .scrollIndicators(.hidden)
+    }
+
+    private func chapterRow(_ chapter: EpisodeChapter) -> some View {
+        let isCurrent = currentChapter?.id == chapter.id
+        let isPast = !isCurrent && chapter.start < viewModel.currentPlaybackSeconds
+        let dotColor: Color = isCurrent ? Self.accent : Color.clear
+        let titleColor: Color = isCurrent ? AppColor.lavenderInk : Self.ink.opacity(isPast ? 0.45 : 1)
+        let titleWeight: Font.Weight = isCurrent ? .bold : .medium
+        return Button {
+            viewModel.seek(toSeconds: chapter.start)
+        } label: {
+            HStack(spacing: 12) {
+                Circle()
+                    .fill(dotColor)
+                    .frame(width: 8, height: 8)
+                Text(chapter.title)
+                    .font(rounded(16, titleWeight))
+                    .foregroundStyle(titleColor)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text(AVPlayerViewModel.shortTime(chapter.start))
+                    .font(rounded(13))
+                    .monospacedDigit()
+                    .foregroundStyle(Self.ink.opacity(0.45))
+            }
+            .frame(height: 46)
+            .contentShape(Rectangle())
+            .overlay(alignment: .bottom) {
+                Rectangle().fill(Self.ink.opacity(0.06)).frame(height: 1)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isCurrent ? .isSelected : [])
+    }
+
+    // MARK: - Tab pieces
+
+    /// A thin, read-only progress line for Text and Chapters.
+    private var thinProgress: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Capsule().fill(Self.ink.opacity(0.08))
+                Capsule()
+                    .fill(Self.accent)
+                    .frame(width: geo.size.width * CGFloat(viewModel.progress))
+            }
+        }
+        .frame(height: 3)
+        .accessibilityElement()
+        .accessibilityLabel("Progress")
+        .accessibilityValue("\(Int(viewModel.progress * 100)) percent")
+    }
+
+    private func tabMessage<Action: View>(
+        icon: String?,
+        title: Text,
+        detail: Text,
+        @ViewBuilder action: () -> Action
+    ) -> some View {
+        VStack(spacing: 10) {
+            if let icon {
+                Image(systemName: icon)
+                    .font(.system(size: 28, weight: .regular))
+                    .foregroundStyle(AppColor.lavenderInk)
+                    .accessibilityHidden(true)
+            }
+            title
+                .font(rounded(18, .semibold))
+                .foregroundStyle(Self.ink)
+            detail
+                .font(rounded(14))
+                .foregroundStyle(Self.ink.opacity(0.5))
+                .multilineTextAlignment(.center)
+            action()
+                .padding(.top, 6)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 12)
+    }
+
+    private func tabActionButton(_ title: LocalizedStringKey, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(rounded(15, .semibold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 22)
+                .frame(height: 44)
+                .background(Capsule().fill(AppColor.lavenderInk))
+        }
+        .buttonStyle(.plain)
+    }
+
     // MARK: - Transcription
     
     private func runTranscription() async {
@@ -209,144 +443,21 @@ struct PlayerView: View {
     }
     
     // MARK: - Transcript View
-    
+
+    /// Subtitles: the sentence being said, the one before it faint above,
+    /// and a pause pill. See TranscriptSubtitleView.
     private var transcriptView: some View {
-        ZStack(alignment: .bottom) {
-            transcriptBackground
-            
-            transcriptScrollView
-            
-            if showControls {
-                compactControls
-                    .padding(.bottom, 20)
-                    .padding(.top, 28)
-                    .background(
-                        // Frosted glass that fades in from the top, instead of a
-                        // white gradient that only matched a white background.
-                        Rectangle()
-                            .fill(.ultraThinMaterial)
-                            .mask(
-                                LinearGradient(
-                                    colors: [.clear, .black, .black],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                            )
-                            .ignoresSafeArea()
-                    )
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-        }
-        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showControls)
-        .onAppear {
-            showControls = true
-            scheduleHideControls()
-        }
-        .onDisappear {
-            hideControlsTask?.cancel()
-        }
+        TranscriptSubtitleView(
+            previous: transcript.previousSegment?.text,
+            current: transcript.displayedSegment?.text,
+            lineID: transcript.displayedSegment?.id,
+            isPlaying: viewModel.isPlaying,
+            timeText: "\(viewModel.currentTimeText) / \(viewModel.durationText)",
+            onTogglePlay: { playerManager.togglePlayPause() },
+            onClose: { mode = .normal }
+        )
     }
-    
-    // MARK: - Transcript Scroll
-    
-    private var transcriptScrollView: some View {
-        ScrollViewReader { proxy in
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    closeButton
-                    
-                    ForEach(transcript.segments) { segment in
-                        segmentRow(segment, proxy: proxy)
-                    }
-                }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 120)
-            }
-            .onChange(of: transcript.currentSegment?.id) { _, newId in
-                guard let newId else { return }
-                withAnimation(.easeInOut(duration: 0.4)) {
-                    proxy.scrollTo(newId, anchor: .center)
-                }
-            }
-            .onAppear {
-                if let id = transcript.currentSegment?.id {
-                    proxy.scrollTo(id, anchor: .center)
-                }
-            }
-        }
-    }
-    
-    /// The episode's own artwork, blurred and washed with white: the transcript
-    /// keeps the color of what's playing instead of jumping to a blank page,
-    /// and black text stays readable on top.
-    private var transcriptBackground: some View {
-        Color.clear
-            .overlay {
-                PodcastImage(source: episode.imageUrl, contentMode: .fill)
-                    .blur(radius: 50, opaque: true)
-                    .scaleEffect(1.3) // hides the soft edges the blur leaves
-            }
-            .overlay(Color.white.opacity(0.62))
-            .clipped()
-            .ignoresSafeArea()
-            .accessibilityHidden(true)
-    }
-    
-    /// "Now playing" header: tiny cover + title, so the listener never loses
-    /// context. Tapping it goes back to the player.
-    private var closeButton: some View {
-        Button {
-            mode = .normal
-        } label: {
-            HStack(spacing: 10) {
-                PodcastImage(source: episode.imageUrl)
-                    .frame(width: 36, height: 36)
-                    .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
-                
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(episode.title)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(.black)
-                        .lineLimit(1)
-                    Text(episode.author)
-                        .font(.system(size: 12))
-                        .foregroundStyle(.black.opacity(0.5))
-                        .lineLimit(1)
-                }
-                
-                Spacer(minLength: 8)
-                
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.black.opacity(0.5))
-            }
-            .padding(.top, 60)
-            .padding(.bottom, 12)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Volver al reproductor")
-    }
-    
-    private func segmentRow(_ segment: LocalTranscriptSegment, proxy: ScrollViewProxy) -> some View {
-        let isCurrent = transcript.currentSegment?.id == segment.id
-        return Text(segment.text)
-            .font(.system(
-                size: 19,
-                weight: isCurrent ? .semibold : .regular
-            ))
-            .foregroundStyle(isCurrent ? .black : .black.opacity(0.3))
-            .lineSpacing(4)
-            .multilineTextAlignment(.leading)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .id(segment.id)
-            .animation(.easeInOut(duration: 0.3), value: isCurrent)
-            .onTapGesture {
-                seekToSegment(segment)
-                showControlsTemporarily()
-            }
-    }
-    
+
     // MARK: - Top Bar
     
     private var topBar: some View {
@@ -356,23 +467,28 @@ struct PlayerView: View {
             } label: {
                 Image(systemName: "chevron.down")
                     .font(.system(size: 17, weight: .semibold))
-                    .frame(width: 44, height: 44, alignment: .leading)
+                    .frame(width: 44, height: 44)
+                    .background(.ultraThinMaterial, in: Circle())
             }
-            .accessibilityLabel("Minimizar reproductor")
-            
+            .accessibilityLabel("Minimize player")
+
             Spacer()
-            
-            // Time left, big and calm in the corner.
+
+            // Time left, floating on the cover.
             Text(viewModel.remainingTimeText)
-                .font(rounded(20))
+                .font(rounded(20, .semibold))
                 .monospacedDigit()
                 .contentTransition(.numericText(countsDown: true))
-                .accessibilityLabel("Tiempo restante \(viewModel.remainingTimeText)")
+                .padding(.horizontal, 16)
+                .frame(height: 44)
+                .background(.ultraThinMaterial, in: Capsule())
+                .opacity(viewModel.remainingTimeText.isEmpty ? 0 : 1)
+                .accessibilityLabel("Time remaining \(viewModel.remainingTimeText)")
         }
         .foregroundStyle(Self.ink)
-        .padding(.top, 52)
+        .padding(.top, 54)
     }
-    
+
     // MARK: - Progress
     
     private var progressSection: some View {
@@ -382,6 +498,15 @@ struct PlayerView: View {
         }
     }
     
+    /// What the bar shows: the finger while scrubbing, the player otherwise.
+    private var shownProgress: Float {
+        scrubProgress ?? viewModel.progress
+    }
+
+    /// Scrubbing follows the finger 1:1 and seeks ONCE, on release.
+    /// Before, every finger movement called seek(): each one cancelled the
+    /// previous seek on the stream, and the bar only moved when the player
+    /// reported a new time, so it advanced in jumps.
     private var progressBar: some View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
@@ -390,9 +515,10 @@ struct PlayerView: View {
                 
                 Capsule()
                     .fill(Self.accent)
-                    .frame(width: geo.size.width * CGFloat(viewModel.progress))
+                    .frame(width: geo.size.width * CGFloat(shownProgress))
             }
-            .frame(height: 4)
+            // Grows while held, like the system scrubbers.
+            .frame(height: scrubProgress == nil ? 4 : 10)
             .frame(maxHeight: .infinity)
             .contentShape(Rectangle())
             .gesture(
@@ -401,21 +527,36 @@ struct PlayerView: View {
                         // Use the bar's real width, not the screen's.
                         guard geo.size.width > 0 else { return }
                         let percentage = Float(value.location.x / geo.size.width)
-                        viewModel.seek(to: min(max(percentage, 0), 1))
+                        scrubProgress = min(max(percentage, 0), 1)
+                    }
+                    .onEnded { _ in
+                        if let target = scrubProgress {
+                            viewModel.seek(to: target)
+                        }
+                        scrubProgress = nil
                     }
             )
+            .animation(AppAnimation.selection, value: scrubProgress == nil)
         }
         .frame(height: 24) // taller touch area than the 4pt line
+        .sensoryFeedback(.selection, trigger: scrubProgress == nil)
         .accessibilityElement()
-        .accessibilityLabel("Progreso")
-        .accessibilityValue("\(Int(viewModel.progress * 100)) por ciento")
+        .accessibilityLabel("Progress")
+        .accessibilityValue("\(Int(viewModel.progress * 100)) percent")
+        .accessibilityAdjustableAction { direction in
+            switch direction {
+            case .increment: viewModel.seekForward()
+            case .decrement: viewModel.seekBackward()
+            @unknown default: break
+            }
+        }
     }
     
     private var progressLabels: some View {
         HStack {
-            Text(viewModel.currentTimeText)
+            Text(scrubProgress.map(viewModel.timeText(at:)) ?? viewModel.currentTimeText)
             Spacer()
-            Text("-\(viewModel.remainingTimeText)")
+            Text("-\(scrubProgress.map(viewModel.remainingText(at:)) ?? viewModel.remainingTimeText)")
         }
         .font(rounded(12))
         .monospacedDigit()
@@ -434,18 +575,6 @@ struct PlayerView: View {
         .frame(maxWidth: .infinity)
     }
     
-    private var bookmarkButton: some View {
-        Button {
-            actionViewModel.toggleBookmark()
-        } label: {
-            Image(systemName: actionViewModel.isBookmarked ? "bookmark.fill" : "bookmark")
-                .font(.system(size: 19, weight: .regular))
-                .contentTransition(.symbolEffect(.replace))
-                .frame(width: 44, height: 44)
-        }
-        .accessibilityLabel(actionViewModel.isBookmarked ? "Quitar de guardados" : "Guardar episodio")
-    }
-    
     private var seekBackwardButton: some View {
         Button {
             viewModel.seekBackward()
@@ -455,12 +584,12 @@ struct PlayerView: View {
                 .foregroundStyle(Self.ink)
                 .frame(width: 56, height: 56)
         }
-        .accessibilityLabel("Retroceder 15 segundos")
+        .accessibilityLabel("Rewind 15 seconds")
     }
     
     private var playPauseButton: some View {
         Button {
-            viewModel.togglePlayPause()
+            playerManager.togglePlayPause()
         } label: {
             ZStack {
                 Circle()
@@ -469,13 +598,13 @@ struct PlayerView: View {
                 
                 Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
                     .font(.system(size: 30, weight: .black))
-                    .foregroundStyle(Self.ink)
+                    .foregroundStyle(AppColor.Text.onPastel)
                     .contentTransition(.symbolEffect(.replace))
                     .offset(x: viewModel.isPlaying ? 0 : 3)
             }
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(viewModel.isPlaying ? "Pausar" : "Reproducir")
+        .accessibilityLabel(viewModel.isPlaying ? Text("Pause") : Text("Play"))
     }
     
     private var seekForwardButton: some View {
@@ -487,100 +616,40 @@ struct PlayerView: View {
                 .foregroundStyle(Self.ink)
                 .frame(width: 56, height: 56)
         }
-        .accessibilityLabel("Adelantar 15 segundos")
-    }
-    
-    private var transcriptButton: some View {
-        Button {
-            toggleTranscript()
-        } label: {
-            // The only loading feedback: the icon itself breathes while the
-            // transcript is generated. The player stays exactly as it is.
-            Image(systemName: transcriptIcon)
-                .font(.system(size: 20, weight: .regular))
-                .symbolEffect(.pulse, options: .repeating, isActive: transcript.isLoading)
-                .contentTransition(.symbolEffect(.replace))
-                .frame(width: 44, height: 44)
-        }
-        .accessibilityLabel(transcriptAccessibilityLabel)
-    }
-    
-    private var transcriptIcon: String {
-        if transcript.error != nil { return "exclamationmark.bubble" }
-        return transcript.segments.isEmpty ? "captions.bubble" : "captions.bubble.fill"
-    }
-    
-    private var transcriptAccessibilityLabel: String {
-        if mode == .transcript { return "Cerrar transcripción" }
-        if transcript.isLoading { return "Preparando transcripción" }
-        if transcript.error != nil { return "Reintentar transcripción" }
-        return "Transcripción"
-    }
-    
-    /// Opens the transcript screen (closes it if it's already open).
-    /// Only generates the first time: a cached or in-progress transcript just opens.
-    private func toggleTranscript() {
-        if mode == .transcript {
-            mode = .normal
-            return
-        }
-        // Ready (cached or already generated): open it right away.
-        guard transcript.segments.isEmpty else {
-            mode = .transcript
-            return
-        }
-        // Not ready: stay on the player; it opens by itself when done.
-        wantsTranscript = true
-        if !transcript.isLoading {
-            Task { await runTranscription() }
-        }
-    }
-    
-    // MARK: - Compact Controls (transcript)
-    
-    private var compactControls: some View {
-        VStack(spacing: 12) {
-            progressSection
-                .padding(.horizontal, 24)
-            
-            controlsSection
-                .padding(.horizontal, 24)
-                .padding(.bottom, 8)
-        }
+        .accessibilityLabel("Skip forward 15 seconds")
     }
     
     // MARK: - Helpers
     
+    /// Interactive close: the player moves with the finger. Let go far enough
+    /// (or fast enough) and it keeps going down; otherwise it springs back.
+    /// Before, the gesture only acted on release, so it jumped closed at once.
     private var dismissGesture: some Gesture {
-        DragGesture(minimumDistance: 30)
+        DragGesture(minimumDistance: 8, coordinateSpace: .global)
+            .onChanged { value in
+                guard mode == .normal else { return }
+                if dragAxis == nil {
+                    dragAxis = abs(value.translation.height) > abs(value.translation.width) ? .vertical : .horizontal
+                }
+                guard dragAxis == .vertical else { return }
+                // Down 1:1; up only a little, with resistance.
+                let y = value.translation.height
+                dismissOffset = y >= 0 ? y : -sqrt(-y) * 2
+            }
             .onEnded { value in
-                if value.translation.height > 100 && mode == .normal {
+                defer { dragAxis = nil }
+                guard mode == .normal, dragAxis == .vertical else { return }
+                if PlayerDismissRule.shouldClose(
+                    translation: value.translation.height,
+                    predictedEnd: value.predictedEndTranslation.height
+                ) {
+                    // The sheet leaves from where it is now (its offset stays
+                    // while the transition moves it the rest of the way).
                     playerManager.collapse()
+                } else {
+                    withAnimation(AppAnimation.gestureRelease) { dismissOffset = 0 }
                 }
             }
-    }
-    
-    private func seekToSegment(_ segment: LocalTranscriptSegment) {
-        guard let last = transcript.segments.last,
-              last.endTime > 0 else { return }
-        let percentage = Float(segment.startTime / last.endTime)
-        viewModel.seek(to: percentage)
-    }
-    
-    private func showControlsTemporarily() {
-        withAnimation { showControls = true }
-        scheduleHideControls()
-    }
-    
-    private func scheduleHideControls() {
-        hideControlsTask?.cancel()
-        hideControlsTask = Task {
-            try? await Task.sleep(for: .seconds(3))
-            guard !Task.isCancelled else { return }
-            await MainActor.run {
-                withAnimation { showControls = false }
-            }
-        }
     }
 }
 

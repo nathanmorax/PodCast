@@ -4,6 +4,7 @@
 //
 //  Created by Jonathan MOra on 25/02/26.
 //
+
 import Foundation
 import Observation
 
@@ -17,6 +18,9 @@ final class GenresViewModel {
     private(set) var isLoading = false
     private(set) var errorMessage: String?
 
+    /// Internal read access so tests can await it.
+    @ObservationIgnored private(set) var loadTask: Task<Void, Never>?
+
     init(repository: GenresRepository) {
         self.repository = repository
     }
@@ -25,18 +29,18 @@ final class GenresViewModel {
         guard !isLoading else { return }
         isLoading = true
         errorMessage = nil
-        repository.fetchGenresPodcast { [weak self] result in
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                self.isLoading = false
-                switch result {
-                case .success(let genre):
-                    self.genre = genre
-                case .failure(let error):
-                    print(error)
-                    self.errorMessage = error.localizedDescription
-                }
+
+        let repository = self.repository
+        // Inherits @MainActor: the state updates need no hop. The network call
+        // itself runs off the main actor (nonisolated async).
+        loadTask = Task {
+            do {
+                genre = try await repository.fetchGenres()
+            } catch {
+                guard !Task.isCancelled else { return }
+                errorMessage = error.localizedDescription
             }
+            isLoading = false
         }
     }
 }

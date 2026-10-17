@@ -11,6 +11,8 @@ import Speech
 
 
 
+/// Playback state shown by the player and the mini player: main actor.
+@MainActor
 @Observable
 class AVPlayerViewModel {
 
@@ -23,16 +25,22 @@ class AVPlayerViewModel {
     var progress: Float = 0
 
     // MARK: - Private
-    @ObservationIgnored private let player: AVPlayerDataSource
+    @ObservationIgnored private let player: PlayerDataSource
     @ObservationIgnored private var currentURL: URL?
     @ObservationIgnored private var currentDurationSeconds: Double = 0
+    /// Where the last seek is going. Until the player gets there, the time
+    /// observer still reports the old position; ignoring it keeps the bar
+    /// from jumping back for a moment after letting go.
+    @ObservationIgnored private var pendingSeek: (target: Float, startedAt: Date)?
+    /// Where to start once the new episode reports its length (resume).
+    @ObservationIgnored private var startAt: Float?
 
     var currentPlaybackSeconds: Double {
         Double(progress) * currentDurationSeconds
     }
 
     // MARK: - Init
-    init(player: AVPlayerDataSource = AVPlayerDataSource()) {
+    init(player: PlayerDataSource = AVPlayerDataSource()) {
         self.player = player
         self.bind()
         self.configureAudioSession()
@@ -61,7 +69,20 @@ class AVPlayerViewModel {
             guard total.isFinite, total > 0, current.isFinite else { return }
 
             currentDurationSeconds = total
-            progress = Float(current / total)
+            // First update of a resumed episode: jump to where it was left.
+            if let start = startAt {
+                startAt = nil
+                seek(to: start)
+                return
+            }
+            let reported = Float(current / total)
+            if let seek = pendingSeek {
+                let arrived = abs(reported - seek.target) < 0.01
+                let gaveUp = Date().timeIntervalSince(seek.startedAt) > 2
+                guard arrived || gaveUp else { return }
+                pendingSeek = nil
+            }
+            progress = reported
             remainingTimeText = Self.shortTime(max(total - current, 0))
         }
         player.onStateChange = { [weak self] in self?.isPlaying = $0 }
@@ -69,16 +90,25 @@ class AVPlayerViewModel {
     }
 
     /// "43:20" under an hour, "1:02:05" above.
-    static func shortTime(_ seconds: Double) -> String {
+    nonisolated static func shortTime(_ seconds: Double) -> String {
         let total = Int(seconds.rounded())
         let h = total / 3600, m = (total % 3600) / 60, s = total % 60
         return h > 0 ? String(format: "%d:%02d:%02d", h, m, s) : String(format: "%d:%02d", m, s)
     }
 
     // MARK: - Playback API
-    func playEpisode(url: URL) {
+    /// - Parameter progress: 0...1 to resume from (nil or 0 = the beginning).
+    func playEpisode(url: URL, startingAt progress: Float? = nil) {
         currentURL = url
+        startAt = (progress ?? 0) > 0 ? progress : nil
         player.play(url: url)
+    }
+
+    /// Stops for good: pauses and gives the audio session back to the system
+    /// (other apps' audio can resume).
+    func stop() {
+        player.pause()
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
 
     func togglePlayPause() {
@@ -88,6 +118,28 @@ class AVPlayerViewModel {
 
     func seekForward()  { player.seek(by: 15)  }
     func seekBackward() { player.seek(by: -15) }
-    func seek(to percentage: Float) { player.seek(to: percentage) }
+    /// Jumps there now in the UI (no waiting for the stream), then seeks.
+    func seek(to percentage: Float) {
+        let target = min(max(percentage, 0), 1)
+        progress = target
+        pendingSeek = (target, Date())
+        player.seek(to: target)
+    }
+
+    /// Jumps to a second of the episode (a chapter, a transcript line).
+    func seek(toSeconds seconds: Double) {
+        guard currentDurationSeconds > 0 else { return }
+        seek(to: Float(seconds / currentDurationSeconds))
+    }
+
+    /// "12:04" for a point of the episode, while the finger scrubs.
+    func timeText(at percentage: Float) -> String {
+        Self.shortTime(Double(percentage) * currentDurationSeconds)
+    }
+
+    /// Time left from a point of the episode, while the finger scrubs.
+    func remainingText(at percentage: Float) -> String {
+        Self.shortTime(max(currentDurationSeconds * (1 - Double(percentage)), 0))
+    }
     func setVolume(_ value: Float)  { player.setVolume(value) }
 }

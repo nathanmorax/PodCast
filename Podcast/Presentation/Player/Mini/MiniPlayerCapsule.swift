@@ -24,14 +24,14 @@ struct MiniPlayerCapsule: View {
 
                     VStack(alignment: .leading, spacing: 1) {
                         Text(episode.title)
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.black)
+                            .font(AppFont.itemTitle)
+                            .foregroundStyle(AppColor.Text.primary)
                             .lineLimit(1)
                         if showsSubtitle {
                             Text(subtitle)
-                                .font(.system(size: 11))
+                                .font(AppFont.caption)
                                 .monospacedDigit()
-                                .foregroundStyle(.black.opacity(0.55))
+                                .foregroundStyle(AppColor.Text.secondary)
                                 .lineLimit(1)
                         }
                     }
@@ -42,7 +42,8 @@ struct MiniPlayerCapsule: View {
             }
             .buttonStyle(.plain)
             .accessibilityElement(children: .combine)
-            .accessibilityHint("Abre el reproductor")
+            .accessibilityLabel(!showsSubtitle ? Text(verbatim: episode.title) : Text(verbatim: "\(episode.title), \(subtitle)"))
+            .accessibilityHint("Opens the player")
 
             Button {
                 manager.togglePlayPause()
@@ -50,12 +51,12 @@ struct MiniPlayerCapsule: View {
                 Image(systemName: manager.viewModel.isPlaying ? "pause.fill" : "play.fill")
                     .font(.system(size: 17, weight: .semibold))
                     .contentTransition(.symbolEffect(.replace))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(AppColor.Text.primary)
                     .frame(width: 40, height: 40)
                     .contentShape(Circle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(manager.viewModel.isPlaying ? "Pausar" : "Reproducir")
+            .accessibilityLabel(manager.viewModel.isPlaying ? Text("Pause") : Text("Play"))
         }
         .padding(.leading, 9)
         .padding(.trailing, 6)

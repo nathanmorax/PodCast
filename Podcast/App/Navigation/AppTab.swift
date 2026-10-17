@@ -5,27 +5,23 @@
 
 import Foundation
 
-/// The two tabs of the bottom bar. Search is not a tab: it's pushed on top of
-/// whichever tab you're in.
+/// The app's main screen, shown as "Library" (Following and Favorites live
+/// inside it). Search is not a tab: it has its own stack, opened from the
+/// bar's search field. Kept as an enum so the container can grow tabs again.
 enum AppTab: Int, CaseIterable, Identifiable {
     case home
-    case library
 
     var id: Int { rawValue }
 
     var title: String {
         switch self {
-        case .home:    "Inicio"
-        case .library: "Biblioteca"
+        case .home: String(localized: "Library")
         }
     }
 
     var systemImage: String {
         switch self {
-        case .home:    "house"
-        case .library: "square.stack"
+        case .home: "square.stack"
         }
     }
-
-    var selectedSystemImage: String { systemImage + ".fill" }
 }

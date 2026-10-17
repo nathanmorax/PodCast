@@ -8,10 +8,15 @@ import SwiftUI
 
 extension UIImage {
     
-    /// Decodifica la imagen en background para no bloquear el main thread.
+    /// Decodes the image off the main actor so scrolling never waits for it.
+    ///
+    /// `@concurrent` states it explicitly (and keeps it true if the project
+    /// turns on Approachable Concurrency, where plain `async` functions would
+    /// run on the caller's actor). Before, an extra unstructured `Task` did the
+    /// hop: it also lost cancellation when the image's view went away.
+    @concurrent
     static func decode(from data: Data) async -> UIImage? {
-        await Task(priority: .userInitiated) {
-            UIImage(data: data)?.preparingForDisplay()
-        }.value
+        guard !Task.isCancelled else { return nil }
+        return UIImage(data: data)?.preparingForDisplay()
     }
 }

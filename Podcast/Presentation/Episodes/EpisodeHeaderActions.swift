@@ -9,13 +9,19 @@ import SwiftUI
 
 enum EpisodeHeaderEvent {
     case play
+    /// The + / ✓ in the header: follow or unfollow the podcast.
+    case follow
+    /// The ⓘ next to the description: the full "About" in a sheet.
+    case about
     case bookmark(Episode)
     case download
 }
 
 // MARK: - EpisodeHeaderActions
 
-final class EpisodeHeaderActions {
+/// Sendable: its only state is an AsyncStream and its continuation, both
+/// Sendable and immutable, so the environment's shared default is safe.
+final class EpisodeHeaderActions: Sendable {
 
     let events: AsyncStream<EpisodeHeaderEvent>
     private let continuation: AsyncStream<EpisodeHeaderEvent>.Continuation

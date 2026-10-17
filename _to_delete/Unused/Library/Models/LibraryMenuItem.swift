@@ -21,4 +21,6 @@ enum LibraryDestination {
 //    case canales
 //    case categorias
     case podcast(id: Int)
+    /// A followed podcast's page.
+    case openPodcast(Podcast)
 }

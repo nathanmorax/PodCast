@@ -17,6 +17,12 @@ final class LibraryController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        title = String(localized: "Library")
+        showTitleOnLeading()
+        navigationItem.largeTitleDisplayMode = .never
+        // Same gray as the content, so the large title area doesn't show a
+        // white band above it.
+        view.backgroundColor = ColorName.screenBackground.uiColor
         setupHosting()
         listenNavigationEvents()
     }
@@ -51,7 +57,7 @@ final class LibraryController: UIViewController {
             
             for await destination in self.actions.events {
                 guard !Task.isCancelled else { return }
-                await self.navigate(to: destination)
+                 self.navigate(to: destination)
             }
         }
         
@@ -66,6 +72,10 @@ final class LibraryController: UIViewController {
             navigationController?.pushViewController(DownloadEpisodeViewController(), animated: true)
         case .podcast(let id):
             openPodcast(id: id)
+        case .openPodcast(let podcast):
+            let page = EpisodesController()
+            page.podcast = podcast
+            navigationController?.pushViewController(page, animated: true)
 //        case .programas, .canales, .categorias, .episodiosRecientes:
 //            break // pantallas pendientes
         }

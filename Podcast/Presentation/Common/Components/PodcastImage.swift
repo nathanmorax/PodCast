@@ -89,7 +89,7 @@ private struct RemotePodcastImage: View {
             
             ImageMemoryCache.shared.insert(decoded, for: url)
             
-            withAnimation(.easeIn(duration: 0.2)) {
+            withAnimation(AppAnimation.imageAppear) {
                 image = decoded
             }
         } catch {

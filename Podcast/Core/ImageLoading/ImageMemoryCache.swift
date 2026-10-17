@@ -10,7 +10,13 @@ import SwiftUI
 /// Cache de imágenes ya decodificadas en memoria.
 /// Apple ya tiene URLCache (data en disco), pero decodificar es caro,
 /// por eso guardamos UIImage ya lista para mostrar.
-final class ImageMemoryCache {
+///
+/// `@unchecked Sendable` — safety invariant: the only stored state is an
+/// immutable `let` to an NSCache, which Apple documents as thread-safe, and
+/// `totalCostLimit` is set once in `init`. Remove the `@unchecked` if NSCache
+/// is ever annotated Sendable by the SDK, or if mutable state is added
+/// (then it should become an actor or use Mutex).
+final class ImageMemoryCache: @unchecked Sendable {
     
     static let shared = ImageMemoryCache()
     private init() {

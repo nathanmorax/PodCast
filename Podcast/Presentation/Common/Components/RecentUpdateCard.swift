@@ -28,9 +28,9 @@ struct RecentUpdateCard: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .overlay(alignment: .bottomLeading) {
                     if isCurrent {
-                        Label("Sonando", systemImage: "waveform")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(.black)
+                        Label("Playing", systemImage: "waveform")
+                            .font(AppFont.captionStrong)
+                            .foregroundStyle(AppColor.Text.onPastel)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
                             .background(Capsule().fill(AppColor.lavender))
@@ -39,8 +39,8 @@ struct RecentUpdateCard: View {
                 }
 
             Text(item.episode.title)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.black) // was .white on a light background: unreadable
+                .font(AppFont.itemTitle)
+                .foregroundStyle(AppColor.Text.primary) // was .white on a light background: unreadable
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
 
@@ -49,14 +49,14 @@ struct RecentUpdateCard: View {
                 Text("·")
                 Text(item.episode.author)
             }
-            .font(.system(size: 12))
-            .foregroundStyle(.black.opacity(0.5))
+            .font(AppFont.caption)
+            .foregroundStyle(AppColor.Text.secondary)
             .lineLimit(1)
 
             if progress > 0.01 {
                 ProgressView(value: min(progress, 1))
                     .tint(AppColor.lavender)
-                    .accessibilityLabel(progress >= 0.98 ? "Terminado" : "Escuchado \(Int(progress * 100)) por ciento")
+                    .accessibilityLabel(progress >= 0.98 ? Text("Finished") : Text("Listened \(Int(progress * 100)) percent"))
             }
         }
         .accessibilityElement(children: .combine)

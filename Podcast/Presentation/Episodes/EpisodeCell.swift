@@ -10,23 +10,25 @@ import SwiftUI
 
 struct EpisodeCell: View {
     let viewModel: EpisodeActionViewModel
+    /// Opens the episode's details ("Details" in the ••• menu).
+    var onInfo: (() -> Void)? = nil
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(viewModel.episode.pubDate, style: .date)
-                    .foregroundStyle(AppColor.dustyBlue)
-                    .font(.subheadline)
+                    .foregroundStyle(AppColor.Accent.strong)
+                    .font(AppFont.footnote)
 
                 Text(viewModel.episode.title)
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(.primary)
+                    .font(AppFont.headline)
+                    .foregroundStyle(AppColor.Text.primary)
                     .lineLimit(2)
 
                 Text(viewModel.episode.description)
-                    .font(.system(size: 14))
-                    .foregroundStyle(.secondary)
+                    .font(AppFont.callout)
+                    .foregroundStyle(AppColor.Text.secondary)
                     .lineLimit(2)
 
                 Spacer()
@@ -38,12 +40,12 @@ struct EpisodeCell: View {
                         Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
                             .font(.system(size: 10, weight: .semibold))
                         Text(viewModel.episode.durationDisplayText)
-                            .font(.system(size: 12, weight: .semibold))
+                            .font(AppFont.captionStrong)
                     }
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(AppColor.Accent.strong)
                     .padding(.horizontal, 12)
                     .frame(height: 32)
-                    .background(Capsule().fill(Color.primary.opacity(0.08)))
+                    .background(Capsule().fill(AppColor.Accent.wash))
                 }
                 .buttonStyle(.plain)
             }
@@ -54,11 +56,12 @@ struct EpisodeCell: View {
                     .frame(width: 100, height: 100)
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
-                EpisodeContextMenuButton(viewModel: viewModel)
+                EpisodeContextMenuButton(viewModel: viewModel, onInfo: onInfo)
                     .frame(width: 36, height: 36)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // Full width; the height is whatever the content needs.
+        .frame(maxWidth: .infinity, alignment: .topLeading)
         .onAppear {
             PerformanceLogger.rendering.event("EpisodeCellUI appeared", "title: \(viewModel.episode.title)")
         }

@@ -39,13 +39,13 @@ struct DownloadEpisodeRowView: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(viewModel.episode.title)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.black)
+                    .font(AppFont.itemTitle)
+                    .foregroundStyle(AppColor.Text.primary)
                     .lineLimit(2)
 
                 Text(viewModel.episode.author)
-                    .font(.system(size: 12))
-                    .foregroundStyle(.gray)
+                    .font(AppFont.caption)
+                    .foregroundStyle(AppColor.Text.secondary)
                     .lineLimit(1)
 
                 Button {
@@ -56,9 +56,9 @@ struct DownloadEpisodeRowView: View {
                             .font(.system(size: 10, weight: .semibold))
 
                         Text(viewModel.episode.durationDisplayText)
-                            .font(.system(size: 12, weight: .semibold))
+                            .font(AppFont.captionStrong)
                     }
-                    .foregroundStyle(.black)
+                    .foregroundStyle(AppColor.Text.primary)
                     .padding(.horizontal, 10)
                     .frame(height: 28)
                     .background(Capsule().fill(Color.black.opacity(0.08)))

@@ -14,8 +14,13 @@ final class AppNavigator {
 
     static let shared = AppNavigator()
 
-    /// True while the search field has the keyboard: the bottom bar steps aside.
+    /// True while the search field has the keyboard: the bar shows only the
+    /// field (above the keyboard) and a cancel button.
     var isSearching = false
+
+    /// What's typed in the bar's search field. PodcastSearchContainerController
+    /// observes it and shows results or categories.
+    var searchQuery = ""
 
     /// The last tab chosen in the bar. Stays set while Search is on screen, so
     /// the bar knows where you came from.
@@ -25,12 +30,14 @@ final class AppNavigator {
     /// root, so there's no back arrow); choosing a tab leaves it.
     private(set) var isShowingSearch = false
 
-    /// Scrolling down folds the bar into one row; scrolling up (or reaching the
-    /// top) brings it back. Driven by BottomBarScrollTracker.
-    var isBarCompact = false
+    /// True on screens opened from Search (a category, a podcast): no bottom
+    /// bar there. Set by MainContainerController as screens are shown.
+    var hidesBottomBar = false
+    /// The podcast page shows no bottom bar at all (not even the mini player).
+    var hidesBarCompletely = false
 
     @ObservationIgnored
-    weak var container: MainContainerController?
+    weak var container: (any NavigationContainer)?
 
     /// The stack on screen: Search's or the selected tab's.
     var currentNavigationController: UINavigationController? {
@@ -39,9 +46,12 @@ final class AppNavigator {
 
     /// Tapping the tab you're already in goes back to its first screen.
     func select(_ tab: AppTab) {
-        isBarCompact = false
         if !isShowingSearch, tab == selectedTab {
-            currentNavigationController?.popToRootViewController(animated: true)
+            if let stack = currentNavigationController {
+                // Animate only what's on screen; off screen the pop happens
+                // right away (an animated pop off screen is deferred).
+                stack.popToRootViewController(animated: stack.viewIfLoaded?.window != nil)
+            }
             return
         }
         isShowingSearch = false
@@ -49,24 +59,28 @@ final class AppNavigator {
         container?.show(tab)
     }
 
-    func expandBar() {
-        isBarCompact = false
+    // MARK: - Search field
+
+    /// Leaves Search (it drops back down) to the tab you came from.
+    func closeSearch() {
+        guard isShowingSearch else { return }
+        isSearching = false
+        select(selectedTab)
     }
 
-    /// Shows Search with the keyboard up. If Search is already on screen,
-    /// goes back to its first screen and focuses the field.
+    /// The ✕ next to the field while typing: clears it and drops the keyboard.
+    func cancelSearchEditing() {
+        searchQuery = ""
+        isSearching = false
+    }
+
+    /// Shows Search without the keyboard (tap the bar's field to type). If
+    /// Search is already on screen, goes back to its first screen and focuses
+    /// the field.
     func showSearch() {
-        isBarCompact = false
         guard let container else { return }
         if isShowingSearch {
-            if container.searchStack.topViewController === container.searchController {
-                container.searchController.focusSearchField()
-            } else {
-                // Inside a podcast opened from the results: go back first; the
-                // keyboard comes up once Search is visible again.
-                container.searchController.focusesSearchOnAppear = true
-                container.searchStack.popToRootViewController(animated: true)
-            }
+            container.focusSearch()
             return
         }
         isShowingSearch = true

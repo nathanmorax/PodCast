@@ -5,7 +5,8 @@
 
 import Foundation
 
-final class AudioDownloader {
+/// Sendable: stateless; safe to call from any isolation.
+final class AudioDownloader: Sendable {
     
     static let shared = AudioDownloader()
     private init() {}

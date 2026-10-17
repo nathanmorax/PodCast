@@ -14,6 +14,8 @@ struct SearchExploreView: View {
     let onSelectGenre: (Genre) -> Void
 
     @Environment(\.recentSearches) private var recentSearches
+    /// Owned by the view: the covers stay while Search lives.
+    @State private var genreCovers = GenreCoversViewModel()
 
     private let columns = [
         GridItem(.flexible(), spacing: 12),
@@ -25,7 +27,7 @@ struct SearchExploreView: View {
             VStack(alignment: .leading, spacing: 28) {
                 if !recentSearches.items.isEmpty {
                     recentSection
-                        .transition(.opacity.combined(with: .move(edge: .top)))
+                        .transition(.sectionReveal)
                 }
                 categoriesSection
             }
@@ -35,7 +37,7 @@ struct SearchExploreView: View {
         .scrollIndicators(.hidden)
         .scrollDismissesKeyboard(.immediately)
         .background(AppColor.screenBackground)
-        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: recentSearches.items.map(\.trackId))
+        .animation(AppAnimation.listChange, value: recentSearches.items.map(\.trackId))
     }
 
     // MARK: - Buscado recientemente
@@ -43,14 +45,14 @@ struct SearchExploreView: View {
     private var recentSection: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .firstTextBaseline) {
-                sectionTitle("Buscado recientemente")
+                sectionTitle("Recently searched")
                 Spacer()
-                Button("Borrar") {
-                    withAnimation { recentSearches.clear() }
+                Button("Clear") {
+                    withAnimation(AppAnimation.listChange) { recentSearches.clear() }
                 }
-                .font(.system(size: 14, weight: .semibold))
+                .font(AppFont.link)
                 .foregroundStyle(AppColor.lavenderInk)
-                .accessibilityLabel("Borrar búsquedas recientes")
+                .accessibilityLabel("Clear recent searches")
             }
             .padding(.horizontal, 20)
 
@@ -64,8 +66,8 @@ struct SearchExploreView: View {
                         }
                         .buttonStyle(.plain)
                         .contextMenu {
-                            Button("Quitar de recientes", systemImage: "minus.circle", role: .destructive) {
-                                withAnimation { recentSearches.remove(podcast) }
+                            Button("Remove from recents", systemImage: "minus.circle", role: .destructive) {
+                                withAnimation(AppAnimation.listChange) { recentSearches.remove(podcast) }
                             }
                         }
                     }
@@ -80,18 +82,24 @@ struct SearchExploreView: View {
 
     private var categoriesSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            sectionTitle("Explorar categorías")
+            sectionTitle("Explore categories")
                 .padding(.horizontal, 20)
 
             if !genresViewModel.genre.isEmpty {
                 LazyVGrid(columns: columns, spacing: 12) {
-                    ForEach(Array(genresViewModel.genre.enumerated()), id: \.offset) { index, genre in
+                    // Stable identity: the genre's id, not its position.
+                    ForEach(Array(genresViewModel.genre.enumerated()), id: \.element.id) { index, genre in
                         Button {
                             onSelectGenre(genre)
                         } label: {
-                            GenrePodcastCell(genre: genre, index: index)
+                            GenrePodcastCell(
+                                genre: genre,
+                                index: index,
+                                coverURLs: genreCovers.coverURLs(for: genre)
+                            )
                         }
                         .buttonStyle(.plain)
+                        .task { await genreCovers.load(genre) }
                     }
                 }
                 .padding(.horizontal, 20)
@@ -107,22 +115,22 @@ struct SearchExploreView: View {
 
     private var errorState: some View {
         VStack(spacing: 10) {
-            Text("No se pudieron cargar las categorías.")
-                .font(.system(size: 15))
-                .foregroundStyle(.black.opacity(0.55))
-            Button("Reintentar") {
+            Text("Couldn't load the categories.")
+                .font(AppFont.body)
+                .foregroundStyle(AppColor.Text.secondary)
+            Button("Try again") {
                 genresViewModel.loadGenre()
             }
-            .font(.system(size: 15, weight: .semibold))
+            .font(AppFont.link)
             .foregroundStyle(AppColor.lavenderInk)
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 32)
     }
 
-    private func sectionTitle(_ text: String) -> some View {
+    private func sectionTitle(_ text: LocalizedStringKey) -> some View {
         Text(text)
-            .font(.system(size: 20, weight: .bold))
+            .font(AppFont.sectionTitle)
             .foregroundStyle(AppColor.ink)
             .accessibilityAddTraits(.isHeader)
     }
@@ -141,7 +149,7 @@ private struct RecentSearchItem: View {
                 .overlay { PodcastImage(source: podcast.artworkUrl600) }
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             Text(podcast.trackName ?? "")
-                .font(.system(size: 12, weight: .medium))
+                .font(AppFont.captionStrong)
                 .foregroundStyle(AppColor.ink.opacity(0.8))
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)

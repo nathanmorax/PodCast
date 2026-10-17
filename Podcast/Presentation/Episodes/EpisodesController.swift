@@ -6,66 +6,30 @@
 //
 
 import UIKit
-import Combine
 import SwiftUI
 
-private enum Layout {
-    static let headerHeight: CGFloat = 720
-    // Content needs ~160pt: date + 2-line title + 2-line description + 32pt button + 16pt padding.
-    // At 150 the 100pt artwork + 36pt menu button column overflowed into the next row.
-    static let cellHeight: CGFloat   = 164
-    static let sectionInset          = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
-}
-
-class EpisodesController: UIViewController {
-
-    private let perf = PerformanceLogger.scroll
-
-    private var lastHeaderState: HeaderState?
-    private var headerActions = EpisodeHeaderActions()
-    private var eventsTaks: Task<Void, Never>?
-    private var observationTask: Task<Void, Never>?
+/// A podcast's page: the cover, "Listen to podcast" and its episodes.
+///
+/// The page itself is SwiftUI (PodcastEpisodesView). It used to be a
+/// UICollectionView with SwiftUI cells: UIKit decided each row's size while
+/// SwiftUI decided its content, and every time they disagreed rows drew over
+/// each other or jumped while scrolling. A LazyVStack measures and places its
+/// rows itself, so there's nothing left to disagree. This controller keeps
+/// the UIKit parts: the navigation bar over the cover, the sheets, and the
+/// header's actions.
+final class EpisodesController: UIViewController {
 
     var podcast: Podcast? {
         didSet {
+            // One request: episodes and the description come from the same feed.
             loadEpisodes()
-            viewModel.loadPodcastDescription(feedURL: podcast?.feedUrl)
         }
     }
 
-    private lazy var collectionView: UICollectionView = {
-        let layout = StretchyHeaderLayout()
-        layout.minimumLineSpacing      = 0
-        layout.minimumInteritemSpacing = 0
-        layout.sectionInset            = Layout.sectionInset
-        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        cv.translatesAutoresizingMaskIntoConstraints = false
-        cv.contentInsetAdjustmentBehavior = .automatic
-        cv.delegate   = self
-        cv.dataSource = self
-        return cv
-    }()
-
-    private lazy var loaderView: UIActivityIndicatorView = {
-        let indicator = UIActivityIndicatorView(style: .medium)
-        indicator.translatesAutoresizingMaskIntoConstraints = false
-        indicator.color = .label
-        indicator.hidesWhenStopped = true
-        return indicator
-    }()
-
-    private lazy var loaderContainerView: UIView = {
-        let container = UIView()
-        container.translatesAutoresizingMaskIntoConstraints = false
-        container.backgroundColor = .clear
-        container.addSubview(loaderView)
-        NSLayoutConstraint.activate([
-            loaderView.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            loaderView.centerYAnchor.constraint(equalTo: container.centerYAnchor),
-            container.heightAnchor.constraint(equalToConstant: 200)
-        ])
-        return container
-    }()
+    private let headerActions = EpisodeHeaderActions()
+    private let headerStretch = HeaderStretch()
+    private var eventsTask: Task<Void, Never>?
+    private var hosting: UIHostingController<PodcastEpisodesView>?
 
     private lazy var viewModel: EpisodesViewModel = {
         let remote = PodcastRemoteDataService()
@@ -73,166 +37,131 @@ class EpisodesController: UIViewController {
         return EpisodesViewModel(repository: repository)
     }()
 
-    private let episodeCellRegistration = UICollectionView.hostingRegistration { (episode: Episode) in
-        EpisodeCell(viewModel: EpisodeActionViewModel(episode: episode))
+    private enum Layout {
+        /// The cover's height (EpisodeHeaderView). Past it, the navigation
+        /// bar turns solid and shows the podcast's name.
+        static let heroHeight: CGFloat = 420
     }
-
-    private var headerRegistration: UICollectionView.SupplementaryRegistration<HostingHeaderView>!
 
     // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        perf.measure("viewDidLoad") {
-            setupHeaderRegistration()
-            setupCollectionView()
-            observeViewModel()
-            listenerHeaderEvents()
-        }
+        view.backgroundColor = .systemBackground
+        setupPage()
+        listenToHeaderEvents()
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        updateCollectionViewInset()
-        refreshVisibleHeader()
+        updateNavigationBar()
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        learnInterestIfListened()
+    }
+
+    /// Played something from this podcast? Its genre joins the listener's
+    /// interests, so Home's "For you" learns from what they actually hear.
+    private func learnInterestIfListened() {
+        guard let current = PlayerManager.shared.currentEpisode,
+              viewModel.episodes.contains(where: { $0.streamUrl == current.streamUrl }),
+              let genreID = Genre.catalogID(forITunesGenre: podcast?.primaryGenreName) else { return }
+        InterestsManager.shared.learn(genreID: genreID)
     }
 
     deinit {
-        eventsTaks?.cancel()
-        observationTask?.cancel()
+        eventsTask?.cancel()
     }
 
-    // MARK: - Observation (reemplaza setupBindings con Combine)
-
-    private func observeViewModel() {
-        observeLoading()
-        observeEpisodes()
-        observeHeader()
-    }
-
-    private func observeLoading() {
-        withObservationTracking {
-            _ = viewModel.isLoadingEpisodes
-        } onChange: { [weak self] in
-            Task { @MainActor in
-                guard let self else { return }
-                if self.viewModel.isLoadingEpisodes {
-                    self.loaderView.startAnimating()
-                    self.loaderContainerView.isHidden = false
-                } else {
-                    self.loaderView.stopAnimating()
-                    self.loaderContainerView.isHidden = true
-                }
-                self.observeLoading()
-            }
-        }
-    }
-
-    private func observeEpisodes() {
-        withObservationTracking {
-            _ = viewModel.episodes
-        } onChange: { [weak self] in
-            Task { @MainActor in
-                guard let self else { return }
-                if !self.viewModel.episodes.isEmpty {
-                    self.collectionView.reloadData()
-                    self.refreshVisibleHeader()
-                }
-                self.observeEpisodes()
-            }
-        }
-    }
-
-    private func observeHeader() {
-        withObservationTracking {
-            _ = viewModel.favorites
-            _ = viewModel.podcastDescription
-            _ = viewModel.isLoadingDescription
-        } onChange: { [weak self] in
-            Task { @MainActor in
-                guard let self, let podcast = self.podcast else { return }
-                self.perf.measure("favorites pipeline") {
-                    let newState = HeaderState(
-                        isFavorite: self.viewModel.isFavorite(podcast),
-                        description: self.viewModel.podcastDescription,
-                        isLoadingDescription: self.viewModel.isLoadingDescription
-                    )
-                    guard newState != self.lastHeaderState else { return }
-                    self.lastHeaderState = newState
-                    self.refreshVisibleHeader()
-                }
-                self.observeHeader()
-            }
-        }
-    }
-
-    // MARK: - Setup
-
-    private func updateCollectionViewInset() {
-        // Nothing extra: contentInsetAdjustmentBehavior = .automatic already adds
-        // the safe area, which includes the space reserved for the bottom bar.
-        // (Adding the tab bar height here used to count that space twice.)
-        collectionView.contentInset.bottom = 0
-        collectionView.verticalScrollIndicatorInsets.bottom = 0
-    }
-
-
-    private func setupCollectionView() {
-        view.addSubview(collectionView)
-        collectionView.addSubview(loaderContainerView)
-
+    private func setupPage() {
+        guard let podcast else { return }
+        let page = PodcastEpisodesView(
+            podcast: podcast,
+            viewModel: viewModel,
+            actions: headerActions,
+            stretch: headerStretch,
+            onScroll: { [weak self] offset in self?.didScroll(to: offset) },
+            onShowInfo: { [weak self] episode in self?.showInfo(for: episode) }
+        )
+        let hosting = UIHostingController(rootView: page)
+        hosting.view.translatesAutoresizingMaskIntoConstraints = false
+        hosting.view.backgroundColor = .clear
+        addChild(hosting)
+        view.addSubview(hosting.view)
         NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: view.topAnchor),
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-
-            loaderContainerView.topAnchor.constraint(equalTo: collectionView.topAnchor, constant: Layout.headerHeight),
-            loaderContainerView.leadingAnchor.constraint(equalTo: collectionView.leadingAnchor),
-            loaderContainerView.trailingAnchor.constraint(equalTo: collectionView.trailingAnchor),
-            loaderContainerView.widthAnchor.constraint(equalTo: collectionView.widthAnchor)
+            hosting.view.topAnchor.constraint(equalTo: view.topAnchor),
+            hosting.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            hosting.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            hosting.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+        hosting.didMove(toParent: self)
+        self.hosting = hosting
     }
 
-    private func setupHeaderRegistration() {
-        headerRegistration = UICollectionView.SupplementaryRegistration<HostingHeaderView>(
-            elementKind: UICollectionView.elementKindSectionHeader
-        ) { [weak self] supplementaryView, _, _ in
-            guard let self, let podcast = self.podcast else { return }
-            supplementaryView.host(self.makeHeaderView(for: podcast), parent: self)
-        }
-    }
-
-    private func makeHeaderView(for podcast: Podcast) -> EpisodeHeaderView {
-        perf.measure("makeHeaderView") {
-            EpisodeHeaderView(
-                podcast: podcast,
-                isFavorite: viewModel.isFavorite(podcast),
-                podcastDescription: viewModel.podcastDescription,
-                isLoadingDescription: viewModel.isLoadingDescription,
-                actions: headerActions
-            )
-        }
-    }
-
-    // MARK: - Load
-
-    fileprivate func loadEpisodes() {
+    private func loadEpisodes() {
         guard let feedUrl = podcast?.feedUrl else { return }
         viewModel.loadEpisodes(feedURL: feedUrl)
     }
 
+    // MARK: - Scroll
+
+    private var scrollOffset: CGFloat = 0
+
+    private func didScroll(to offset: CGFloat) {
+        scrollOffset = offset
+        // Pulled past the top: the cover grows into the gap.
+        let pull = max(0, -offset)
+        if headerStretch.pull != pull {
+            headerStretch.pull = pull
+        }
+        updateNavigationBar()
+    }
+
+    // MARK: - Navigation bar over the cover
+
+    private var isHeaderCollapsed = false
+
+    private lazy var transparentBarAppearance: UINavigationBarAppearance = {
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithTransparentBackground()
+        return appearance
+    }()
+
+    private lazy var solidBarAppearance: UINavigationBarAppearance = {
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithDefaultBackground()
+        return appearance
+    }()
+
+    /// Transparent over the cover; solid with the podcast's name once the
+    /// cover has scrolled away.
+    private func updateNavigationBar() {
+        let threshold = Layout.heroHeight - view.safeAreaInsets.top - 60
+        let collapsed = scrollOffset > threshold
+        guard collapsed != isHeaderCollapsed || navigationItem.standardAppearance == nil else { return }
+        isHeaderCollapsed = collapsed
+        let appearance = collapsed ? solidBarAppearance : transparentBarAppearance
+        navigationItem.standardAppearance = appearance
+        navigationItem.scrollEdgeAppearance = appearance
+        navigationItem.compactAppearance = appearance
+        navigationItem.title = collapsed ? podcast?.trackName : nil
+    }
+
     // MARK: - Header events
 
-    func listenerHeaderEvents() {
-        eventsTaks = Task(priority: .userInitiated) { [weak self] in
-            guard let self else { return }
-            for await event in self.headerActions.events {
-                guard !Task.isCancelled else { break }
+    private func listenToHeaderEvents() {
+        eventsTask = Task { [weak self] in
+            guard let events = self?.headerActions.events else { return }
+            for await event in events {
+                guard let self, !Task.isCancelled else { break }
                 switch event {
-                case .play:     self.handlePlayPodcast()
-                case .bookmark: self.handleFavoritePodcast()
-                case .download: self.handleDownloadPodcast()
+                case .play:     self.playNewest()
+                case .about:    self.showAbout()
+                case .follow:   self.toggleFavorite()
+                case .bookmark: self.toggleFavorite()
+                case .download: break
                 }
             }
         }
@@ -240,102 +169,43 @@ class EpisodesController: UIViewController {
 
     // MARK: - Actions
 
-    @objc fileprivate func handleFavoritePodcast() {
+    private func toggleFavorite() {
         guard let podcast else { return }
         viewModel.toggleFavorite(podcast: podcast)
     }
 
-    private func handlePlayPodcast() {
-        guard let firstEpisode = viewModel.episodes.first else { return }
-        PlayerManager.shared.play(firstEpisode)
+    /// "Listen to podcast": the newest episode by date (most feeds list it
+    /// first, but not all).
+    private func playNewest() {
+        guard let newest = viewModel.episodes.max(by: { $0.pubDate < $1.pubDate }) else { return }
+        PlayerManager.shared.play(newest)
     }
 
-    private func handleDownloadPodcast() {
-        print("Download tapped")
-    }
-
-    private func refreshVisibleHeader() {
+    /// The podcast's full description in a sheet (the ⓘ in the header).
+    private func showAbout() {
         guard let podcast else { return }
-        let headerView = makeHeaderView(for: podcast)
-        let kind = UICollectionView.elementKindSectionHeader
+        presentSheet(PodcastAboutSheet(
+            podcast: podcast,
+            description: viewModel.podcastDescription ?? ""
+        ))
+    }
 
-        for indexPath in collectionView.indexPathsForVisibleSupplementaryElements(ofKind: kind) {
-            guard let header = collectionView.supplementaryView(forElementKind: kind, at: indexPath)
-                    as? HostingHeaderView else { continue }
-            header.host(headerView, parent: self)
+    /// An episode's details (tapping its row, or "Details" in its ••• menu).
+    private func showInfo(for episode: Episode) {
+        presentSheet(EpisodeInfoSheet(episode: episode) { [weak self] in
+            PlayerManager.shared.play(episode)
+            self?.dismiss(animated: true)
+        })
+    }
+
+    /// Half screen, can grow to full.
+    private func presentSheet<Content: View>(_ content: Content) {
+        let sheet = UIHostingController(rootView: content)
+        if let presentation = sheet.sheetPresentationController {
+            presentation.detents = [.medium(), .large()]
+            presentation.prefersGrabberVisible = true
+            presentation.preferredCornerRadius = 28
         }
-    }
-}
-
-// MARK: - DataSource
-
-extension EpisodesController: UICollectionViewDataSource {
-    
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        viewModel.episodes.count
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        perf.measure("cellForItemAt") {
-            let episode = viewModel.episodes[indexPath.item]
-            return collectionView.dequeueConfiguredReusableCell(
-                using: episodeCellRegistration,
-                for: indexPath,
-                item: episode
-            )
-        }
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-        
-        perf.measure("viewForSupplementaryElement") {
-            guard kind == UICollectionView.elementKindSectionHeader else { return UICollectionReusableView() }
-            
-            return collectionView.dequeueConfiguredReusableSupplementary(
-                using: headerRegistration,
-                for: indexPath
-            )
-        }
-    }
-}
-
-// MARK: - Delegate
-
-extension EpisodesController: UICollectionViewDelegate {
-    
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let episode = viewModel.episodes[indexPath.row]
-        PlayerManager.shared.play(episode)
-    }
-}
-
-// MARK: - FlowLayout
-
-extension EpisodesController: UICollectionViewDelegateFlowLayout {
-    
-    func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        sizeForItemAt indexPath: IndexPath) -> CGSize {
-        CGSize(width: collectionView.bounds.width, height: Layout.cellHeight)
-    }
-    
-    func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        referenceSizeForHeaderInSection section: Int) -> CGSize {
-        CGSize(width: collectionView.bounds.width, height: Layout.headerHeight)
-    }
-}
-
-extension EpisodesController: UIScrollViewDelegate {
-    
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        
-        let offsetY = scrollView.contentOffset.y
-        let contentHeight = scrollView.contentSize.height
-        let height = scrollView.frame.size.height
-        
-        if offsetY > contentHeight - height * 1.5 {
-            viewModel.loadMoreEpisodes()
-        }
+        present(sheet, animated: true)
     }
 }
