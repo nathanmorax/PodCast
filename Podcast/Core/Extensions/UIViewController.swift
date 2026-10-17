@@ -29,13 +29,15 @@ extension UIViewController {
 }
 
 extension UIViewController {
-    /// Shows the screen's `title` on the left of the navigation bar, bold,
-    /// instead of centered (the tabs' first screens: Home, Library, Search).
+    /// Shows the screen's `title` on the left of the navigation bar, bold
+    /// serif, instead of centered (the tabs' first screens: Home, Library, Search).
     /// Call after setting `title`.
     func showTitleOnLeading() {
         let label = UILabel()
         label.text = title
-        label.font = .systemFont(ofSize: 28, weight: .bold)
+        // Editorial: serif (New York), like the podcast page.
+        let base = UIFont.systemFont(ofSize: 28, weight: .bold)
+        label.font = base.fontDescriptor.withDesign(.serif).map { UIFont(descriptor: $0, size: 28) } ?? base
         label.textColor = .label
         label.accessibilityTraits = .header
         label.sizeToFit()

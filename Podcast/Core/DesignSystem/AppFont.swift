@@ -26,6 +26,16 @@ import SwiftUI
 /// | overline      | 13 bold, uppercase | Labels over lists ("312 EPISODES")      |
 /// | caption       | 12 regular         | Subtitles under tiles (author)          |
 /// | captionStrong | 12 semibold        | Pills, badges, durations                |
+///
+/// Editorial (serif, New York) — the podcast page and episode details read
+/// like a magazine:
+///
+/// | Role             | Size / weight     | Used for                              |
+/// |------------------|-------------------|---------------------------------------|
+/// | editorialHero    | 40 bold serif     | Podcast name over its cover           |
+/// | editorialTitle   | 28 bold serif     | Episode title in its details          |
+/// | editorialItem    | 18 bold serif     | Episode titles in the list            |
+/// | editorialQuote   | 20 italic serif   | The highlighted line of an episode    |
 enum AppFont {
     static let display       = Font.system(size: 34, weight: .heavy)
     static let hero          = Font.system(size: 32, weight: .heavy)
@@ -43,6 +53,11 @@ enum AppFont {
     static let overline      = Font.system(size: 13, weight: .bold)
     static let caption       = Font.system(size: 12)
     static let captionStrong = Font.system(size: 12, weight: .semibold)
+
+    static let editorialHero  = Font.system(size: 40, weight: .bold, design: .serif)
+    static let editorialTitle = Font.system(size: 28, weight: .bold, design: .serif)
+    static let editorialItem  = Font.system(size: 18, weight: .bold, design: .serif)
+    static let editorialQuote = Font.system(size: 20, weight: .regular, design: .serif).italic()
 }
 
 extension View {
