@@ -24,16 +24,13 @@ final class HomeController: UIViewController {
     private func setupHosting() {
         let home = HomeView(
             onOpenPodcast: { [weak self] podcast in self?.open(podcast) },
+            onOpenEpisode: { [weak self] episode, podcast in
+                self?.push(EpisodeDetailController(episode: episode, podcastName: podcast.trackName))
+            },
             onSearch: { AppNavigator.shared.showSearch() },
-            onOpenFollowing: { [weak self] in
-                self?.navigationController?.pushViewController(FollowingController(), animated: true)
-            },
-            onOpenFavorites: { [weak self] in
-                self?.navigationController?.pushViewController(BookMarkEpisodeController(), animated: true)
-            },
-            onOpenDownloads: { [weak self] in
-                self?.navigationController?.pushViewController(DownloadEpisodeViewController(), animated: true)
-            }
+            onOpenFollowing: { [weak self] in self?.push(FollowingController()) },
+            onOpenFavorites: { [weak self] in self?.push(BookMarkEpisodeController()) },
+            onOpenDownloads: { [weak self] in self?.push(DownloadEpisodeViewController()) }
         )
         let hosting = UIHostingController(rootView: home)
         hosting.view.translatesAutoresizingMaskIntoConstraints = false
@@ -47,6 +44,10 @@ final class HomeController: UIViewController {
             hosting.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         hosting.didMove(toParent: self)
+    }
+
+    private func push(_ screen: UIViewController) {
+        navigationController?.pushViewController(screen, animated: true)
     }
 
     private func open(_ podcast: Podcast) {

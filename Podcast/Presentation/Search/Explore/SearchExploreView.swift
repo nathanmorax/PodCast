@@ -35,7 +35,7 @@ struct SearchExploreView: View {
         .animation(AppAnimation.listChange, value: recentSearches.items.map(\.trackId))
     }
 
-    // MARK: - Buscado recientemente
+    // MARK: - Recently searched
 
     private var recentSection: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -73,7 +73,7 @@ struct SearchExploreView: View {
         }
     }
 
-    // MARK: - Explorar categorías
+    // MARK: - Categories
 
     private var categoriesSection: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -140,17 +140,6 @@ private struct RecentSearchItem: View {
         .frame(width: 72, alignment: .leading)
         .accessibilityElement(children: .combine)
     }
-}
-
-// MARK: - Preview
-
-#Preview {
-    SearchExploreView(
-        genresViewModel: GenresViewModel(repository: GenresRepositoryImpl(remoteDataSource: PodcastRemoteDataService())),
-        onOpenPodcast: { _ in },
-        onSelectGenre: { _ in }
-    )
-    .environment(\.recentSearches, .preview)
 }
 
 // MARK: - Category gallery

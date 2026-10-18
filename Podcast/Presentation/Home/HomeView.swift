@@ -5,8 +5,8 @@
 
 import SwiftUI
 
-/// "Library", the main screen. Everything fits on one screen:
-/// 1. Collections: Following, Favorites, Downloads, as three small tiles.
+/// "Library", the main screen:
+/// 1. Today's date, and Following · Favorites · Downloads as three tiles.
 /// 2. The podcasts you follow, as a row of covers (no text).
 /// 3. For you: the latest episodes of the podcasts you follow.
 /// What you're listening to lives in the mini player, so it isn't repeated here.
@@ -19,6 +19,7 @@ struct HomeView: View {
     @State private var forYou = ForYouViewModel()
 
     let onOpenPodcast: (Podcast) -> Void
+    let onOpenEpisode: (Episode, Podcast) -> Void
     let onSearch: () -> Void
     let onOpenFollowing: () -> Void
     let onOpenFavorites: () -> Void
@@ -29,7 +30,10 @@ struct HomeView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 32) {
-                collectionsSection
+                VStack(alignment: .leading, spacing: 14) {
+                    dateHeader
+                    collectionsSection
+                }
 
                 if following.isEmpty {
                     emptyState
@@ -65,6 +69,7 @@ struct HomeView: View {
             } else {
                 ForYouEpisodesRow(
                     items: forYou.items,
+                    onOpen: { onOpenEpisode($0.episode, $0.podcast) },
                     onPlay: { playerManager.play($0) },
                     onOpenPodcast: onOpenPodcast
                 )
@@ -73,7 +78,17 @@ struct HomeView: View {
         .animation(AppAnimation.listChange, value: forYou.items.map(\.id))
     }
 
-    // MARK: - Collections
+    // MARK: - Date and collections
+
+    /// Today's date under the title ("SATURDAY, OCTOBER 17").
+    private var dateHeader: some View {
+        Text(Date.now, format: .dateTime.weekday(.wide).day().month(.wide))
+            .font(AppFont.overline)
+            .textCase(.uppercase)
+            .tracking(0.5)
+            .foregroundStyle(AppColor.Text.secondary)
+            .padding(.horizontal, 20)
+    }
 
     /// Three small tiles in a row. Each opens its list.
     private var collectionsSection: some View {
@@ -168,6 +183,7 @@ private enum CoverStyle {
 private struct ForYouEpisodesRow: View {
 
     let items: [ForYouViewModel.Item]
+    let onOpen: (ForYouViewModel.Item) -> Void
     let onPlay: (Episode) -> Void
     let onOpenPodcast: (Podcast) -> Void
 
@@ -178,12 +194,15 @@ private struct ForYouEpisodesRow: View {
             LazyHStack(spacing: 12) {
                 ForEach(items) { item in
                     Button {
-                        onPlay(item.episode)
+                        onOpen(item)
                     } label: {
                         EpisodeCover(item: item, side: Self.side)
                     }
                     .buttonStyle(.plain)
                     .contextMenu {
+                        Button("Play", systemImage: "play.fill") {
+                            onPlay(item.episode)
+                        }
                         Button("Go to podcast", systemImage: "square.stack") {
                             onOpenPodcast(item.podcast)
                         }
@@ -272,6 +291,7 @@ private struct CollectionTile: View {
 #Preview {
     HomeView(
         onOpenPodcast: { _ in },
+        onOpenEpisode: { _, _ in },
         onSearch: {},
         onOpenFollowing: {},
         onOpenFavorites: {},
