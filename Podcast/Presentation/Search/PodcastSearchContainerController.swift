@@ -9,15 +9,17 @@ import UIKit
 
 /// The Search screen. It has no search bar of its own: the field lives in the
 /// bottom bar (right above the keyboard while typing) and its text arrives
-/// through `AppNavigator.searchQuery`. Empty → categories; text → results.
-class PodcastSearchContainerController: UIViewController {
+/// through `AppNavigator.searchQuery`. Empty → recents and categories
+/// (SearchExploreController); text → podcasts and episodes
+/// (SearchResultsController). It owns what every tap opens.
+final class PodcastSearchContainerController: UIViewController {
 
     /// Set when the bar's search field opens this screen: the keyboard comes
     /// up as soon as it's visible.
     var focusesSearchOnAppear = false
 
     private let navigator: AppNavigator
-    private let genreController = PodcastGenreController()
+    private let exploreController = SearchExploreController()
 
     private lazy var viewModel: PodcastSearchViewModel = {
         let remote = PodcastRemoteDataService()
@@ -25,9 +27,7 @@ class PodcastSearchContainerController: UIViewController {
         return PodcastSearchViewModel(repository: repository)
     }()
 
-    private lazy var resultsController: PodcastResultSearchController = {
-        PodcastResultSearchController(viewModel: self.viewModel)
-    }()
+    private lazy var resultsController = SearchResultsController(viewModel: viewModel)
 
     init(navigator: AppNavigator = .shared) {
         self.navigator = navigator
@@ -96,42 +96,39 @@ class PodcastSearchContainerController: UIViewController {
     private func apply(query: String) {
         // Always forward the text: an empty string cancels a pending search.
         viewModel.search(query)
-        if query.isEmpty {
-            showGenres()
-        } else {
-            showResults()
-        }
+        exploreController.view.isHidden = !query.isEmpty
+        resultsController.view.isHidden = query.isEmpty
     }
 
     // MARK: - Setup
 
     private func setupChildControllers() {
-        // A category opens its own screen: its name centered, with back.
-        genreController.onSelectGenre = { [weak self] genre in
-            self?.navigationController?.pushViewController(GenrePodcastsController(genre: genre), animated: true)
-        }
+        exploreController.onOpenPodcast = { [weak self] in self?.open($0) }
+        exploreController.onSelectGenre = { [weak self] in self?.open($0) }
+        resultsController.onOpenPodcast = { [weak self] in self?.open($0) }
+        resultsController.onOpenEpisode = { [weak self] in self?.open($0) }
 
-        for child in [genreController, resultsController] as [UIViewController] {
-            addChild(child)
-            view.addSubview(child.view)
-            child.view.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.activate([
-                child.view.topAnchor.constraint(equalTo: view.topAnchor),
-                child.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-                child.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-                child.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-            ])
-            child.didMove(toParent: self)
-        }
+        embedFullScreen(exploreController)
+        embedFullScreen(resultsController)
     }
 
-    private func showGenres() {
-        genreController.view.isHidden = false
-        resultsController.view.isHidden = true
+    // MARK: - Opening (Search's own stack)
+
+    private func open(_ podcast: Podcast) {
+        // Opening it again moves it to the front of "Recent".
+        RecentSearchesManager.shared.record(podcast)
+        let episodes = EpisodesController()
+        episodes.podcast = podcast
+        navigationController?.pushViewController(episodes, animated: true)
     }
 
-    private func showResults() {
-        genreController.view.isHidden = true
-        resultsController.view.isHidden = false
+    private func open(_ genre: Genre) {
+        navigationController?.pushViewController(GenrePodcastsController(genre: genre), animated: true)
+    }
+
+    /// Outside a podcast page, an episode opens full screen.
+    private func open(_ result: EpisodeSearchResult) {
+        let detail = EpisodeDetailController(episode: result.episode, podcastName: result.podcastName)
+        navigationController?.pushViewController(detail, animated: true)
     }
 }
