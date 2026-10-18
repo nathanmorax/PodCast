@@ -51,3 +51,20 @@ extension UIViewController {
         navigationItem.titleView = UIView()
     }
 }
+
+extension UIViewController {
+    /// Adds a child controller whose view fills this one's edge to edge.
+    func embedFullScreen(_ child: UIViewController) {
+        addChild(child)
+        child.view.translatesAutoresizingMaskIntoConstraints = false
+        child.view.backgroundColor = .clear
+        view.addSubview(child.view)
+        NSLayoutConstraint.activate([
+            child.view.topAnchor.constraint(equalTo: view.topAnchor),
+            child.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            child.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            child.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+        child.didMove(toParent: self)
+    }
+}

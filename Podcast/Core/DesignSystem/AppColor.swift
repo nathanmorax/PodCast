@@ -62,6 +62,9 @@ enum AppColor {
         /// The selected pill of a segmented control, a focused field:
         /// white / a lighter grey than the cards.
         static let raised    = Color(asset: .surfaceRaised)
+        /// A quiet grey block (Search's category cards): a step above the
+        /// screen in both light and dark.
+        static let muted     = Color(uiColor: .systemGray5)
     }
 
     /// Text on the app's light surfaces. One ink at three strengths, so
@@ -93,12 +96,4 @@ enum AppColor {
         /// A violet tint for backgrounds behind violet icons/text.
         static let wash   = AppColor.lavender.opacity(0.18)
     }
-
-    /// Tile colors for genres.
-    /// - slateGray is NOT here: it's the screen background, so those tiles looked empty.
-    /// - charcoalBrown is NOT here: it's the text color, so labels on it were unreadable.
-    static let palette: [Color] = [
-        limeGreen, dustyRose, coralRed, warmOrange,
-        paleYellow, dustyBlue, oliveGreen, burntOrange, lavender
-    ]
 }

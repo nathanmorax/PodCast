@@ -117,6 +117,8 @@ final class PlayerManager {
     }
     
     func expand() {
+        // Repeated taps on the mini player: one opening is enough.
+        guard presentation != .expanded else { return }
         withAnimation(AppAnimation.playerPresentation) {
             presentation = .expanded
         }

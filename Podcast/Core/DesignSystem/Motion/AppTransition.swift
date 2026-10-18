@@ -48,7 +48,7 @@ extension AnyTransition {
 
     // MARK: - Content
 
-    /// A section appearing at the top of a list (e.g. "Recently searched").
+    /// A section appearing at the top of a list (e.g. "Recent" in Search).
     static var sectionReveal: AnyTransition {
         .opacity.combined(with: .move(edge: .top))
     }
