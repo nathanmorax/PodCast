@@ -103,5 +103,12 @@ extension BookMarkEpisodeController: UICollectionViewDataSource, UICollectionVie
             item: episode
         )
     }
-    
+
+    /// Outside a podcast page, an episode opens full screen.
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        collectionView.deselectItem(at: indexPath, animated: true)
+        let episode = viewModel.episodes[indexPath.item]
+        let detail = EpisodeDetailController(episode: episode, podcastName: nil)
+        navigationController?.pushViewController(detail, animated: true)
+    }
 }
