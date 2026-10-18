@@ -7,9 +7,9 @@
 
 import SwiftUI
 
-/// One episode in a podcast's list, editorial style: the date as an overline
-/// in violet, the title in serif, play + length; the artwork on the right
-/// with the ••• menu under it.
+/// One episode in a podcast's list: how long ago it came out ("2 days ago")
+/// in violet, the title in serif, two lines of description (cut with "…"),
+/// play + length; the artwork on the right with the ••• menu under it.
 struct EpisodeCell: View {
     let viewModel: EpisodeActionViewModel
     /// Opens the episode's details ("Details" in the ••• menu).
@@ -17,27 +17,26 @@ struct EpisodeCell: View {
 
     private var episode: Episode { viewModel.episode }
 
-    /// "TODAY", "YESTERDAY", or "12 OCT".
-    private var dateText: Text {
-        let calendar = Calendar.current
-        if calendar.isDateInToday(episode.pubDate) { return Text("Today") }
-        if calendar.isDateInYesterday(episode.pubDate) { return Text("Yesterday") }
-        return Text(episode.pubDate, format: .dateTime.day().month(.abbreviated))
-    }
-
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
-            VStack(alignment: .leading, spacing: 8) {
-                dateText
-                    .font(AppFont.overline)
-                    .textCase(.uppercase)
-                    .tracking(0.8)
+            VStack(alignment: .leading, spacing: 6) {
+                // "2 days ago", "2 months ago".
+                Text(episode.pubDate, format: .relative(presentation: .named, unitsStyle: .wide))
+                    .font(AppFont.captionStrong)
                     .foregroundStyle(AppColor.Accent.strong)
 
                 Text(episode.title)
-                    .font(AppFont.editorialItem)
+                    .font(.system(size: 16, weight: .bold, design: .serif))
                     .foregroundStyle(AppColor.Text.primary)
                     .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+
+                // Cut with "…" when it doesn't fit.
+                Text(episode.description)
+                    .font(AppFont.callout)
+                    .foregroundStyle(AppColor.Text.secondary)
+                    .lineLimit(2)
+                    .truncationMode(.tail)
                     .multilineTextAlignment(.leading)
 
                 Spacer(minLength: 0)
