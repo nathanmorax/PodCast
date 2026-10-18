@@ -32,6 +32,11 @@ final class PodcastRemoteDataService: PodcastRemoteDataSource {
         let result: SearchResults = try await request(.search(query: query))
         return result.results
     }
+
+    func searchEpisodes(query: String) async throws -> [EpisodeSearchResult] {
+        let result: EpisodeSearchResults = try await request(.searchEpisodes(query: query))
+        return result.results.compactMap { $0.toDomain() }
+    }
     
     func fetchFeed(feedURL: String) async throws -> PodcastFeed {
         let secureURL = feedURL.replacingOccurrences(of: "http://", with: "https://")
@@ -54,19 +59,5 @@ final class PodcastRemoteDataService: PodcastRemoteDataSource {
         case .atom, .json:
             return PodcastFeed(description: nil, episodes: [])
         }
-    }
-    
-    
-    /// The podcast categories (iTunes genre 26's subgenres), sorted by name.
-    /// Before: a callback that never fired when the response had no data
-    /// (the screen loaded forever) and a random order on every launch.
-    func fetchGenres() async throws -> [Genre] {
-        let result: [String: GenreResponse] = try await request(.genres)
-        guard let subgenres = result.values.first?.subgenres?.values else { return [] }
-        return subgenres
-            .map { Genre(id: $0.id, name: $0.name) }
-            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
-            .prefix(15)
-            .map { $0 }
     }
 }

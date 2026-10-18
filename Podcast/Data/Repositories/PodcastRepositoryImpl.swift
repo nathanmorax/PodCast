@@ -19,6 +19,10 @@ final class PodcastRepositoryImpl: SearchPodcastRepository {
         try await remoteDataSource.searchPodcast(query: query)
     }
 
+    func searchEpisodes(query: String) async throws -> [EpisodeSearchResult] {
+        try await remoteDataSource.searchEpisodes(query: query)
+    }
+
     func fetchFeed(feedURL: String) async throws -> PodcastFeed {
         try await remoteDataSource.fetchFeed(feedURL: feedURL)
     }

@@ -4,39 +4,22 @@
 //
 
 import Foundation
-import Alamofire
 
+/// The iTunes Search API: shows and episodes.
 enum PodcastEndpoint {
     case search(query: String)
-    case genres
+    case searchEpisodes(query: String)
+
     var url: String {
-        switch self {
-        case .search, .genres:
-            return baseURL
-        }
+        "https://itunes.apple.com/search"
     }
-    
-    private var baseURL: String {
-        switch self {
-        case .search:
-            return "https://itunes.apple.com/search"
-        case .genres:
-            return "https://itunes.apple.com/WebObjects/MZStoreServices.woa/ws/genres"
-        }
-    }
-    
+
     var parameters: [String: Any] {
         switch self {
         case .search(let query):
             return ["term": query, "media": "podcast"]
-        case .genres:
-            return ["id": "26", "l": "en"]
-        }
-    }
-    
-    var methotHttp: HTTPMethod {
-        switch self {
-        case .search, .genres: .post
+        case .searchEpisodes(let query):
+            return ["term": query, "media": "podcast", "entity": "podcastEpisode", "limit": 20]
         }
     }
 }
