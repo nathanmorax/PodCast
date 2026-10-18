@@ -5,23 +5,23 @@
 
 import Observation
 
-/// The covers of each category's top two podcasts, for the cards in
-/// "Explore categories".
+/// The covers of each category's top three podcasts, for the gray cards in
+/// Search's "Explore".
 ///
 /// Each card asks for its own covers when it appears (only the visible ones
 /// make a request) and the answer is kept for the rest of the session, so
 /// scrolling back and forth doesn't search again. The iTunes search allows
 /// about 20 requests a minute, so this matters.
 ///
-/// Like opening a category, it searches the category's name; the first two
+/// Like opening a category, it searches the category's name; the first three
 /// results are the top ones.
 @MainActor
 @Observable
 final class GenreCoversViewModel {
 
-    static let coversPerCard = 2
+    static let coversPerCard = 3
 
-    /// Genre id → artwork URLs (at most two). Missing = not loaded yet.
+    /// Genre id → artwork URLs (at most three). Missing = not loaded yet.
     private(set) var covers: [String: [String]] = [:]
 
     @ObservationIgnored private let repository: any SearchPodcastRepository

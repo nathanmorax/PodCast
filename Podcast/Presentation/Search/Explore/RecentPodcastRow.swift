@@ -1,0 +1,66 @@
+//
+//  RecentPodcastRow.swift
+//  Podcast
+//
+
+import SwiftUI
+
+/// A podcast opened from Search: cover, name in serif, "Podcast · Genre",
+/// and an × to take it off the list.
+struct RecentPodcastRow: View {
+
+    let podcast: Podcast
+    let onOpen: () -> Void
+    let onRemove: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Button(action: onOpen) {
+                HStack(spacing: 12) {
+                    PodcastImage(source: podcast.artworkUrl600)
+                        .frame(width: 44, height: 44)
+                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                        .accessibilityHidden(true)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(podcast.trackName ?? "")
+                            .font(.system(size: 16, weight: .bold, design: .serif))
+                            .foregroundStyle(AppColor.Text.primary)
+                            .lineLimit(1)
+                        Text(kind)
+                            .font(AppFont.caption)
+                            .foregroundStyle(AppColor.Text.secondary)
+                            .lineLimit(1)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            Button(action: onRemove) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(AppColor.Text.tertiary)
+                    .frame(width: 32, height: 32)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Remove from recents")
+        }
+        .frame(minHeight: 60)
+    }
+
+    /// "Podcast · Science".
+    private var kind: String {
+        [String(localized: "Podcast"), podcast.primaryGenreName]
+            .compactMap { $0 }
+            .filter { !$0.isEmpty }
+            .joined(separator: " · ")
+    }
+}
+
+#Preview(traits: .sizeThatFitsLayout) {
+    RecentPodcastRow(podcast: .mock, onOpen: {}, onRemove: {})
+        .padding()
+}
