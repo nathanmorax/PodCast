@@ -66,6 +66,13 @@ extension Genre {
     static func catalog(id: String) -> Genre? {
         podcastCatalog.first { $0.id == id }
     }
+
+    /// Search's "Explore": the whole catalog, the listener's interests first
+    /// (in their order), then the rest as the catalog lists them.
+    static func explore(interests: [Genre]) -> [Genre] {
+        let chosen = Set(interests.map(\.id))
+        return interests + podcastCatalog.filter { !chosen.contains($0.id) }
+    }
 }
 
 #if DEBUG

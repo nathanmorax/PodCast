@@ -71,6 +71,14 @@ struct PlayerView: View {
         .onChange(of: viewModel.progress) { _, _ in
             transcript.updateCurrentSegment(playbackSeconds: viewModel.currentPlaybackSeconds)
         }
+        // Opened again while it was still sliding down (taps on the mini
+        // player during the close): SwiftUI reverses the exit and keeps this
+        // same view, offset included, so it stopped halfway. Start from the top.
+        .onChange(of: playerManager.presentation) { _, presentation in
+            guard presentation == .expanded, dismissOffset != 0 else { return }
+            withAnimation(AppAnimation.playerPresentation) { dismissOffset = 0 }
+            dragAxis = nil
+        }
         .onChange(of: episode.streamUrl) { _, _ in
             // @State ignores new init values, so rebuild the VM when the episode changes.
             actionViewModel = EpisodeActionViewModel(episode: episode)
@@ -146,9 +154,16 @@ struct PlayerView: View {
                 LinearGradient(colors: [.black.opacity(0.25), .clear], startPoint: .top, endPoint: .bottom)
                     .frame(height: 120)
             }
-            .overlay(alignment: .bottom) {
-                LinearGradient(colors: [Self.paper.opacity(0), Self.paper], startPoint: .top, endPoint: .bottom)
-                    .frame(height: 150)
+            // Fades the cover itself out (a mask, not a paper-colored overlay):
+            // with an overlay, the cover's last row of pixels could peek out
+            // under it while the sheet slides in at fractional positions,
+            // showing up as a thin light line above the tabs.
+            .mask {
+                VStack(spacing: 0) {
+                    Rectangle()
+                    LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom)
+                        .frame(height: 150)
+                }
             }
             .clipped()
             .accessibilityHidden(true)
