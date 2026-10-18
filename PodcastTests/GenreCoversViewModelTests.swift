@@ -17,16 +17,17 @@ struct GenreCoversViewModelTests {
                 primaryGenreName: nil, trackCount: nil, feedUrl: nil)
     }
 
-    @Test("Keeps the first two covers of the category's search")
-    func topTwo() async {
+    @Test("Keeps the first three covers of the category's search")
+    func topThree() async {
         let repository = MockSearchPodcastRepository(podcasts: [
-            podcast(1, artwork: "a"), podcast(2, artwork: nil), podcast(3, artwork: "c"), podcast(4, artwork: "d")
+            podcast(1, artwork: "a"), podcast(2, artwork: nil), podcast(3, artwork: "c"),
+            podcast(4, artwork: "d"), podcast(5, artwork: "e")
         ])
         let sut = GenreCoversViewModel(repository: repository)
 
         await sut.load(comedy)
 
-        #expect(sut.coverURLs(for: comedy) == ["a", "c"])
+        #expect(sut.coverURLs(for: comedy) == ["a", "c", "d"])
         #expect(await repository.searchedQueries == ["Comedy"])
     }
 

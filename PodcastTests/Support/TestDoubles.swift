@@ -18,17 +18,28 @@ actor MockSearchPodcastRepository: SearchPodcastRepository {
     private(set) var searchedQueries: [String] = []
     private(set) var fetchedFeeds: [String] = []
 
+    private(set) var searchedEpisodeQueries: [String] = []
+
     private var podcastsResult: Result<[Podcast], Error>
     private var episodesResult: Result<[Episode], Error>
+    private var foundEpisodesResult: Result<[EpisodeSearchResult], Error>
 
-    init(podcasts: [Podcast] = [], episodes: [Episode] = [], error: Error? = nil) {
+    init(podcasts: [Podcast] = [], episodes: [Episode] = [],
+         foundEpisodes: [EpisodeSearchResult] = [], error: Error? = nil) {
         if let error {
             podcastsResult = .failure(error)
             episodesResult = .failure(error)
+            foundEpisodesResult = .failure(error)
         } else {
             podcastsResult = .success(podcasts)
             episodesResult = .success(episodes)
+            foundEpisodesResult = .success(foundEpisodes)
         }
+    }
+
+    func searchEpisodes(query: String) async throws -> [EpisodeSearchResult] {
+        searchedEpisodeQueries.append(query)
+        return try foundEpisodesResult.get()
     }
 
     func searchPodcast(query: String) async throws -> [Podcast] {

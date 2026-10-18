@@ -78,7 +78,7 @@ struct BottomBar: View {
     private var mainRow: some View {
         HStack(spacing: Metrics.spacing) {
             if showsMiniPlayer, let episode = manager.currentEpisode {
-                MiniPlayerCapsule(episode: episode, showsSubtitle: true)
+                MiniPlayerCapsule(episode: episode)
                     .matchedGeometryEffect(id: "player", in: namespace)
                     .transition(.barLeadingItem)
             }

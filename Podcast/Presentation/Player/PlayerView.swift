@@ -71,6 +71,14 @@ struct PlayerView: View {
         .onChange(of: viewModel.progress) { _, _ in
             transcript.updateCurrentSegment(playbackSeconds: viewModel.currentPlaybackSeconds)
         }
+        // Opened again while it was still sliding down (taps on the mini
+        // player during the close): SwiftUI reverses the exit and keeps this
+        // same view, offset included, so it stopped halfway. Start from the top.
+        .onChange(of: playerManager.presentation) { _, presentation in
+            guard presentation == .expanded, dismissOffset != 0 else { return }
+            withAnimation(AppAnimation.playerPresentation) { dismissOffset = 0 }
+            dragAxis = nil
+        }
         .onChange(of: episode.streamUrl) { _, _ in
             // @State ignores new init values, so rebuild the VM when the episode changes.
             actionViewModel = EpisodeActionViewModel(episode: episode)
@@ -146,9 +154,16 @@ struct PlayerView: View {
                 LinearGradient(colors: [.black.opacity(0.25), .clear], startPoint: .top, endPoint: .bottom)
                     .frame(height: 120)
             }
-            .overlay(alignment: .bottom) {
-                LinearGradient(colors: [Self.paper.opacity(0), Self.paper], startPoint: .top, endPoint: .bottom)
-                    .frame(height: 150)
+            // Fades the cover itself out (a mask, not a paper-colored overlay):
+            // with an overlay, the cover's last row of pixels could peek out
+            // under it while the sheet slides in at fractional positions,
+            // showing up as a thin light line above the tabs.
+            .mask {
+                VStack(spacing: 0) {
+                    Rectangle()
+                    LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom)
+                        .frame(height: 150)
+                }
             }
             .clipped()
             .accessibilityHidden(true)
@@ -160,16 +175,15 @@ struct PlayerView: View {
         PlayerTab.available(hasChapters: !chapters.isEmpty)
     }
 
-    /// Player · Text · Chapters. The white pill slides to the chosen one.
+    /// Player · Text · Chapters as plain words; a thin line slides under the
+    /// chosen one (editorial, like a magazine's sections).
     private var tabPicker: some View {
-        HStack(spacing: 2) {
+        HStack(spacing: 26) {
             ForEach(availableTabs, id: \.self) { item in
                 tabButton(item)
             }
         }
-        .padding(3)
-        .background(Capsule().fill(Self.ink.opacity(0.06)))
-        .padding(.horizontal, 22)
+        .frame(maxWidth: .infinity)
         .sensoryFeedback(.selection, trigger: tab)
     }
 
@@ -180,19 +194,18 @@ struct PlayerView: View {
             tab = item
         } label: {
             Text(item.title)
-                .font(rounded(14, .semibold))
+                .font(AppFont.itemTitle)
                 .foregroundStyle(textColor)
-                .frame(maxWidth: .infinity)
-                .frame(height: 34)
-                .background {
+                .padding(.vertical, 8)
+                .overlay(alignment: .bottom) {
                     if isOn {
                         Capsule()
-                            .fill(AppColor.Surface.raised)
-                            .shadow(color: Color.black.opacity(0.08), radius: 4, y: 2)
+                            .fill(Self.ink)
+                            .frame(height: 2)
                             .matchedGeometryEffect(id: "tab", in: tabNamespace)
                     }
                 }
-                .contentShape(Capsule())
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isOn ? .isSelected : [])
@@ -203,16 +216,13 @@ struct PlayerView: View {
     private var playerTab: some View {
         VStack(alignment: .leading, spacing: 0) {
             Spacer(minLength: 12)
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 12) {
                 Text(episode.title)
-                    .font(rounded(22, .bold))
+                    .font(AppFont.editorialTitle)
                     .foregroundStyle(Self.ink)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.85)
-                Text(episode.author)
-                    .font(rounded(15))
-                    .foregroundStyle(Self.ink.opacity(0.5))
-                    .lineLimit(1)
+                    .lineLimit(3)
+                    .minimumScaleFactor(0.8)
+                byline
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -220,8 +230,87 @@ struct PlayerView: View {
                 .padding(.top, 20)
 
             controlsSection
-                .padding(.top, 18)
-            Spacer(minLength: 16)
+                .padding(.top, 14)
+
+            actionsRow
+                .padding(.top, 14)
+            Spacer(minLength: 12)
+        }
+    }
+
+    /// Small round artwork, "By author" and "7 hours ago · 35 min".
+    private var byline: some View {
+        HStack(spacing: 10) {
+            Color.clear
+                .frame(width: 28, height: 28)
+                .overlay { PodcastImage(source: episode.imageUrl) }
+                .clipShape(Circle())
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("By \(episode.author)")
+                    .font(AppFont.captionStrong)
+                    .foregroundStyle(Self.ink)
+                    .lineLimit(1)
+                HStack(spacing: 0) {
+                    Text(episode.pubDate, format: .relative(presentation: .numeric, unitsStyle: .wide))
+                    Text(verbatim: " · \(episode.durationDisplayText)")
+                }
+                .font(AppFont.caption)
+                .foregroundStyle(Self.ink.opacity(0.5))
+                .lineLimit(1)
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    /// Thin icons with their word, like an article's share bar.
+    private var actionsRow: some View {
+        HStack(spacing: 22) {
+            Button {
+                actionViewModel.toggleBookmark()
+            } label: {
+                Label(actionViewModel.isBookmarked ? "Saved" : "Save",
+                      systemImage: actionViewModel.isBookmarked ? "bookmark.fill" : "bookmark")
+            }
+
+            Button {
+                switch actionViewModel.downloadState {
+                case .idle, .failed: actionViewModel.download()
+                default: break
+                }
+            } label: {
+                Label(downloadTitle, systemImage: downloadIcon)
+            }
+
+            Spacer(minLength: 0)
+
+            if let url = URL(string: episode.streamUrl) {
+                ShareLink(item: url, subject: Text(episode.title)) {
+                    Image(systemName: "square.and.arrow.up")
+                        .frame(width: 44, height: 44)
+                }
+                .accessibilityLabel("Share")
+            }
+        }
+        .buttonStyle(.plain)
+        .font(AppFont.footnote)
+        .foregroundStyle(Self.ink.opacity(0.55))
+        .frame(height: 44)
+    }
+
+    private var downloadTitle: LocalizedStringKey {
+        switch actionViewModel.downloadState {
+        case .downloaded: "Downloaded"
+        case .downloading, .waiting: "Downloading"
+        default: "Download"
+        }
+    }
+
+    private var downloadIcon: String {
+        switch actionViewModel.downloadState {
+        case .downloaded: "checkmark.circle"
+        case .downloading, .waiting: "arrow.down.circle.dotted"
+        default: "arrow.down"
         }
     }
 
@@ -278,19 +367,28 @@ struct PlayerView: View {
         }
     }
 
+    /// Read like an article: every line in serif; the one being said becomes
+    /// a quote (italic, with a lavender “).
     private func transcriptRow(_ segment: LocalTranscriptSegment) -> some View {
         let isCurrent = transcript.currentSegment?.id == segment.id
-        let size: CGFloat = isCurrent ? 19 : 17
-        let weight: Font.Weight = isCurrent ? .semibold : .regular
-        let opacity: Double = isCurrent ? 1 : 0.38
         return Button {
             viewModel.seek(toSeconds: segment.startTime)
         } label: {
-            Text(segment.text)
-                .font(rounded(size, weight))
-                .foregroundStyle(Self.ink.opacity(opacity))
-                .multilineTextAlignment(.leading)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            HStack(alignment: .top, spacing: 10) {
+                if isCurrent {
+                    Text(verbatim: "“")
+                        .font(.system(size: 44, design: .serif))
+                        .foregroundStyle(Self.accent)
+                        .frame(height: 30, alignment: .top)
+                        .accessibilityHidden(true)
+                        .transition(.opacity)
+                }
+                Text(segment.text)
+                    .font(isCurrent ? AppFont.editorialQuote : .system(size: 17, design: .serif))
+                    .foregroundStyle(Self.ink.opacity(isCurrent ? 1 : 0.38))
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
         .buttonStyle(.plain)
         .animation(AppAnimation.subtitleLine, value: isCurrent)
@@ -353,21 +451,24 @@ struct PlayerView: View {
         return Button {
             viewModel.seek(toSeconds: chapter.start)
         } label: {
-            HStack(spacing: 12) {
-                Circle()
-                    .fill(dotColor)
-                    .frame(width: 8, height: 8)
-                Text(chapter.title)
-                    .font(rounded(16, titleWeight))
-                    .foregroundStyle(titleColor)
-                    .lineLimit(1)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            HStack(spacing: 14) {
                 Text(AVPlayerViewModel.shortTime(chapter.start))
-                    .font(rounded(13))
+                    .font(AppFont.footnote)
                     .monospacedDigit()
-                    .foregroundStyle(Self.ink.opacity(0.45))
+                    .foregroundStyle(isCurrent ? AppColor.lavenderInk : Self.ink.opacity(0.45))
+                    .frame(width: 52, alignment: .leading)
+                Text(chapter.title)
+                    .font(.system(size: 17, weight: titleWeight, design: .serif))
+                    .foregroundStyle(titleColor)
+                    .lineLimit(2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                if isCurrent {
+                    Circle()
+                        .fill(dotColor)
+                        .frame(width: 8, height: 8)
+                }
             }
-            .frame(height: 46)
+            .padding(.vertical, 14)
             .contentShape(Rectangle())
             .overlay(alignment: .bottom) {
                 Rectangle().fill(Self.ink.opacity(0.06)).frame(height: 1)
@@ -556,7 +657,7 @@ struct PlayerView: View {
         HStack {
             Text(scrubProgress.map(viewModel.timeText(at:)) ?? viewModel.currentTimeText)
             Spacer()
-            Text("-\(scrubProgress.map(viewModel.remainingText(at:)) ?? viewModel.remainingTimeText)")
+            Text(verbatim: "−\(scrubProgress.map(viewModel.remainingText(at:)) ?? viewModel.remainingTimeText)")
         }
         .font(rounded(12))
         .monospacedDigit()
@@ -594,7 +695,7 @@ struct PlayerView: View {
             ZStack {
                 Circle()
                     .fill(Self.accent)
-                    .frame(width: 88, height: 88)
+                    .frame(width: 76, height: 76)
                 
                 Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
                     .font(.system(size: 30, weight: .black))

@@ -103,7 +103,6 @@
         }
       }
     },
-    "-%@" : {},
     "About this podcast" : {
       "localizations" : {
         "es" : {
@@ -144,12 +143,42 @@
         }
       }
     },
+    "By %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por %@"
+          }
+        }
+      }
+    },
     "Cancel" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cancelar"
+          }
+        }
+      }
+    },
+    "Category" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Categoría"
+          }
+        }
+      }
+    },
+    "Category · %lld podcasts" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Categoría · %lld podcasts"
           }
         }
       }
@@ -184,16 +213,6 @@
         }
       }
     },
-    "Clear recent searches" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Borrar búsquedas recientes"
-          }
-        }
-      }
-    },
     "Clear text" : {
       "localizations" : {
         "es" : {
@@ -221,16 +240,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cerrar transcripción"
-          }
-        }
-      }
-    },
-    "Collections" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Colecciones"
           }
         }
       }
@@ -286,12 +295,12 @@
         }
       }
     },
-    "Couldn't load the categories." : {
+    "Couldn't load this category." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No se pudieron cargar las categorías."
+            "value" : "No se pudo cargar esta categoría."
           }
         }
       }
@@ -302,6 +311,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No se pudo hacer la transcripción"
+          }
+        }
+      }
+    },
+    "Couldn't search. Check your connection and try again." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo buscar. Revisa tu conexión e inténtalo de nuevo."
           }
         }
       }
@@ -336,6 +355,26 @@
         }
       }
     },
+    "Downloaded" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descargado"
+          }
+        }
+      }
+    },
+    "Downloading" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descargando"
+          }
+        }
+      }
+    },
     "Downloading audio…" : {
       "localizations" : {
         "es" : {
@@ -357,21 +396,12 @@
       }
     },
     "Edit" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Editar"
-          }
-        }
-      }
-    },
-    "Edit interests" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Editar intereses"
           }
         }
       }
@@ -397,12 +427,22 @@
         }
       }
     },
-    "Explore categories" : {
+    "Episodes" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Explorar categorías"
+            "value" : "Episodios"
+          }
+        }
+      }
+    },
+    "Explore" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Explorar"
           }
         }
       }
@@ -448,6 +488,16 @@
         }
       }
     },
+    "Follow a podcast and its new episodes will show up here." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sigue un podcast y sus episodios nuevos aparecerán aquí."
+          }
+        }
+      }
+    },
     "Following" : {
       "localizations" : {
         "es" : {
@@ -474,6 +524,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pantalla completa"
+          }
+        }
+      }
+    },
+    "Go to podcast" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ir al podcast"
           }
         }
       }
@@ -580,12 +640,12 @@
         }
       }
     },
-    "Listen to episode" : {
+    "Listen" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Escuchar episodio"
+            "value" : "Escuchar"
           }
         }
       }
@@ -672,6 +732,19 @@
         }
       }
     },
+    "Number %lld" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Número %lld"
+          }
+        }
+      }
+    },
+    "Number 1" : {
+
+    },
     "Opens the player" : {
       "localizations" : {
         "es" : {
@@ -755,6 +828,36 @@
         }
       }
     },
+    "Plays the episode" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reproduce el episodio"
+          }
+        }
+      }
+    },
+    "Podcast" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podcast"
+          }
+        }
+      }
+    },
+    "Podcasts" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podcasts"
+          }
+        }
+      }
+    },
     "Preparing transcript" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -787,12 +890,12 @@
         }
       }
     },
-    "Recently searched" : {
+    "Recent" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Buscado recientemente"
+            "value" : "Recientes"
           }
         }
       }
@@ -882,7 +985,6 @@
       }
     },
     "Saved" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -912,22 +1014,22 @@
         }
       }
     },
-    "Search for a podcast and follow it. It'll show up here." : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Busca un podcast y síguelo. Aparecerá aquí."
-          }
-        }
-      }
-    },
     "Search podcasts" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Buscar podcasts"
+          }
+        }
+      }
+    },
+    "See all %lld" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver los %lld"
           }
         }
       }
@@ -1025,16 +1127,6 @@
         }
       }
     },
-    "TV & Film" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cine y TV"
-          }
-        }
-      }
-    },
     "Tap + on a podcast to follow it. It'll show up here." : {
       "localizations" : {
         "es" : {
@@ -1071,6 +1163,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Esto puede tardar unos minutos."
+          }
+        }
+      }
+    },
+    "Time left" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiempo restante"
           }
         }
       }
@@ -1166,6 +1268,16 @@
         }
       }
     },
+    "TV & Film" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cine y TV"
+          }
+        }
+      }
+    },
     "Unfollow" : {
       "localizations" : {
         "es" : {
@@ -1193,16 +1305,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lo que escuches aparecerá aquí."
-          }
-        }
-      }
-    },
-    "Your library is empty" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tu biblioteca está vacía"
           }
         }
       }

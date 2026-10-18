@@ -29,13 +29,15 @@ extension UIViewController {
 }
 
 extension UIViewController {
-    /// Shows the screen's `title` on the left of the navigation bar, bold,
-    /// instead of centered (the tabs' first screens: Home, Library, Search).
+    /// Shows the screen's `title` on the left of the navigation bar, bold
+    /// serif, instead of centered (the tabs' first screens: Home, Library, Search).
     /// Call after setting `title`.
     func showTitleOnLeading() {
         let label = UILabel()
         label.text = title
-        label.font = .systemFont(ofSize: 28, weight: .bold)
+        // Editorial: serif (New York), like the podcast page.
+        let base = UIFont.systemFont(ofSize: 28, weight: .bold)
+        label.font = base.fontDescriptor.withDesign(.serif).map { UIFont(descriptor: $0, size: 28) } ?? base
         label.textColor = .label
         label.accessibilityTraits = .header
         label.sizeToFit()
@@ -47,5 +49,22 @@ extension UIViewController {
         // An empty title view hides the centered copy of the title (the
         // `title` itself stays, for VoiceOver and the back button).
         navigationItem.titleView = UIView()
+    }
+}
+
+extension UIViewController {
+    /// Adds a child controller whose view fills this one's edge to edge.
+    func embedFullScreen(_ child: UIViewController) {
+        addChild(child)
+        child.view.translatesAutoresizingMaskIntoConstraints = false
+        child.view.backgroundColor = .clear
+        view.addSubview(child.view)
+        NSLayoutConstraint.activate([
+            child.view.topAnchor.constraint(equalTo: view.topAnchor),
+            child.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            child.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            child.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+        child.didMove(toParent: self)
     }
 }

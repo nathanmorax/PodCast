@@ -5,22 +5,21 @@
 
 import SwiftUI
 
-/// What Search shows before you type: the podcasts you searched recently and
-/// the categories to explore.
+/// What Search shows before you type: the podcasts opened from Search
+/// recently, then "Explore": every category as a grey card with its three
+/// top covers, in two rows you slide sideways.
 struct SearchExploreView: View {
 
-    let genresViewModel: GenresViewModel
     let onOpenPodcast: (Podcast) -> Void
     let onSelectGenre: (Genre) -> Void
 
     @Environment(\.recentSearches) private var recentSearches
+    @Environment(\.interestsManager) private var interests
     /// Owned by the view: the covers stay while Search lives.
     @State private var genreCovers = GenreCoversViewModel()
 
-    private let columns = [
-        GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12)
-    ]
+    /// How many recent podcasts show (the rest are kept, not shown).
+    static let recentLimit = 4
 
     var body: some View {
         ScrollView {
@@ -29,143 +28,88 @@ struct SearchExploreView: View {
                     recentSection
                         .transition(.sectionReveal)
                 }
-                categoriesSection
+                exploreSection
             }
             .padding(.top, 8)
-            .padding(.bottom, 24) // the bottom bar's space comes from the safe area
+            .padding(.bottom, 24)
         }
         .scrollIndicators(.hidden)
         .scrollDismissesKeyboard(.immediately)
-        .background(AppColor.screenBackground)
         .animation(AppAnimation.listChange, value: recentSearches.items.map(\.trackId))
     }
 
-    // MARK: - Buscado recientemente
+    // MARK: - Recent
 
     private var recentSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .firstTextBaseline) {
-                sectionTitle("Recently searched")
-                Spacer()
-                Button("Clear") {
-                    withAnimation(AppAnimation.listChange) { recentSearches.clear() }
-                }
-                .font(AppFont.link)
-                .foregroundStyle(AppColor.lavenderInk)
-                .accessibilityLabel("Clear recent searches")
+        VStack(alignment: .leading, spacing: 4) {
+            SearchSectionHeader(title: "Recent", actionTitle: "Clear") {
+                withAnimation(AppAnimation.listChange) { recentSearches.clear() }
             }
-            .padding(.horizontal, 20)
 
-            ScrollView(.horizontal) {
-                LazyHStack(alignment: .top, spacing: 14) {
-                    ForEach(recentSearches.items, id: \.trackId) { podcast in
-                        Button {
-                            onOpenPodcast(podcast)
-                        } label: {
-                            RecentSearchItem(podcast: podcast)
-                        }
-                        .buttonStyle(.plain)
-                        .contextMenu {
-                            Button("Remove from recents", systemImage: "minus.circle", role: .destructive) {
-                                withAnimation(AppAnimation.listChange) { recentSearches.remove(podcast) }
-                            }
-                        }
+            ForEach(recentSearches.items.prefix(Self.recentLimit), id: \.trackId) { podcast in
+                RecentPodcastRow(
+                    podcast: podcast,
+                    onOpen: { onOpenPodcast(podcast) },
+                    onRemove: {
+                        withAnimation(AppAnimation.listChange) { recentSearches.remove(podcast) }
                     }
-                }
+                )
+                .overlay(alignment: .bottom) { Divider() }
             }
-            .contentMargins(.horizontal, 20, for: .scrollContent)
-            .scrollIndicators(.hidden)
         }
+        .padding(.horizontal, 20)
     }
 
-    // MARK: - Explorar categorías
+    // MARK: - Explore
 
-    private var categoriesSection: some View {
+    private var exploreSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            sectionTitle("Explore categories")
+            SearchSectionHeader(title: "Explore")
                 .padding(.horizontal, 20)
 
-            if !genresViewModel.genre.isEmpty {
-                LazyVGrid(columns: columns, spacing: 12) {
-                    // Stable identity: the genre's id, not its position.
-                    ForEach(Array(genresViewModel.genre.enumerated()), id: \.element.id) { index, genre in
-                        Button {
-                            onSelectGenre(genre)
-                        } label: {
-                            GenrePodcastCell(
-                                genre: genre,
-                                index: index,
-                                coverURLs: genreCovers.coverURLs(for: genre)
-                            )
-                        }
-                        .buttonStyle(.plain)
-                        .task { await genreCovers.load(genre) }
-                    }
-                }
-                .padding(.horizontal, 20)
-            } else if genresViewModel.errorMessage != nil {
-                errorState
-            } else {
-                ProgressView()
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 40)
-            }
+            GenreGrid(
+                genres: Genre.explore(interests: interests.genres),
+                covers: genreCovers,
+                onSelect: onSelectGenre
+            )
         }
-    }
-
-    private var errorState: some View {
-        VStack(spacing: 10) {
-            Text("Couldn't load the categories.")
-                .font(AppFont.body)
-                .foregroundStyle(AppColor.Text.secondary)
-            Button("Try again") {
-                genresViewModel.loadGenre()
-            }
-            .font(AppFont.link)
-            .foregroundStyle(AppColor.lavenderInk)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 32)
-    }
-
-    private func sectionTitle(_ text: LocalizedStringKey) -> some View {
-        Text(text)
-            .font(AppFont.sectionTitle)
-            .foregroundStyle(AppColor.ink)
-            .accessibilityAddTraits(.isHeader)
     }
 }
 
-// MARK: - Recent item
+// MARK: - Grid
 
-/// Cover + name of a podcast searched recently.
-private struct RecentSearchItem: View {
-    let podcast: Podcast
+/// Two rows of category cards that slide together.
+private struct GenreGrid: View {
+
+    let genres: [Genre]
+    let covers: GenreCoversViewModel
+    let onSelect: (Genre) -> Void
+
+    private let rows = [
+        GridItem(.fixed(GenreCard.height), spacing: 18),
+        GridItem(.fixed(GenreCard.height))
+    ]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Color.clear
-                .frame(width: 72, height: 72)
-                .overlay { PodcastImage(source: podcast.artworkUrl600) }
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            Text(podcast.trackName ?? "")
-                .font(AppFont.captionStrong)
-                .foregroundStyle(AppColor.ink.opacity(0.8))
-                .lineLimit(2)
-                .multilineTextAlignment(.leading)
+        ScrollView(.horizontal) {
+            LazyHGrid(rows: rows, spacing: 12) {
+                ForEach(genres, id: \.id) { genre in
+                    Button {
+                        onSelect(genre)
+                    } label: {
+                        GenreCard(genre: genre, coverURLs: covers.coverURLs(for: genre))
+                    }
+                    .buttonStyle(.plain)
+                    // Only cards on screen ask for their covers.
+                    .task { await covers.load(genre) }
+                }
+            }
         }
-        .frame(width: 72, alignment: .leading)
-        .accessibilityElement(children: .combine)
+        .contentMargins(.horizontal, 20, for: .scrollContent)
+        .scrollIndicators(.hidden)
     }
 }
 
-// MARK: - Preview
-
 #Preview {
-    SearchExploreView(
-        genresViewModel: GenresViewModel(repository: GenresRepositoryImpl(remoteDataSource: PodcastRemoteDataService())),
-        onOpenPodcast: { _ in },
-        onSelectGenre: { _ in }
-    )
-    .environment(\.recentSearches, .preview)
+    SearchExploreView(onOpenPodcast: { _ in }, onSelectGenre: { _ in })
 }

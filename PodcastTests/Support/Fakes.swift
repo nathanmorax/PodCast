@@ -49,24 +49,6 @@ final class FakePlayerDataSource: PlayerDataSource {
     }
 }
 
-// MARK: - Genres
-
-/// @MainActor (so it's Sendable and tests can change `result` directly).
-@MainActor
-final class MockGenresRepository: GenresRepository {
-    var result: Result<[Genre], Error>
-    private(set) var fetchCount = 0
-
-    init(result: Result<[Genre], Error>) {
-        self.result = result
-    }
-
-    func fetchGenres() async throws -> [Genre] {
-        fetchCount += 1
-        return try result.get()
-    }
-}
-
 // MARK: - Navigation
 
 /// Stands in for MainContainerController: plain stacks, records what it's asked.

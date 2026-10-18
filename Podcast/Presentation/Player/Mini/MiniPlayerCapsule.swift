@@ -5,14 +5,13 @@
 
 import SwiftUI
 
-/// What's playing: artwork with its progress strip, title, play/pause.
+/// What's playing: artwork, title, a thin progress bar with the time left
+/// under it, and play/pause.
 /// Tapping the info opens the full player.
 struct MiniPlayerCapsule: View {
 
     @Environment(\.playerManager) private var manager
     let episode: Episode
-    /// Author and remaining time; hidden when the bar is folded.
-    let showsSubtitle: Bool
 
     var body: some View {
         HStack(spacing: 4) {
@@ -20,20 +19,18 @@ struct MiniPlayerCapsule: View {
                 manager.expand()
             } label: {
                 HStack(spacing: 10) {
-                    artwork
+                    Color.clear
+                        .frame(width: 38, height: 38)
+                        .overlay { PodcastImage(source: episode.imageUrl) }
+                        .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
 
-                    VStack(alignment: .leading, spacing: 1) {
+                    VStack(alignment: .leading, spacing: 7) {
                         Text(episode.title)
                             .font(AppFont.itemTitle)
                             .foregroundStyle(AppColor.Text.primary)
                             .lineLimit(1)
-                        if showsSubtitle {
-                            Text(subtitle)
-                                .font(AppFont.caption)
-                                .monospacedDigit()
-                                .foregroundStyle(AppColor.Text.secondary)
-                                .lineLimit(1)
-                        }
+                        // Its own view: only the bar redraws as playback moves.
+                        MiniProgressBar()
                     }
 
                     Spacer(minLength: 0)
@@ -42,7 +39,7 @@ struct MiniPlayerCapsule: View {
             }
             .buttonStyle(.plain)
             .accessibilityElement(children: .combine)
-            .accessibilityLabel(!showsSubtitle ? Text(verbatim: episode.title) : Text(verbatim: "\(episode.title), \(subtitle)"))
+            .accessibilityLabel(Text(verbatim: episode.title))
             .accessibilityHint("Opens the player")
 
             Button {
@@ -63,25 +60,40 @@ struct MiniPlayerCapsule: View {
         .frame(maxHeight: .infinity)
         .glassCapsule()
     }
+}
 
-    private var artwork: some View {
-        Color.clear
-            .frame(width: 38, height: 38)
-            .overlay { PodcastImage(source: episode.imageUrl) }
-            .overlay(alignment: .bottomLeading) {
-                // Progress lives on the artwork's bottom edge.
-                GeometryReader { geo in
-                    Rectangle()
-                        .fill(AppColor.lavender)
-                        .frame(width: geo.size.width * CGFloat(manager.viewModel.progress), height: 3)
-                        .frame(maxHeight: .infinity, alignment: .bottom)
-                }
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
-    }
+/// A thin capsule track with the played part in lavender, and the time left
+/// next to it ("−23:10"). Reads the progress itself, so the rest of the mini
+/// player doesn't update every tick.
+private struct MiniProgressBar: View {
 
-    private var subtitle: String {
+    @Environment(\.playerManager) private var manager
+
+    var body: some View {
+        let progress = CGFloat(min(max(manager.viewModel.progress, 0), 1))
         let remaining = manager.viewModel.remainingTimeText
-        return remaining.isEmpty ? episode.author : "\(episode.author) · −\(remaining)"
+        HStack(spacing: 8) {
+            Capsule()
+                .fill(AppColor.Text.tertiary.opacity(0.35))
+                .frame(height: 4)
+                .overlay(alignment: .leading) {
+                    Capsule()
+                        .fill(AppColor.lavender)
+                        .scaleEffect(x: progress, y: 1, anchor: .leading)
+                }
+                .clipShape(Capsule())
+
+            if !remaining.isEmpty {
+                Text(verbatim: "−\(remaining)")
+                    .font(AppFont.caption)
+                    .monospacedDigit()
+                    .foregroundStyle(AppColor.Text.secondary)
+                    .lineLimit(1)
+                    .fixedSize()
+            }
+        }
+        .accessibilityElement()
+        .accessibilityLabel("Time left")
+        .accessibilityValue(Text(verbatim: remaining))
     }
 }

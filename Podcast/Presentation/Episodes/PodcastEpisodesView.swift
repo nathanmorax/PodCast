@@ -15,7 +15,7 @@ struct PodcastEpisodesView: View {
     let podcast: Podcast
     let viewModel: EpisodesViewModel
     let actions: EpisodeHeaderActions
-    let stretch: HeaderStretch
+    let pull: HeaderPull
     /// Vertical scroll position (negative while pulled past the top).
     let onScroll: (CGFloat) -> Void
     let onShowInfo: (Episode) -> Void
@@ -29,7 +29,7 @@ struct PodcastEpisodesView: View {
                     podcastDescription: viewModel.podcastDescription,
                     isLoadingDescription: viewModel.isLoadingDescription,
                     actions: actions,
-                    stretch: stretch
+                    pull: pull
                 )
                 .padding(.bottom, 8)
 
@@ -85,7 +85,7 @@ private struct EpisodeRow: View {
                     Rectangle()
                         .fill(AppColor.Text.tertiary.opacity(0.5))
                         .frame(height: 1 / displayScale)
-                        .padding(.leading, 24)
+                        .padding(.horizontal, 24)
                 }
             }
             .contentShape(Rectangle())

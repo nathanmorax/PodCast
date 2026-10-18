@@ -12,6 +12,7 @@ import Observation
 final class PodcastSearchViewModel {
     
     private(set) var podcasts: [Podcast] = []
+    private(set) var episodes: [EpisodeSearchResult] = []
     private(set) var error: String?
     
     @ObservationIgnored private let repository: SearchPodcastRepository
@@ -42,10 +43,16 @@ final class PodcastSearchViewModel {
             // Equivalent to removeDuplicates(): skip a query we already have results for.
             guard let self, query != self.lastSearchedQuery else { return }
             
+            // Both at once. Episodes are extra: if only they fail, the
+            // podcasts still show (with no Episodes section).
+            let repository = self.repository
+            async let foundEpisodes = try? repository.searchEpisodes(query: query)
             do {
-                let results = try await self.repository.searchPodcast(query: query)
+                let results = try await repository.searchPodcast(query: query)
+                let episodes = await foundEpisodes ?? []
                 guard !Task.isCancelled else { return }
                 self.podcasts = results
+                self.episodes = episodes
                 self.error = nil
                 self.lastSearchedQuery = query
             } catch {

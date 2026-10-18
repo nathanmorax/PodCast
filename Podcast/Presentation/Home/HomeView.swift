@@ -5,20 +5,21 @@
 
 import SwiftUI
 
-/// "Library", the main screen. Everything fits on one screen:
-/// 1. The podcasts you follow, as a row of covers (no text).
-/// 2. For you: ONE recommendation mixed from your genres.
-/// 3. Collections: Following, Favorites, Downloads.
+/// "Library", the main screen:
+/// 1. Today's date, and Following · Favorites · Downloads as three tiles.
+/// 2. The podcasts you follow, as a row of covers (no text).
+/// 3. For you: the latest episodes of the podcasts you follow.
 /// What you're listening to lives in the mini player, so it isn't repeated here.
 struct HomeView: View {
 
     @Environment(\.favoritesManager) private var favoritesManager
-    @Environment(\.interestsManager) private var interests
+    @Environment(\.playerManager) private var playerManager
 
     /// Owned by the view: created once, keeps its results while Library lives.
     @State private var forYou = ForYouViewModel()
 
     let onOpenPodcast: (Podcast) -> Void
+    let onOpenEpisode: (Episode, Podcast) -> Void
     let onSearch: () -> Void
     let onOpenFollowing: () -> Void
     let onOpenFavorites: () -> Void
@@ -26,35 +27,19 @@ struct HomeView: View {
 
     private var following: [Podcast] { favoritesManager.favorites }
 
-    private var isEmpty: Bool {
-        following.isEmpty && interests.genres.isEmpty
-    }
-
-    /// Reload "For you" when the chosen genres or what you follow change.
-    private struct ForYouKey: Hashable {
-        let genreIDs: [String]
-        let followingIDs: Set<Int>
-    }
-
-    private var forYouKey: ForYouKey {
-        ForYouKey(genreIDs: interests.genreIDs, followingIDs: Set(following.map(\.trackId)))
-    }
-
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 32) {
-                if isEmpty {
+                VStack(alignment: .leading, spacing: 14) {
+                    dateHeader
+                    collectionsSection
+                }
+
+                if following.isEmpty {
                     emptyState
                 } else {
-                    if !following.isEmpty {
-                        FollowingCovers(podcasts: following, onOpen: onOpenPodcast)
-                    }
-
-                    if !interests.genres.isEmpty {
-                        forYouSection
-                    }
-
-                    collectionsSection
+                    FollowingCovers(podcasts: following, onOpen: onOpenPodcast)
+                    forYouSection
                 }
             }
             .padding(.top, 12)
@@ -63,55 +48,54 @@ struct HomeView: View {
         .scrollIndicators(.hidden)
         .background(AppColor.screenBackground.ignoresSafeArea())
         .animation(AppAnimation.listChange, value: following.map(\.trackId))
-        .task(id: forYouKey) {
-            forYou.load(genres: interests.genres, excluding: forYouKey.followingIDs)
+        // Reload when you follow or unfollow a podcast.
+        .task(id: following.map(\.trackId)) {
+            forYou.load(following: following)
         }
     }
 
     // MARK: - For you
 
-    /// One podcast, picked from the mix of your genres. "Edit" reopens the
-    /// genres screen.
+    /// The latest episodes of the podcasts you follow, in one row.
     private var forYouSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .firstTextBaseline) {
-                sectionTitle("For you")
-                Spacer()
-                Button("Edit") {
-                    withAnimation(AppAnimation.onboarding) { interests.edit() }
-                }
-                .font(AppFont.link)
-                .foregroundStyle(AppColor.lavenderInk)
-                .accessibilityLabel("Edit interests")
-            }
+            sectionTitle("For you")
+                .padding(.horizontal, 20)
 
-            if let podcast = forYou.recommendation {
-                Button {
-                    onOpenPodcast(podcast)
-                } label: {
-                    RecommendationRow(podcast: podcast)
-                }
-                .buttonStyle(.plain)
-                .transition(.opacity)
-            } else if forYou.isLoading {
+            if forYou.items.isEmpty && forYou.isLoading {
                 ProgressView()
-                    .frame(maxWidth: .infinity, minHeight: 120)
+                    .frame(maxWidth: .infinity, minHeight: 180)
+                    .padding(.horizontal, 20)
+            } else {
+                ForYouEpisodesRow(
+                    items: forYou.items,
+                    onOpen: { onOpenEpisode($0.episode, $0.podcast) },
+                    onPlay: { playerManager.play($0) },
+                    onOpenPodcast: onOpenPodcast
+                )
             }
         }
-        .padding(.horizontal, 20)
-        .animation(AppAnimation.stateChange, value: forYou.recommendation?.trackId)
+        .animation(AppAnimation.listChange, value: forYou.items.map(\.id))
     }
 
-    // MARK: - Collections
+    // MARK: - Date and collections
 
+    /// Today's date under the title ("SATURDAY, OCTOBER 17").
+    private var dateHeader: some View {
+        Text(Date.now, format: .dateTime.weekday(.wide).day().month(.wide))
+            .font(AppFont.overline)
+            .textCase(.uppercase)
+            .tracking(0.5)
+            .foregroundStyle(AppColor.Text.secondary)
+            .padding(.horizontal, 20)
+    }
+
+    /// Three small tiles in a row. Each opens its list.
     private var collectionsSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            sectionTitle("Collections")
-            VStack(spacing: 10) {
-                CollectionRow(title: "Following", systemImage: "square.stack", action: onOpenFollowing)
-                CollectionRow(title: "Favorites", systemImage: "heart.fill", action: onOpenFavorites)
-                CollectionRow(title: "Downloads", systemImage: "arrow.down", action: onOpenDownloads)
-            }
+        HStack(spacing: 10) {
+            CollectionTile(title: "Following", systemImage: "square.stack.3d.up", action: onOpenFollowing)
+            CollectionTile(title: "Favorites", systemImage: "bookmark", action: onOpenFavorites)
+            CollectionTile(title: "Downloads", systemImage: "arrow.down.to.line", action: onOpenDownloads)
         }
         .padding(.horizontal, 20)
     }
@@ -131,10 +115,10 @@ struct HomeView: View {
                 .font(.system(size: 40, weight: .semibold))
                 .foregroundStyle(AppColor.lavenderInk)
                 .accessibilityHidden(true)
-            Text("Your library is empty")
+            Text("Nothing followed yet")
                 .font(AppFont.sectionTitle)
                 .foregroundStyle(AppColor.Text.primary)
-            Text("Search for a podcast and follow it. It'll show up here.")
+            Text("Follow a podcast and its new episodes will show up here.")
                 .font(AppFont.body)
                 .foregroundStyle(AppColor.Text.secondary)
                 .multilineTextAlignment(.center)
@@ -151,7 +135,7 @@ struct HomeView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 32)
-        .padding(.top, 48)
+        .padding(.top, 24)
     }
 }
 
@@ -173,7 +157,7 @@ private struct FollowingCovers: View {
                         Color.clear
                             .frame(width: 104, height: 104)
                             .overlay { PodcastImage(source: podcast.artworkUrl600) }
-                            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: CoverStyle.cornerRadius, style: .continuous))
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(Text(verbatim: podcast.trackName ?? ""))
@@ -185,51 +169,96 @@ private struct FollowingCovers: View {
     }
 }
 
-// MARK: - Recommendation
+// MARK: - Covers
 
-/// Big cover, name, "artist · genre". No card around it.
-private struct RecommendationRow: View {
+/// Every cover in Library: barely rounded, so the artwork reads as a square.
+private enum CoverStyle {
+    static let cornerRadius: CGFloat = 10
+}
 
-    let podcast: Podcast
+// MARK: - For you episodes
 
-    private var subtitle: String {
-        [podcast.artistName, podcast.primaryGenreName]
-            .compactMap { $0 }
-            .joined(separator: " · ")
-    }
+/// Big covers with the episode inside: "7 hours ago · 25 min" and its title.
+/// Tap plays it; the context menu goes to its podcast.
+private struct ForYouEpisodesRow: View {
+
+    let items: [ForYouViewModel.Item]
+    let onOpen: (ForYouViewModel.Item) -> Void
+    let onPlay: (Episode) -> Void
+    let onOpenPodcast: (Podcast) -> Void
+
+    private static let side: CGFloat = 180
 
     var body: some View {
-        HStack(spacing: 14) {
-            Color.clear
-                .frame(width: 120, height: 120)
-                .overlay { PodcastImage(source: podcast.artworkUrl600) }
-                .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text(podcast.trackName ?? "")
-                    .font(AppFont.sheetTitle)
-                    .foregroundStyle(AppColor.Text.primary)
-                    .lineLimit(3)
-                    .multilineTextAlignment(.leading)
-                if !subtitle.isEmpty {
-                    Text(subtitle)
-                        .font(AppFont.footnote)
-                        .foregroundStyle(AppColor.Text.secondary)
-                        .lineLimit(1)
+        ScrollView(.horizontal) {
+            LazyHStack(spacing: 12) {
+                ForEach(items) { item in
+                    Button {
+                        onOpen(item)
+                    } label: {
+                        EpisodeCover(item: item, side: Self.side)
+                    }
+                    .buttonStyle(.plain)
+                    .contextMenu {
+                        Button("Play", systemImage: "play.fill") {
+                            onPlay(item.episode)
+                        }
+                        Button("Go to podcast", systemImage: "square.stack") {
+                            onOpenPodcast(item.podcast)
+                        }
+                    }
                 }
             }
-
-            Spacer(minLength: 0)
         }
-        .contentShape(Rectangle())
-        .accessibilityElement(children: .combine)
+        .contentMargins(.horizontal, 20, for: .scrollContent)
+        .scrollIndicators(.hidden)
     }
 }
 
-// MARK: - Collection row
+private struct EpisodeCover: View {
 
-/// A collection: violet icon and name on a rounded surface. No counts, no ›.
-private struct CollectionRow: View {
+    let item: ForYouViewModel.Item
+    let side: CGFloat
+
+    var body: some View {
+        Color.clear
+            .frame(width: side, height: side)
+            .overlay { PodcastImage(source: item.episode.imageUrl ?? item.podcast.artworkUrl600) }
+            .overlay(alignment: .bottomLeading) {
+                VStack(alignment: .leading, spacing: 3) {
+                    // "7 hours ago · 25 min"
+                    HStack(spacing: 0) {
+                        Text(item.episode.pubDate, format: .relative(presentation: .numeric, unitsStyle: .wide))
+                        Text(verbatim: " · \(item.episode.durationDisplayText)")
+                    }
+                    .font(AppFont.caption)
+                    .foregroundStyle(.white.opacity(0.8))
+                    .lineLimit(1)
+                    Text(item.episode.title)
+                        .font(AppFont.itemTitle)
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                // The fade keeps the text readable on any artwork.
+                .background(
+                    LinearGradient(colors: [.clear, .black.opacity(0.75)],
+                                   startPoint: .top, endPoint: .bottom)
+                )
+            }
+            .clipShape(RoundedRectangle(cornerRadius: CoverStyle.cornerRadius, style: .continuous))
+            .contentShape(Rectangle())
+            .accessibilityElement(children: .combine)
+            .accessibilityHint("Plays the episode")
+    }
+}
+
+// MARK: - Collection tile
+
+/// A small tile: violet icon on top, name under it.
+private struct CollectionTile: View {
 
     let title: LocalizedStringKey
     let systemImage: String
@@ -237,21 +266,21 @@ private struct CollectionRow: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 8) {
                 Image(systemName: systemImage)
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(AppColor.Accent.strong)
-                    .frame(width: 24)
                     .accessibilityHidden(true)
                 Text(title)
-                    .font(AppFont.headline)
+                    .font(AppFont.itemTitle)
                     .foregroundStyle(AppColor.Text.primary)
-                Spacer(minLength: 0)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
             }
-            .padding(.horizontal, 20)
-            .frame(height: 58)
-            .background(AppColor.Surface.raised, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(AppColor.Surface.raised, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
         .buttonStyle(.plain)
     }
@@ -262,11 +291,12 @@ private struct CollectionRow: View {
 #Preview {
     HomeView(
         onOpenPodcast: { _ in },
+        onOpenEpisode: { _, _ in },
         onSearch: {},
         onOpenFollowing: {},
         onOpenFavorites: {},
         onOpenDownloads: {}
     )
     .environment(\.favoritesManager, .preview)
-    .environment(\.interestsManager, .preview)
+    .environment(\.playerManager, .preview)
 }

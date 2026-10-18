@@ -11,91 +11,68 @@ import Foundation
 @Suite("ForYouViewModel")
 struct ForYouViewModelTests {
 
-    private let comedy = Genre(id: "1303", name: "Comedy")
-    private let science = Genre(id: "1533", name: "Science")
+    private func episode(_ name: String, at seconds: TimeInterval) -> Episode {
+        Episode(title: name, author: "A", pubDate: Date(timeIntervalSince1970: seconds),
+                description: "", streamUrl: "https://example.com/\(name).mp3")
+    }
 
-    @Test("One mixed row, searching each genre's name")
-    func mix() async {
-        let repository = MockSearchPodcastRepository(podcasts: [Fixtures.podcast(id: 1), Fixtures.podcast(id: 2)])
+    @Test("Newest episodes of what you follow, newest first, two per podcast")
+    func latest() {
+        let a = Fixtures.podcast(id: 1), b = Fixtures.podcast(id: 2)
+        let items = ForYouViewModel.latest(from: [a, b], episodes: [
+            1: [episode("a1", at: 100), episode("a2", at: 300), episode("a3", at: 500)],
+            2: [episode("b1", at: 400)],
+        ])
+
+        #expect(items.map(\.episode.title) == ["a3", "b1", "a2"])
+    }
+
+    @Test("Never more than shownCount")
+    func limit() {
+        let podcasts = (1...20).map { Fixtures.podcast(id: $0) }
+        let episodes = Dictionary(uniqueKeysWithValues: podcasts.map {
+            ($0.trackId, [episode("e\($0.trackId)", at: TimeInterval($0.trackId))])
+        })
+
+        #expect(ForYouViewModel.latest(from: podcasts, episodes: episodes).count == ForYouViewModel.shownCount)
+    }
+
+    @Test("Reads each followed feed once")
+    func feedCache() async {
+        let repository = MockSearchPodcastRepository(episodes: [episode("x", at: 1)])
         let sut = ForYouViewModel(repository: repository)
 
-        sut.load(genres: [comedy, science], excluding: [])
+        sut.load(following: [Fixtures.podcast(id: 1)])
+        await sut.loadTask?.value
+        sut.load(following: [Fixtures.podcast(id: 1)])
         await sut.loadTask?.value
 
-        // Both genres returned the same two: no repeats.
-        #expect(sut.podcasts.map(\.trackId) == [1, 2])
-        #expect(Set(await repository.searchedQueries) == ["Comedy", "Science"])
+        #expect(sut.items.map(\.episode.title) == ["x"])
+        #expect(await repository.fetchedFeeds == ["https://example.com/feed/1"])
         #expect(!sut.isLoading)
     }
 
-    @Test("Podcasts you follow are left out")
-    func excludesFollowing() async {
-        let repository = MockSearchPodcastRepository(podcasts: [Fixtures.podcast(id: 1), Fixtures.podcast(id: 2)])
+    @Test("Unfollowing removes its episodes right away")
+    func unfollow() async {
+        let repository = MockSearchPodcastRepository(episodes: [episode("x", at: 1)])
         let sut = ForYouViewModel(repository: repository)
 
-        sut.load(genres: [comedy], excluding: [1])
+        sut.load(following: [Fixtures.podcast(id: 1)])
         await sut.loadTask?.value
+        sut.load(following: [])
 
-        #expect(sut.podcasts.map(\.trackId) == [2])
+        #expect(sut.items.isEmpty)
     }
 
-    @Test("Cached genres don't search again")
-    func cache() async {
-        let repository = MockSearchPodcastRepository(podcasts: [Fixtures.podcast(id: 1)])
-        let sut = ForYouViewModel(repository: repository)
-
-        sut.load(genres: [comedy], excluding: [])
-        await sut.loadTask?.value
-        sut.load(genres: [comedy], excluding: [])
-        await sut.loadTask?.value
-
-        #expect(await repository.searchedQueries == ["Comedy"])
-        #expect(sut.podcasts.count == 1)
-    }
-
-    @Test("A failed search just adds nothing")
+    @Test("A failed feed just adds nothing")
     func failure() async {
         let repository = MockSearchPodcastRepository(error: TestError())
         let sut = ForYouViewModel(repository: repository)
 
-        sut.load(genres: [comedy], excluding: [])
+        sut.load(following: [Fixtures.podcast(id: 1)])
         await sut.loadTask?.value
 
-        #expect(sut.podcasts.isEmpty)
+        #expect(sut.items.isEmpty)
         #expect(!sut.isLoading)
-    }
-
-    @Test("At most four genres are searched")
-    func maxGenres() async {
-        let repository = MockSearchPodcastRepository(podcasts: [Fixtures.podcast(id: 1)])
-        let sut = ForYouViewModel(repository: repository)
-
-        sut.load(genres: Array(Genre.podcastCatalog.prefix(6)), excluding: [])
-        await sut.loadTask?.value
-
-        #expect(await repository.searchedQueries.count == ForYouViewModel.maxGenres)
-    }
-
-    @Test("Interleave takes one of each genre in turn, without repeats, up to the limit")
-    func interleave() {
-        let a = [1, 2, 3].map { Fixtures.podcast(id: $0) }
-        let b = [10, 2, 20].map { Fixtures.podcast(id: $0) }
-
-        let mixed = ForYouViewModel.interleave([a, b], excluding: [3], limit: 4)
-
-        #expect(mixed.map(\.trackId) == [1, 10, 2, 20])
-    }
-
-    @Test("The recommendation changes from one day to the next and is stable within a day")
-    func dailyRecommendation() {
-        let mix = [1, 2, 3].map { Fixtures.podcast(id: $0) }
-        let morning = Date(timeIntervalSince1970: 1_800_000_000)
-        let evening = morning.addingTimeInterval(3_600)
-        let tomorrow = morning.addingTimeInterval(86_400)
-
-        let today = ForYouViewModel.recommendation(in: mix, on: morning)
-        #expect(today?.trackId == ForYouViewModel.recommendation(in: mix, on: evening)?.trackId)
-        #expect(today?.trackId != ForYouViewModel.recommendation(in: mix, on: tomorrow)?.trackId)
-        #expect(ForYouViewModel.recommendation(in: [], on: morning) == nil)
     }
 }

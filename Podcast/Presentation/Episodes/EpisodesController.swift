@@ -27,7 +27,7 @@ final class EpisodesController: UIViewController {
     }
 
     private let headerActions = EpisodeHeaderActions()
-    private let headerStretch = HeaderStretch()
+    private let headerPull = HeaderPull()
     private var eventsTask: Task<Void, Never>?
     private var hosting: UIHostingController<PodcastEpisodesView>?
 
@@ -81,7 +81,7 @@ final class EpisodesController: UIViewController {
             podcast: podcast,
             viewModel: viewModel,
             actions: headerActions,
-            stretch: headerStretch,
+            pull: headerPull,
             onScroll: { [weak self] offset in self?.didScroll(to: offset) },
             onShowInfo: { [weak self] episode in self?.showInfo(for: episode) }
         )
@@ -111,10 +111,10 @@ final class EpisodesController: UIViewController {
 
     private func didScroll(to offset: CGFloat) {
         scrollOffset = offset
-        // Pulled past the top: the cover grows into the gap.
+        // Pulled past the top: the cover stays pinned to the top of the screen.
         let pull = max(0, -offset)
-        if headerStretch.pull != pull {
-            headerStretch.pull = pull
+        if headerPull.distance != pull {
+            headerPull.distance = pull
         }
         updateNavigationBar()
     }
@@ -190,7 +190,8 @@ final class EpisodesController: UIViewController {
         ))
     }
 
-    /// An episode's details (tapping its row, or "Details" in its ••• menu).
+    /// An episode, full screen (tapping its row, or "Details" in its •••
+    /// menu): pushed, with its artwork edge to edge.
     private func showInfo(for episode: Episode) {
         presentSheet(EpisodeInfoSheet(episode: episode) { [weak self] in
             PlayerManager.shared.play(episode)
