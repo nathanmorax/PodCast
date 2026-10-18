@@ -77,4 +77,17 @@ struct PodcastSearchViewModelTests {
 
         #expect(await repository.searchedQueries == ["swift", "swift"])
     }
+
+    @Test("Episodes are searched with the same text")
+    func searchesEpisodesToo() async {
+        let found = EpisodeSearchResult(episode: Fixtures.episode(), podcastName: "Show")
+        let repository = MockSearchPodcastRepository(podcasts: [Fixtures.podcast()], foundEpisodes: [found])
+        let sut = PodcastSearchViewModel(repository: repository, debounce: .milliseconds(1))
+
+        sut.search("swift")
+        await sut.searchTask?.value
+
+        #expect(await repository.searchedEpisodeQueries == ["swift"])
+        #expect(sut.episodes.map(\.podcastName) == ["Show"])
+    }
 }
