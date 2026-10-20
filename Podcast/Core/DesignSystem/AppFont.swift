@@ -8,56 +8,57 @@ import SwiftUI
 /// Every text style in the app, by role. Views use these instead of picking
 /// sizes, so the same kind of text looks the same everywhere.
 ///
-/// | Role          | Size / weight      | Used for                                |
-/// |---------------|--------------------|-----------------------------------------|
-/// | display       | 34 heavy           | Onboarding question                     |
-/// | hero          | 32 heavy           | Podcast name over its cover             |
-/// | screenTitle   | 28 bold            | Home / Library / Search (left title)    |
-/// | sectionTitle  | 22 bold            | "Continue listening", "For you"…        |
-/// | sheetTitle    | 19 bold            | Titles in sheets (episode, about)       |
-/// | headline      | 17 semibold        | Episode titles in lists, menu rows      |
-/// | cardTitle     | 16 semibold        | Cards and search results                |
-/// | button        | 16 semibold        | Filled buttons ("Listen to podcast")    |
-/// | body          | 15 regular         | Descriptions, show notes                |
-/// | link          | 15 semibold        | Text buttons ("Edit", "Try again")      |
-/// | itemTitle     | 14 semibold        | Tiles and small rows                    |
-/// | callout       | 14 regular         | Short descriptions in rows              |
-/// | footnote      | 13 regular         | Meta lines (date · length)              |
-/// | overline      | 13 bold, uppercase | Labels over lists ("312 EPISODES")      |
-/// | caption       | 12 regular         | Subtitles under tiles (author)          |
-/// | captionStrong | 12 semibold        | Pills, badges, durations                |
+/// Two typefaces, both Apple's (Apple's guidelines: "Minimize the number of
+/// typefaces you use"; the usual rule is one for headings, one for the rest):
 ///
-/// Editorial (serif, New York) — the podcast page and episode details read
-/// like a magazine:
+/// - **New York (serif)** for what you *read as a title*: names of shows,
+///   episodes, categories and sections. It's the app's editorial voice.
+/// - **SF Pro (sans)** for what you *use or scan*: buttons, labels, meta
+///   lines, descriptions, times.
 ///
-/// | Role             | Size / weight     | Used for                              |
-/// |------------------|-------------------|---------------------------------------|
-/// | editorialHero    | 40 bold serif     | Podcast name over its cover           |
-/// | editorialTitle   | 28 bold serif     | Episode title in its details          |
-/// | editorialItem    | 18 bold serif     | Episode titles in the list            |
-/// | editorialQuote   | 20 italic serif   | The highlighted line of an episode    |
+/// No third family (no rounded, no custom fonts). Every role is built on a
+/// Dynamic Type text style, so it grows with the listener's text size.
+///
+/// | Role          | Typeface   | Text style (size at default) | Used for                               |
+/// |---------------|------------|------------------------------|----------------------------------------|
+/// | display       | New York   | largeTitle bold (34)         | Show / category name, onboarding       |
+/// | title         | New York   | title bold (28)              | Episode title, screen titles           |
+/// | sectionTitle  | New York   | title2 bold (22)             | "Recently played", "For you", sheets   |
+/// | itemTitle     | New York   | headline bold (17)           | Episodes and shows in any list         |
+/// | cardTitle     | New York   | subheadline bold (15)        | Names under covers                     |
+/// | quote         | New York   | title3 italic (20)           | The highlighted line of an episode     |
+/// | quoteSmall    | New York   | footnote italic (13)         | First line of an episode in results    |
+/// | button        | SF Pro     | callout semibold (16)        | Filled buttons ("Listen", "Continue")  |
+/// | label         | SF Pro     | subheadline semibold (15)    | Text buttons, tabs, mini player title  |
+/// | body          | SF Pro     | subheadline (15)             | Descriptions, show notes               |
+/// | footnote      | SF Pro     | footnote (13)                | Meta lines (date · length), counts     |
+/// | caption       | SF Pro     | caption (12)                 | Subtitles under names                  |
+/// | captionStrong | SF Pro     | caption semibold (12)        | Pills, badges, "2 days ago"            |
+/// | overline      | SF Pro     | caption bold, UPPERCASE (12) | Labels over lists ("RECENT")           |
+///
+/// Icons (SF Symbols) aren't text roles: size them with `.font(.system(size:))`
+/// or `.imageScale` next to the text they go with.
 enum AppFont {
-    static let display       = Font.system(size: 34, weight: .heavy)
-    static let hero          = Font.system(size: 32, weight: .heavy)
-    static let screenTitle   = Font.system(size: 28, weight: .bold)
-    static let sectionTitle  = Font.system(size: 22, weight: .bold)
-    static let sheetTitle    = Font.system(size: 19, weight: .bold)
-    static let headline      = Font.system(size: 17, weight: .semibold)
-    static let cardTitle     = Font.system(size: 16, weight: .semibold)
-    static let button        = Font.system(size: 16, weight: .semibold)
-    static let body          = Font.system(size: 15)
-    static let link          = Font.system(size: 15, weight: .semibold)
-    static let itemTitle     = Font.system(size: 14, weight: .semibold)
-    static let callout       = Font.system(size: 14)
-    static let footnote      = Font.system(size: 13)
-    static let overline      = Font.system(size: 13, weight: .bold)
-    static let caption       = Font.system(size: 12)
-    static let captionStrong = Font.system(size: 12, weight: .semibold)
 
-    static let editorialHero  = Font.system(size: 40, weight: .bold, design: .serif)
-    static let editorialTitle = Font.system(size: 28, weight: .bold, design: .serif)
-    static let editorialItem  = Font.system(size: 18, weight: .bold, design: .serif)
-    static let editorialQuote = Font.system(size: 20, weight: .regular, design: .serif).italic()
+    // MARK: New York — titles
+
+    static let display      = Font.system(.largeTitle, design: .serif, weight: .bold)
+    static let title        = Font.system(.title, design: .serif, weight: .bold)
+    static let sectionTitle = Font.system(.title2, design: .serif, weight: .bold)
+    static let itemTitle    = Font.system(.headline, design: .serif, weight: .bold)
+    static let cardTitle    = Font.system(.subheadline, design: .serif, weight: .bold)
+    static let quote        = Font.system(.title3, design: .serif).italic()
+    static let quoteSmall   = Font.system(.footnote, design: .serif).italic()
+
+    // MARK: SF Pro — everything else
+
+    static let button        = Font.system(.callout, weight: .semibold)
+    static let label         = Font.system(.subheadline, weight: .semibold)
+    static let body          = Font.system(.subheadline)
+    static let footnote      = Font.system(.footnote)
+    static let caption       = Font.system(.caption)
+    static let captionStrong = Font.system(.caption, weight: .semibold)
+    static let overline      = Font.system(.caption, weight: .bold)
 }
 
 extension View {
@@ -65,7 +66,7 @@ extension View {
     func overlineStyle(color: Color = AppColor.Text.secondary) -> some View {
         font(AppFont.overline)
             .textCase(.uppercase)
-            .tracking(0.5)
+            .tracking(0.8)
             .foregroundStyle(color)
     }
 }

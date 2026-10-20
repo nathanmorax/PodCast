@@ -107,15 +107,13 @@ struct BottomBar: View {
 
     /// Nothing playing, outside Search: a field-looking button, full width.
     private var searchButton: some View {
-        Button {
-            navigator.showSearch()
-        } label: {
+        Button(action: openSearch) {
             HStack(spacing: 10) {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundStyle(AppColor.Text.primary)
                 Text(navigator.searchQuery.isEmpty ? String(localized: "Search podcasts") : navigator.searchQuery)
-                    .font(AppFont.link)
+                    .font(AppFont.label)
                     .foregroundStyle(AppColor.Text.secondary)
                     .lineLimit(1)
                 Spacer(minLength: 0)
@@ -126,15 +124,13 @@ struct BottomBar: View {
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
-        .highPriorityGesture(swipeUpToSearch)
+        .simultaneousGesture(swipeUpToSearch)
         .accessibilityLabel("Search podcasts")
     }
 
     /// Next to the mini player.
     private var searchCircle: some View {
-        Button {
-            navigator.showSearch()
-        } label: {
+        Button(action: openSearch) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 19, weight: .semibold))
                 .foregroundStyle(AppColor.Text.primary)
@@ -142,7 +138,7 @@ struct BottomBar: View {
                 .glassCapsule()
         }
         .buttonStyle(.plain)
-        .highPriorityGesture(swipeUpToSearch)
+        .simultaneousGesture(swipeUpToSearch)
         .accessibilityLabel("Search")
     }
 
@@ -193,13 +189,23 @@ struct BottomBar: View {
 
     // MARK: - Gestures
 
-    /// Swiping up on the search circle/field opens Search. A tap still works.
+    /// The tap and the swipe up both land here, maybe both for one touch,
+    /// so it only acts once.
+    private func openSearch() {
+        guard !navigator.isShowingSearch else { return }
+        navigator.showSearch()
+    }
+
+    /// Swiping up on the search circle/field also opens Search.
+    /// Simultaneous, not high priority: a high-priority drag made the
+    /// button wait for it to fail first, and a tap with the slightest
+    /// finger movement was sometimes lost.
     private var swipeUpToSearch: some Gesture {
         DragGesture(minimumDistance: 14)
             .onEnded { value in
                 let isVertical = abs(value.translation.height) > abs(value.translation.width)
                 if isVertical, value.predictedEndTranslation.height < -60 {
-                    navigator.showSearch()
+                    openSearch()
                 }
             }
     }

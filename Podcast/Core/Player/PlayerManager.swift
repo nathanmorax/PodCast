@@ -60,7 +60,9 @@ final class PlayerManager {
         presentation = .mini
     }
 
-    func play(_ episode: Episode, presentation: PlayerPresentation = .expanded) {
+    /// - Parameter progress: where to start (0...1) when it's a different
+    ///   episode, e.g. resuming one from "Recently played". Nil: the start.
+    func play(_ episode: Episode, presentation: PlayerPresentation = .expanded, from progress: Double? = nil) {
         // The episode restored at launch: load it now, from where it was left.
         if let resume = restoredProgress {
             restoredProgress = nil
@@ -94,7 +96,7 @@ final class PlayerManager {
         recentlyPlayed.record(episode)
         
         currentEpisode = episode
-        startPlayback(of: episode, startingAt: nil)
+        startPlayback(of: episode, startingAt: progress)
         
         withAnimation(AppAnimation.playerPresentation) {
             self.presentation = presentation
