@@ -26,14 +26,14 @@ struct EpisodeCell: View {
                     .foregroundStyle(AppColor.Accent.strong)
 
                 Text(episode.title)
-                    .font(.system(size: 16, weight: .bold, design: .serif))
+                    .font(AppFont.itemTitle)
                     .foregroundStyle(AppColor.Text.primary)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
 
                 // Cut with "…" when it doesn't fit.
                 Text(episode.description)
-                    .font(AppFont.callout)
+                    .font(AppFont.body)
                     .foregroundStyle(AppColor.Text.secondary)
                     .lineLimit(2)
                     .truncationMode(.tail)

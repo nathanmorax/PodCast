@@ -49,7 +49,7 @@ struct QuoteView: View {
                 .frame(height: 34, alignment: .top)
                 .accessibilityHidden(true)
             Text(text)
-                .font(AppFont.editorialQuote)
+                .font(AppFont.quote)
                 .foregroundStyle(AppColor.Text.primary.opacity(0.88))
                 .lineSpacing(3)
                 .fixedSize(horizontal: false, vertical: true)

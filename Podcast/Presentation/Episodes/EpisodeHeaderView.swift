@@ -68,15 +68,12 @@ struct EpisodeHeaderView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     if !heroCaption.isEmpty {
                         Text(heroCaption)
-                            .font(AppFont.overline)
-                            .textCase(.uppercase)
-                            .tracking(0.8)
-                            .foregroundStyle(AppColor.Text.secondary)
+                            .overlineStyle()
                             .lineLimit(1)
                     }
                     // Editorial: the name in serif, like a magazine cover.
                     Text(podcast.trackName ?? "")
-                        .font(AppFont.editorialHero)
+                        .font(AppFont.display)
                         .foregroundStyle(AppColor.Text.primary)
                         .lineLimit(2)
                         .minimumScaleFactor(0.7)
@@ -165,10 +162,7 @@ struct EpisodeHeaderView: View {
     private var episodesCaption: some View {
         if let count = podcast.trackCount {
             Text("\(count) episodes")
-                .font(AppFont.overline)
-                .textCase(.uppercase)
-                .tracking(0.8)
-                .foregroundStyle(AppColor.Text.secondary)
+                .overlineStyle()
                 .padding(.horizontal, HeaderStyle.horizontalPadding)
                 .padding(.top, 26)
                 .padding(.bottom, 4)

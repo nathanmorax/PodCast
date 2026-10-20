@@ -98,13 +98,10 @@ struct EpisodeDetailView: View {
             .overlay(alignment: .bottomLeading) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(podcastName ?? episode.author)
-                        .font(AppFont.overline)
-                        .textCase(.uppercase)
-                        .tracking(0.8)
-                        .foregroundStyle(AppColor.Text.secondary)
+                        .overlineStyle()
                         .lineLimit(1)
                     Text(episode.title)
-                        .font(AppFont.editorialTitle)
+                        .font(AppFont.title)
                         .foregroundStyle(AppColor.Text.primary)
                         .lineLimit(4)
                         .minimumScaleFactor(0.8)
@@ -153,7 +150,7 @@ struct EpisodeDetailView: View {
                     .font(AppFont.button)
                     .foregroundStyle(AppColor.Text.onPastel)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 50)
+                    .frame(height: 44)
                     .background(Capsule().fill(AppColor.Accent.soft))
             }
             .buttonStyle(.plain)
@@ -209,12 +206,13 @@ struct EpisodeDetailView: View {
         }
     }
 
+    /// Small, light glyphs in 44 pt circles (the touch target stays 44).
     private func roundIcon(_ name: String, isOn: Bool = false) -> some View {
         Image(systemName: name)
-            .font(.system(size: 18, weight: .semibold))
+            .font(.system(size: 15, weight: .medium))
             .contentTransition(.symbolEffect(.replace))
             .foregroundStyle(isOn ? AppColor.Text.onPastel : AppColor.Text.primary)
-            .frame(width: 50, height: 50)
+            .frame(width: 44, height: 44)
             .background(Circle().fill(isOn ? AppColor.Accent.soft : AppColor.Text.primary.opacity(0.1)))
     }
 }

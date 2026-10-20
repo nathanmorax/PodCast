@@ -35,7 +35,7 @@ struct EpisodeInfoSheet: View {
                     .padding(.top, 12)
 
                 Text(episode.title)
-                    .font(AppFont.editorialTitle)
+                    .font(AppFont.title)
                     .foregroundStyle(AppColor.Text.primary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
