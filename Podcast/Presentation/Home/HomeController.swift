@@ -27,10 +27,13 @@ final class HomeController: UIViewController {
             onOpenEpisode: { [weak self] episode, podcast in
                 self?.push(EpisodeDetailController(episode: episode, podcastName: podcast.trackName))
             },
+            onOpenPlayedEpisode: { [weak self] episode in
+                self?.push(EpisodeDetailController(episode: episode, podcastName: nil))
+            },
             onSearch: { AppNavigator.shared.showSearch() },
             onOpenFollowing: { [weak self] in self?.push(FollowingController()) },
-            onOpenFavorites: { [weak self] in self?.push(BookMarkEpisodeController()) },
-            onOpenDownloads: { [weak self] in self?.push(DownloadEpisodeViewController()) }
+            onOpenFavorites: { [weak self] in self?.push(SavedEpisodesController(.favorites)) },
+            onOpenDownloads: { [weak self] in self?.push(SavedEpisodesController(.downloads)) }
         )
         let hosting = UIHostingController(rootView: home)
         hosting.view.translatesAutoresizingMaskIntoConstraints = false

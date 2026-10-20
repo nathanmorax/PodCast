@@ -55,10 +55,10 @@ struct FollowingListView: View {
                 .font(.system(size: 28, weight: .semibold))
                 .foregroundStyle(AppColor.Accent.soft)
             Text("Nothing followed yet")
-                .font(AppFont.headline)
+                .font(AppFont.sectionTitle)
                 .foregroundStyle(AppColor.Text.primary)
             Text("Tap + on a podcast to follow it. It'll show up here.")
-                .font(AppFont.callout)
+                .font(AppFont.body)
                 .foregroundStyle(AppColor.Text.secondary)
                 .multilineTextAlignment(.center)
         }
@@ -90,7 +90,7 @@ private struct FollowingRow: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(podcast.trackName ?? "")
-                    .font(AppFont.cardTitle)
+                    .font(AppFont.itemTitle)
                     .foregroundStyle(AppColor.Text.primary)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)

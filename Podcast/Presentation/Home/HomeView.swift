@@ -6,20 +6,26 @@
 import SwiftUI
 
 /// "Library", the main screen:
-/// 1. Today's date, and Following · Favorites · Downloads as three tiles.
-/// 2. The podcasts you follow, as a row of covers (no text).
-/// 3. For you: the latest episodes of the podcasts you follow.
-/// What you're listening to lives in the mini player, so it isn't repeated here.
+/// 1. Today's date, and Following · Favorites · Downloads as three rows.
+/// 2. Recently played: what you listened to, with how far you got. The
+///    episode playing now lives in the mini player, so it isn't repeated here.
+/// 3. The podcasts you follow, as a row of covers (no text).
+/// 4. For you: the latest episodes of the podcasts you follow.
 struct HomeView: View {
 
     @Environment(\.favoritesManager) private var favoritesManager
     @Environment(\.playerManager) private var playerManager
+    @Environment(\.recentlyPlayed) private var recentlyPlayed
+    @Environment(\.bookmarks) private var bookmarks
+    @Environment(\.downloadManager) private var downloadManager
 
     /// Owned by the view: created once, keeps its results while Library lives.
     @State private var forYou = ForYouViewModel()
 
     let onOpenPodcast: (Podcast) -> Void
     let onOpenEpisode: (Episode, Podcast) -> Void
+    /// An episode with no podcast at hand (Recently played).
+    let onOpenPlayedEpisode: (Episode) -> Void
     let onSearch: () -> Void
     let onOpenFollowing: () -> Void
     let onOpenFavorites: () -> Void
@@ -27,12 +33,23 @@ struct HomeView: View {
 
     private var following: [Podcast] { favoritesManager.favorites }
 
+    /// Recently played, minus the one in the mini player.
+    private var played: [RecentlyPlayed] {
+        let current = playerManager.currentEpisode?.streamUrl
+        return recentlyPlayed.items.filter { $0.id != current }
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 32) {
                 VStack(alignment: .leading, spacing: 14) {
                     dateHeader
                     collectionsSection
+                }
+
+                if !played.isEmpty {
+                    recentlyPlayedSection
+                        .transition(.opacity)
                 }
 
                 if following.isEmpty {
@@ -48,9 +65,31 @@ struct HomeView: View {
         .scrollIndicators(.hidden)
         .background(AppColor.screenBackground.ignoresSafeArea())
         .animation(AppAnimation.listChange, value: following.map(\.trackId))
+        .animation(AppAnimation.listChange, value: played.map(\.id))
         // Reload when you follow or unfollow a podcast.
         .task(id: following.map(\.trackId)) {
             forYou.load(following: following)
+        }
+    }
+
+    // MARK: - Recently played
+
+    private var recentlyPlayedSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            sectionTitle("Recently played")
+                .padding(.horizontal, 20)
+
+            RecentlyPlayedRow(
+                items: played,
+                onResume: { item in
+                    // Finished ones start over.
+                    playerManager.play(item.episode, from: item.progress < 0.98 ? item.progress : 0)
+                },
+                onOpen: { onOpenPlayedEpisode($0.episode) },
+                onRemove: { item in
+                    withAnimation(AppAnimation.listChange) { recentlyPlayed.remove(item) }
+                }
+            )
         }
     }
 
@@ -83,20 +122,21 @@ struct HomeView: View {
     /// Today's date under the title ("SATURDAY, OCTOBER 17").
     private var dateHeader: some View {
         Text(Date.now, format: .dateTime.weekday(.wide).day().month(.wide))
-            .font(AppFont.overline)
-            .textCase(.uppercase)
-            .tracking(0.5)
-            .foregroundStyle(AppColor.Text.secondary)
+            .overlineStyle()
             .padding(.horizontal, 20)
     }
 
-    /// Three small tiles in a row. Each opens its list.
+    /// Three rows, like a magazine's index: icon, name in serif, how many,
+    /// and ›. Each opens its list.
     private var collectionsSection: some View {
-        HStack(spacing: 10) {
-            CollectionTile(title: "Following", systemImage: "square.stack.3d.up", action: onOpenFollowing)
-            CollectionTile(title: "Favorites", systemImage: "bookmark", action: onOpenFavorites)
-            CollectionTile(title: "Downloads", systemImage: "arrow.down.to.line", action: onOpenDownloads)
-        }
+        CollectionRows(
+            following: following.count,
+            favorites: bookmarks.episodes.count,
+            downloads: downloadManager.downloadedEpisodes.count,
+            onOpenFollowing: onOpenFollowing,
+            onOpenFavorites: onOpenFavorites,
+            onOpenDownloads: onOpenDownloads
+        )
         .padding(.horizontal, 20)
     }
 
@@ -124,7 +164,7 @@ struct HomeView: View {
                 .multilineTextAlignment(.center)
             Button(action: onSearch) {
                 Label("Search podcasts", systemImage: "magnifyingglass")
-                    .font(AppFont.link)
+                    .font(AppFont.label)
                     .foregroundStyle(AppColor.Text.inverse)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)
@@ -139,159 +179,13 @@ struct HomeView: View {
     }
 }
 
-// MARK: - Following covers
-
-/// The podcasts you follow: big covers only (VoiceOver reads the names).
-private struct FollowingCovers: View {
-
-    let podcasts: [Podcast]
-    let onOpen: (Podcast) -> Void
-
-    var body: some View {
-        ScrollView(.horizontal) {
-            LazyHStack(spacing: 12) {
-                ForEach(podcasts, id: \.trackId) { podcast in
-                    Button {
-                        onOpen(podcast)
-                    } label: {
-                        Color.clear
-                            .frame(width: 104, height: 104)
-                            .overlay { PodcastImage(source: podcast.artworkUrl600) }
-                            .clipShape(RoundedRectangle(cornerRadius: CoverStyle.cornerRadius, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(Text(verbatim: podcast.trackName ?? ""))
-                }
-            }
-        }
-        .contentMargins(.horizontal, 20, for: .scrollContent)
-        .scrollIndicators(.hidden)
-    }
-}
-
-// MARK: - Covers
-
-/// Every cover in Library: barely rounded, so the artwork reads as a square.
-private enum CoverStyle {
-    static let cornerRadius: CGFloat = 10
-}
-
-// MARK: - For you episodes
-
-/// Big covers with the episode inside: "7 hours ago · 25 min" and its title.
-/// Tap plays it; the context menu goes to its podcast.
-private struct ForYouEpisodesRow: View {
-
-    let items: [ForYouViewModel.Item]
-    let onOpen: (ForYouViewModel.Item) -> Void
-    let onPlay: (Episode) -> Void
-    let onOpenPodcast: (Podcast) -> Void
-
-    private static let side: CGFloat = 180
-
-    var body: some View {
-        ScrollView(.horizontal) {
-            LazyHStack(spacing: 12) {
-                ForEach(items) { item in
-                    Button {
-                        onOpen(item)
-                    } label: {
-                        EpisodeCover(item: item, side: Self.side)
-                    }
-                    .buttonStyle(.plain)
-                    .contextMenu {
-                        Button("Play", systemImage: "play.fill") {
-                            onPlay(item.episode)
-                        }
-                        Button("Go to podcast", systemImage: "square.stack") {
-                            onOpenPodcast(item.podcast)
-                        }
-                    }
-                }
-            }
-        }
-        .contentMargins(.horizontal, 20, for: .scrollContent)
-        .scrollIndicators(.hidden)
-    }
-}
-
-private struct EpisodeCover: View {
-
-    let item: ForYouViewModel.Item
-    let side: CGFloat
-
-    var body: some View {
-        Color.clear
-            .frame(width: side, height: side)
-            .overlay { PodcastImage(source: item.episode.imageUrl ?? item.podcast.artworkUrl600) }
-            .overlay(alignment: .bottomLeading) {
-                VStack(alignment: .leading, spacing: 3) {
-                    // "7 hours ago · 25 min"
-                    HStack(spacing: 0) {
-                        Text(item.episode.pubDate, format: .relative(presentation: .numeric, unitsStyle: .wide))
-                        Text(verbatim: " · \(item.episode.durationDisplayText)")
-                    }
-                    .font(AppFont.caption)
-                    .foregroundStyle(.white.opacity(0.8))
-                    .lineLimit(1)
-                    Text(item.episode.title)
-                        .font(AppFont.itemTitle)
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                }
-                .padding(12)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                // The fade keeps the text readable on any artwork.
-                .background(
-                    LinearGradient(colors: [.clear, .black.opacity(0.75)],
-                                   startPoint: .top, endPoint: .bottom)
-                )
-            }
-            .clipShape(RoundedRectangle(cornerRadius: CoverStyle.cornerRadius, style: .continuous))
-            .contentShape(Rectangle())
-            .accessibilityElement(children: .combine)
-            .accessibilityHint("Plays the episode")
-    }
-}
-
-// MARK: - Collection tile
-
-/// A small tile: violet icon on top, name under it.
-private struct CollectionTile: View {
-
-    let title: LocalizedStringKey
-    let systemImage: String
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(alignment: .leading, spacing: 8) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(AppColor.Accent.strong)
-                    .accessibilityHidden(true)
-                Text(title)
-                    .font(AppFont.itemTitle)
-                    .foregroundStyle(AppColor.Text.primary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.85)
-            }
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(AppColor.Surface.raised, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        }
-        .buttonStyle(.plain)
-    }
-}
-
 // MARK: - Preview
 
 #Preview {
     HomeView(
         onOpenPodcast: { _ in },
         onOpenEpisode: { _, _ in },
+        onOpenPlayedEpisode: { _ in },
         onSearch: {},
         onOpenFollowing: {},
         onOpenFavorites: {},
@@ -299,4 +193,5 @@ private struct CollectionTile: View {
     )
     .environment(\.favoritesManager, .preview)
     .environment(\.playerManager, .preview)
+    .environment(\.recentlyPlayed, .preview)
 }
