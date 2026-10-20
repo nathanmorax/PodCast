@@ -72,6 +72,16 @@
         }
       }
     },
+    "%lld min left" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Faltan %lld min"
+          }
+        }
+      }
+    },
     "%lld of %lld" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -365,6 +375,16 @@
         }
       }
     },
+    "Downloaded episodes play without internet." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los episodios descargados se escuchan sin internet."
+          }
+        }
+      }
+    },
     "Downloading" : {
       "localizations" : {
         "es" : {
@@ -417,7 +437,6 @@
       }
     },
     "Episode details" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -722,6 +741,26 @@
         }
       }
     },
+    "No downloads yet" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aún no hay descargas"
+          }
+        }
+      }
+    },
+    "No favorites yet" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aún no hay favoritos"
+          }
+        }
+      }
+    },
     "Nothing followed yet" : {
       "localizations" : {
         "es" : {
@@ -742,8 +781,16 @@
         }
       }
     },
-    "Number 1" : {
-
+    "Number 1" : {},
+    "Opens the episode" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre el episodio"
+          }
+        }
+      }
     },
     "Opens the player" : {
       "localizations" : {
@@ -807,6 +854,16 @@
         }
       }
     },
+    "Played" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escuchado"
+          }
+        }
+      }
+    },
     "Player" : {
       "localizations" : {
         "es" : {
@@ -824,16 +881,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sonando"
-          }
-        }
-      }
-    },
-    "Plays the episode" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reproduce el episodio"
           }
         }
       }
@@ -900,12 +947,32 @@
         }
       }
     },
+    "Recently played" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escuchado recientemente"
+          }
+        }
+      }
+    },
     "Remove bookmark" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Quitar guardado"
+          }
+        }
+      }
+    },
+    "Remove from recently played" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitar de escuchado recientemente"
           }
         }
       }
@@ -942,6 +1009,16 @@
         }
       }
     },
+    "Resumes the episode" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continúa el episodio"
+          }
+        }
+      }
+    },
     "Retry transcript" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -969,6 +1046,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Guardar"
+          }
+        }
+      }
+    },
+    "Save an episode from its ••• menu and it'll be here." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guarda un episodio desde su menú ••• y aparecerá aquí."
           }
         }
       }
@@ -1127,6 +1214,16 @@
         }
       }
     },
+    "TV & Film" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cine y TV"
+          }
+        }
+      }
+    },
     "Tap + on a podcast to follow it. It'll show up here." : {
       "localizations" : {
         "es" : {
@@ -1264,16 +1361,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Convirtiendo las voces en texto…"
-          }
-        }
-      }
-    },
-    "TV & Film" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cine y TV"
           }
         }
       }
