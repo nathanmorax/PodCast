@@ -47,9 +47,6 @@ struct PlayerView: View {
     private static let ink = AppColor.ink
     private static let accent = AppColor.lavender
     
-    private func rounded(_ size: CGFloat, _ weight: Font.Weight = .medium) -> Font {
-        .system(size: size, weight: weight, design: .rounded)
-    }
     
     var body: some View {
         ZStack {
@@ -194,7 +191,7 @@ struct PlayerView: View {
             tab = item
         } label: {
             Text(item.title)
-                .font(AppFont.itemTitle)
+                .font(AppFont.label)
                 .foregroundStyle(textColor)
                 .padding(.vertical, 8)
                 .overlay(alignment: .bottom) {
@@ -218,7 +215,7 @@ struct PlayerView: View {
             Spacer(minLength: 12)
             VStack(alignment: .leading, spacing: 12) {
                 Text(episode.title)
-                    .font(AppFont.editorialTitle)
+                    .font(AppFont.title)
                     .foregroundStyle(Self.ink)
                     .lineLimit(3)
                     .minimumScaleFactor(0.8)
@@ -384,7 +381,7 @@ struct PlayerView: View {
                         .transition(.opacity)
                 }
                 Text(segment.text)
-                    .font(isCurrent ? AppFont.editorialQuote : .system(size: 17, design: .serif))
+                    .font(isCurrent ? AppFont.quote : AppFont.itemTitle.weight(.regular))
                     .foregroundStyle(Self.ink.opacity(isCurrent ? 1 : 0.38))
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -458,7 +455,7 @@ struct PlayerView: View {
                     .foregroundStyle(isCurrent ? AppColor.lavenderInk : Self.ink.opacity(0.45))
                     .frame(width: 52, alignment: .leading)
                 Text(chapter.title)
-                    .font(.system(size: 17, weight: titleWeight, design: .serif))
+                    .font(AppFont.itemTitle.weight(titleWeight))
                     .foregroundStyle(titleColor)
                     .lineLimit(2)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -510,10 +507,10 @@ struct PlayerView: View {
                     .accessibilityHidden(true)
             }
             title
-                .font(rounded(18, .semibold))
+                .font(AppFont.sectionTitle)
                 .foregroundStyle(Self.ink)
             detail
-                .font(rounded(14))
+                .font(AppFont.body)
                 .foregroundStyle(Self.ink.opacity(0.5))
                 .multilineTextAlignment(.center)
             action()
@@ -526,7 +523,7 @@ struct PlayerView: View {
     private func tabActionButton(_ title: LocalizedStringKey, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
-                .font(rounded(15, .semibold))
+                .font(AppFont.label)
                 .foregroundStyle(.white)
                 .padding(.horizontal, 22)
                 .frame(height: 44)
@@ -577,7 +574,7 @@ struct PlayerView: View {
 
             // Time left, floating on the cover.
             Text(viewModel.remainingTimeText)
-                .font(rounded(20, .semibold))
+                .font(.system(.title3, weight: .semibold))
                 .monospacedDigit()
                 .contentTransition(.numericText(countsDown: true))
                 .padding(.horizontal, 16)
@@ -659,7 +656,7 @@ struct PlayerView: View {
             Spacer()
             Text(verbatim: "−\(scrubProgress.map(viewModel.remainingText(at:)) ?? viewModel.remainingTimeText)")
         }
-        .font(rounded(12))
+        .font(AppFont.caption)
         .monospacedDigit()
         .foregroundStyle(Self.ink.opacity(0.5))
     }

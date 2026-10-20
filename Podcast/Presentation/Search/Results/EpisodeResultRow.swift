@@ -24,7 +24,7 @@ struct EpisodeResultRow: View {
                     .lineLimit(1)
 
                 Text(episode.title)
-                    .font(.system(size: 16, weight: .bold, design: .serif))
+                    .font(AppFont.itemTitle)
                     .foregroundStyle(AppColor.Text.primary)
                     .lineLimit(2)
 
@@ -36,7 +36,7 @@ struct EpisodeResultRow: View {
                             .frame(height: 18, alignment: .top)
                             .accessibilityHidden(true)
                         Text(line)
-                            .font(.system(size: 13, design: .serif).italic())
+                            .font(AppFont.quoteSmall)
                             .foregroundStyle(AppColor.Text.secondary)
                             .lineLimit(2)
                     }

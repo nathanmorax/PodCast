@@ -21,20 +21,17 @@ struct PodcastAboutSheet: View {
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(podcast.trackName ?? "")
-                            .font(AppFont.sheetTitle)
+                            .font(AppFont.sectionTitle)
                             .foregroundStyle(AppColor.ink)
                         Text(podcast.artistName ?? "")
-                            .font(AppFont.callout)
+                            .font(AppFont.body)
                             .foregroundStyle(AppColor.Text.secondary)
                     }
                 }
                 .padding(.top, 8)
 
                 Text("About this podcast")
-                    .font(AppFont.overline)
-                    .textCase(.uppercase)
-                    .tracking(0.4)
-                    .foregroundStyle(AppColor.Text.secondary)
+                    .overlineStyle()
 
                 Text(description)
                     .font(AppFont.body)

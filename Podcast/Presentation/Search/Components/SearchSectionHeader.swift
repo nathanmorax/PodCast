@@ -16,10 +16,7 @@ struct SearchSectionHeader: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
             Text(title)
-                .font(AppFont.captionStrong)
-                .tracking(1)
-                .textCase(.uppercase)
-                .foregroundStyle(AppColor.Text.secondary)
+                .overlineStyle()
                 .accessibilityAddTraits(.isHeader)
             Spacer()
             if let actionTitle, let action {

@@ -25,7 +25,7 @@ struct GenreCard: View {
                 .overlay { CoverFan(urls: coverURLs) }
 
             Text(genre.name)
-                .font(.system(size: 16, weight: .bold, design: .serif))
+                .font(AppFont.cardTitle)
                 .foregroundStyle(AppColor.Text.primary)
                 .lineLimit(1)
         }

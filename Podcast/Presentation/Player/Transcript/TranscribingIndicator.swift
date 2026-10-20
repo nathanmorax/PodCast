@@ -34,7 +34,7 @@ struct TranscribingIndicator: View {
                 .accessibilityHidden(true)
 
             Text(Self.phrases[index])
-                .font(.system(size: 17, weight: .semibold, design: .rounded))
+                .font(AppFont.button)
                 .foregroundStyle(AppColor.ink)
                 .multilineTextAlignment(.center)
                 .id(index)

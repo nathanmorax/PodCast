@@ -24,7 +24,7 @@ struct RecentPodcastRow: View {
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(podcast.trackName ?? "")
-                            .font(.system(size: 16, weight: .bold, design: .serif))
+                            .font(AppFont.itemTitle)
                             .foregroundStyle(AppColor.Text.primary)
                             .lineLimit(1)
                         Text(kind)

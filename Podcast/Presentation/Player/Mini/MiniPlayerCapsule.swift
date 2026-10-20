@@ -26,7 +26,7 @@ struct MiniPlayerCapsule: View {
 
                     VStack(alignment: .leading, spacing: 7) {
                         Text(episode.title)
-                            .font(AppFont.itemTitle)
+                            .font(AppFont.label)
                             .foregroundStyle(AppColor.Text.primary)
                             .lineLimit(1)
                         // Its own view: only the bar redraws as playback moves.

@@ -115,7 +115,7 @@ struct TranscriptSubtitleView: View {
                     .font(.system(size: 15, weight: .semibold))
                     .contentTransition(.symbolEffect(.replace))
                 Text(timeText)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(AppFont.label)
                     .monospacedDigit()
                     .contentTransition(.numericText())
             }

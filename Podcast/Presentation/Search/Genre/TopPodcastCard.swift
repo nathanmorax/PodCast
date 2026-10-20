@@ -34,7 +34,7 @@ struct TopPodcastCard: View {
                 .overlay(alignment: .bottomLeading) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(podcast.trackName ?? "")
-                            .font(AppFont.editorialTitle)
+                            .font(AppFont.title)
                             .foregroundStyle(.white)
                             .lineLimit(2)
                         Text(podcast.artistName ?? "")

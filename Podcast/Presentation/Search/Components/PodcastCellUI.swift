@@ -20,7 +20,7 @@ struct PodcastCellUI: View {
         HStack(spacing: 14) {
             if let rank {
                 Text(rank, format: .number)
-                    .font(AppFont.editorialItem)
+                    .font(AppFont.itemTitle)
                     .foregroundStyle(AppColor.Accent.strong)
                     .frame(minWidth: 22, alignment: .leading)
                     .accessibilityLabel(Text("Number \(rank)"))
@@ -33,7 +33,7 @@ struct PodcastCellUI: View {
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(podcast.trackName ?? "")
-                    .font(AppFont.editorialItem)
+                    .font(AppFont.itemTitle)
                     .foregroundStyle(AppColor.Text.primary)
                     .lineLimit(2)
                 Text(Self.subtitle(for: podcast))

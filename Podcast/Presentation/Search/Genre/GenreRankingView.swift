@@ -31,12 +31,9 @@ struct GenreRankingView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(overline)
-                .font(AppFont.captionStrong)
-                .tracking(1)
-                .textCase(.uppercase)
-                .foregroundStyle(AppColor.Text.secondary)
+                .overlineStyle()
             Text(viewModel.genre.name)
-                .font(AppFont.editorialHero)
+                .font(AppFont.display)
                 .foregroundStyle(AppColor.Text.primary)
                 .accessibilityAddTraits(.isHeader)
         }
@@ -75,7 +72,7 @@ struct GenreRankingView: View {
                     .font(AppFont.body)
                     .foregroundStyle(AppColor.Text.secondary)
                 Button("Try again") { viewModel.load() }
-                    .font(AppFont.link)
+                    .font(AppFont.label)
                     .foregroundStyle(AppColor.Accent.strong)
             }
             .frame(maxWidth: .infinity)
