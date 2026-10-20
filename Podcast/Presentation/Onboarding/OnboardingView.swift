@@ -74,7 +74,7 @@ struct OnboardingView: View {
                         .transition(.scale.combined(with: .opacity))
                 }
                 Text(genre.name)
-                    .font(AppFont.headline)
+                    .font(AppFont.button)
             }
             .foregroundStyle(isOn ? Color.white : AppColor.lavenderInk)
             .padding(.horizontal, isOn ? 16 : 20)
@@ -93,9 +93,9 @@ struct OnboardingView: View {
         } label: {
             HStack(spacing: 8) {
                 Text("Continue")
-                    .font(AppFont.headline)
+                    .font(AppFont.button)
                 Text(model.selectedIDs.count, format: .number)
-                    .font(.system(size: 13, weight: .bold))
+                    .font(AppFont.captionStrong)
                     .monospacedDigit()
                     .contentTransition(.numericText())
                     .frame(minWidth: 24, minHeight: 24)
@@ -120,7 +120,7 @@ struct OnboardingView: View {
             withAnimation(AppAnimation.selection) { model.chooseForMe() }
         } label: {
             Label("Choose for me", systemImage: "sparkles")
-                .font(AppFont.link)
+                .font(AppFont.label)
                 .foregroundStyle(.white)
                 .underline()
         }
@@ -131,7 +131,7 @@ struct OnboardingView: View {
         Button("Cancel") {
             withAnimation(AppAnimation.onboarding) { model.cancel(into: interests) }
         }
-        .font(AppFont.link)
+        .font(AppFont.label)
         .foregroundStyle(.white.opacity(0.85))
         .padding(.horizontal, 20)
         .frame(minHeight: 44)
