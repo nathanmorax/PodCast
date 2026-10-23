@@ -160,6 +160,18 @@ final class PlayerManager {
         viewModel.togglePlayPause()
     }
 
+    /// The mini player's ⟳ 15. Does nothing until the audio is loaded (the
+    /// episode restored at launch, before its first play).
+    func skipForward() {
+        handle(.skipForward)
+    }
+
+    /// Whether ⟳ 15 can act right now. (Re-read when play/pause changes:
+    /// that's also when a restored episode gets loaded.)
+    var canSkip: Bool {
+        currentEpisode != nil && restoredProgress == nil
+    }
+
     /// The app is being closed (force quit): remember where the listener was
     /// in the current episode, then stop the audio.
     func stopForTermination() {

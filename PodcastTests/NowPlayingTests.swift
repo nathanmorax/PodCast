@@ -134,3 +134,30 @@ struct NowPlayingTests {
         #expect(nowPlaying.clearCount == 1)
     }
 }
+
+@MainActor
+@Suite("Mini player ⟳ 15")
+struct MiniPlayerSkipTests {
+
+    @Test("⟳ 15 jumps 15 s forward once the episode is loaded")
+    func skipsForward() {
+        let player = FakePlayerDataSource()
+        let sut = PlayerManager(
+            downloadManager: DownloadManager(
+                userDefaults: .isolated(),
+                downloadsDirectory: FileManager.default.temporaryDirectory
+                    .appendingPathComponent("MiniSkip-\(UUID().uuidString)", isDirectory: true)
+            ),
+            recentlyPlayed: RecentlyPlayedManager(userDefaults: .isolated()),
+            viewModel: AVPlayerViewModel(player: player)
+        )
+        #expect(!sut.canSkip)
+
+        sut.play(Fixtures.episode())
+        player.sendTime(current: 100, total: 1_000)
+        #expect(sut.canSkip)
+
+        sut.skipForward()
+        #expect(abs(sut.viewModel.currentPlaybackSeconds - 115) < 0.5)
+    }
+}

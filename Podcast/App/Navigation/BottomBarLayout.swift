@@ -12,7 +12,8 @@ import CoreGraphics
 /// |-------------------------------|------------------------------|------------------|
 /// | Library                       | mini player + search circle  | search field     |
 /// | Search                        | search field only            | search field     |
-/// | Inside Search (genre/podcast) | nothing                      | nothing          |
+/// | A podcast's page (any stack)  | mini player only, full width | nothing          |
+/// | Inside Search (genre)         | nothing                      | nothing          |
 struct BottomBarLayout: Equatable {
 
     enum PlayerPlacement: Equatable {
@@ -26,17 +27,22 @@ struct BottomBarLayout: Equatable {
     let inSearch: Bool
     let isTyping: Bool
     let isSearchDetail: Bool
+    /// A podcast's page (its episodes), opened from Library or from Search.
+    var isPodcastPage: Bool = false
 
-    /// The mini player only shows on Library. Search is
-    /// for searching: no mini player there, nor in the screens it opens.
+    /// The mini player shows on Library and on a podcast's page (you browse
+    /// its episodes while one plays). Search is for searching: no mini
+    /// player there, nor in the other screens it opens.
     var player: PlayerPlacement {
-        guard isPlaying, !inSearch, !isSearchDetail else { return .none }
+        guard isPlaying else { return .none }
+        if isPodcastPage { return .inline }
+        guard !inSearch, !isSearchDetail else { return .none }
         return .inline
     }
 
-    /// The search row (circle, button or field) is hidden only inside Search
-    /// details: there's nothing to search there.
-    var showsSearchRow: Bool { !isSearchDetail }
+    /// The search row (circle, button or field) is hidden inside Search
+    /// details and on a podcast's page: there's nothing to search there.
+    var showsSearchRow: Bool { !isSearchDetail && !isPodcastPage }
 
     /// Inside a Search detail with nothing playing the bar has nothing to show.
     var isVisible: Bool { showsSearchRow || player != .none }

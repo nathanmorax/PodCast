@@ -35,4 +35,19 @@ struct BottomBarLayoutTests {
         #expect(!layout(playing: false, inSearch: true, detail: true).isVisible)
         #expect(layout(playing: true, inSearch: true, detail: true).height(row: 62) == 0)
     }
+
+    @Test("A podcast's page: only the mini player while playing, from any stack")
+    func podcastPage() {
+        let fromLibrary = BottomBarLayout(isPlaying: true, inSearch: false, isTyping: false, isSearchDetail: false, isPodcastPage: true)
+        #expect(fromLibrary.player == .inline)
+        #expect(!fromLibrary.showsSearchRow)
+        #expect(fromLibrary.height(row: 62) == 62)
+
+        let fromSearch = BottomBarLayout(isPlaying: true, inSearch: true, isTyping: false, isSearchDetail: true, isPodcastPage: true)
+        #expect(fromSearch.player == .inline)
+        #expect(!fromSearch.showsSearchRow)
+
+        let idle = BottomBarLayout(isPlaying: false, inSearch: false, isTyping: false, isSearchDetail: false, isPodcastPage: true)
+        #expect(!idle.isVisible)
+    }
 }
