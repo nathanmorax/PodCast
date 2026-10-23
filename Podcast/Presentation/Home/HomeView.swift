@@ -9,8 +9,10 @@ import SwiftUI
 /// 1. Today's date, and Following · Favorites · Downloads as three rows.
 /// 2. Recently played: what you listened to, with how far you got. The
 ///    episode playing now lives in the mini player, so it isn't repeated here.
-/// 3. The podcasts you follow, as a row of covers (no text).
+/// 3. Library: the podcasts you follow, as round covers with their names.
 /// 4. For you: the latest episodes of the podcasts you follow.
+/// 5. Browse podcasts: category chips and a row of shows; "Show all" opens
+///    the interests picker.
 struct HomeView: View {
 
     @Environment(\.favoritesManager) private var favoritesManager
@@ -18,9 +20,12 @@ struct HomeView: View {
     @Environment(\.recentlyPlayed) private var recentlyPlayed
     @Environment(\.bookmarks) private var bookmarks
     @Environment(\.downloadManager) private var downloadManager
+    @Environment(\.interestsManager) private var interests
 
     /// Owned by the view: created once, keeps its results while Library lives.
     @State private var forYou = ForYouViewModel()
+    /// Owned by the view: each category's shows stay while Library lives.
+    @State private var browse = BrowseViewModel()
 
     let onOpenPodcast: (Podcast) -> Void
     let onOpenEpisode: (Episode, Podcast) -> Void
@@ -55,9 +60,16 @@ struct HomeView: View {
                 if following.isEmpty {
                     emptyState
                 } else {
-                    FollowingCovers(podcasts: following, onOpen: onOpenPodcast)
+                    librarySection
                     forYouSection
                 }
+
+                BrowsePodcastsSection(
+                    viewModel: browse,
+                    interests: interests.genres,
+                    onOpenPodcast: onOpenPodcast,
+                    onShowAll: { interests.edit() }
+                )
             }
             .padding(.top, 12)
             .padding(.bottom, 24) // the bottom bar's space comes from the safe area
@@ -76,8 +88,7 @@ struct HomeView: View {
 
     private var recentlyPlayedSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            sectionTitle("Recently played")
-                .padding(.horizontal, 20)
+            LibrarySectionHeader(title: "Recently played")
 
             RecentlyPlayedRow(
                 items: played,
@@ -93,13 +104,22 @@ struct HomeView: View {
         }
     }
 
+    // MARK: - Library
+
+    /// The podcasts you follow, as circles; "Show all" opens Following.
+    private var librarySection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            LibrarySectionHeader(title: "Library", onShowAll: onOpenFollowing)
+            LibraryCircles(podcasts: following, onOpen: onOpenPodcast)
+        }
+    }
+
     // MARK: - For you
 
     /// The latest episodes of the podcasts you follow, in one row.
     private var forYouSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            sectionTitle("For you")
-                .padding(.horizontal, 20)
+            LibrarySectionHeader(title: "For you")
 
             if forYou.items.isEmpty && forYou.isLoading {
                 ProgressView()
@@ -138,13 +158,6 @@ struct HomeView: View {
             onOpenDownloads: onOpenDownloads
         )
         .padding(.horizontal, 20)
-    }
-
-    private func sectionTitle(_ text: LocalizedStringKey) -> some View {
-        Text(text)
-            .font(AppFont.sectionTitle)
-            .foregroundStyle(AppColor.Text.primary)
-            .accessibilityAddTraits(.isHeader)
     }
 
     // MARK: - Empty
@@ -194,4 +207,5 @@ struct HomeView: View {
     .environment(\.favoritesManager, .preview)
     .environment(\.playerManager, .preview)
     .environment(\.recentlyPlayed, .preview)
+    .environment(\.interestsManager, .preview)
 }

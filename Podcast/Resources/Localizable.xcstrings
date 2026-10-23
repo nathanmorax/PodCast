@@ -133,6 +133,16 @@
         }
       }
     },
+    "Browse podcasts" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Explorar podcasts"
+          }
+        }
+      }
+    },
     "Business" : {
       "localizations" : {
         "es" : {
@@ -823,6 +833,16 @@
         }
       }
     },
+    "Picked for you" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegidos para ti"
+          }
+        }
+      }
+    },
     "Play" : {
       "localizations" : {
         "es" : {
@@ -1107,6 +1127,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Compartir"
+          }
+        }
+      }
+    },
+    "Show all" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver todo"
           }
         }
       }
