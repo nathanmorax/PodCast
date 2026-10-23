@@ -24,6 +24,12 @@ class AVPlayerDataSource: PlayerDataSource {
     var onTimeUpdate: ((CMTime, CMTime?) -> Void)?
     var onStateChange: ((Bool) -> Void)?
     var onEpisodeStarted: (() -> Void)?
+
+    /// A seek asked for before the episode could take it (resuming where it
+    /// was left, right after loading). Done as soon as the item is ready:
+    /// a seek sent earlier is dropped and the episode would start at 0:00.
+    private var pendingSeekPercentage: Float?
+    private var statusObservations: [NSKeyValueObservation] = []
     
     
     private func observeTime() {
@@ -53,6 +59,8 @@ class AVPlayerDataSource: PlayerDataSource {
             playerItem = AVPlayerItem(asset: asset)
         }
         
+        pendingSeekPercentage = nil
+        statusObservations = []
         player.replaceCurrentItem(with: playerItem)
         player.play()
         onStateChange?(true)
@@ -75,12 +83,51 @@ class AVPlayerDataSource: PlayerDataSource {
     }
     
     func seek(to percentage: Float) {
-        guard let duration = player.currentItem?.duration else { return }
-        let seconds = CMTimeGetSeconds(duration) * Double(percentage)
+        guard let item = player.currentItem else { return }
+        guard AVPlayerDataSource.isSeekable(item) else {
+            pendingSeekPercentage = percentage
+            waitUntilSeekable(item)
+            return
+        }
+        performSeek(to: percentage, in: item)
+    }
+
+    private func performSeek(to percentage: Float, in item: AVPlayerItem) {
+        let seconds = CMTimeGetSeconds(item.duration) * Double(percentage)
         let time = CMTimeMakeWithSeconds(seconds, preferredTimescale: 600)
         player.seek(to: time)
     }
-    
+
+    private static func isSeekable(_ item: AVPlayerItem) -> Bool {
+        item.status == .readyToPlay && item.duration.isNumeric
+    }
+
+    /// Runs the pending seek once the item is ready and knows its length
+    /// (either can come last, so both are watched).
+    private func waitUntilSeekable(_ item: AVPlayerItem) {
+        guard statusObservations.isEmpty else { return }
+        let waitedFor = ObjectIdentifier(item)
+        // KVO can call from any thread: hop to the main actor and look at the
+        // player's own item there (the item itself isn't Sendable).
+        let check: @Sendable () -> Void = { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self, let item = self.player.currentItem,
+                      ObjectIdentifier(item) == waitedFor, AVPlayerDataSource.isSeekable(item) else { return }
+                self.statusObservations = []
+                if let percentage = self.pendingSeekPercentage {
+                    self.pendingSeekPercentage = nil
+                    self.performSeek(to: percentage, in: item)
+                }
+            }
+        }
+        statusObservations = [
+            item.observe(\.status, options: [.new]) { _, _ in check() },
+            item.observe(\.duration, options: [.new]) { _, _ in check() }
+        ]
+        // It may have become seekable between the check and the observers.
+        check()
+    }
+
     func setVolume(_ value: Float) {
         player.volume = value
     }

@@ -13,4 +13,13 @@ struct RecentlyPlayed: Codable, Identifiable {
     var progress: Double
 
     var id: String { episode.streamUrl }
+
+    /// From here on an episode counts as finished.
+    static let finishedThreshold = 0.98
+
+    /// Where to start it again: where it was left, or the beginning once
+    /// it was finished.
+    var resumeProgress: Double {
+        progress < Self.finishedThreshold ? progress : 0
+    }
 }
