@@ -16,11 +16,11 @@ struct CircleIconButton: View {
         Button(action: action) {
             Image(systemName: systemName)
                 .font(.system(size: 18, weight: .regular))
-                .foregroundStyle(isHighlighted ? .white : .black)
+                .foregroundStyle(isHighlighted ? AppColor.Text.onPastel : AppColor.Text.primary)
                 .frame(width: 44, height: 44)
                 .background(
                     isHighlighted
-                        ? Color(AppColor.lavender)
+                        ? Color(AppColor.accent)
                         : Color(.systemGray6),
                     in: Circle()
                 )

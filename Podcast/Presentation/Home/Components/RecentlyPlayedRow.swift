@@ -41,7 +41,7 @@ struct RecentlyPlayedRow: View {
     }
 }
 
-/// Cover, the title in serif, and a lavender capsule with play, a small bar
+/// Cover, the title in serif, and a mustard capsule with play, a small bar
 /// filled up to where you left off, and the minutes still to go ("23 min").
 private struct RecentlyPlayedCard: View {
 

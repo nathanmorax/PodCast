@@ -37,7 +37,7 @@ struct EpisodeNotes: Equatable {
     }
 }
 
-/// A big lavender “ next to the line in italic serif.
+/// A big accent “ next to the line in italic serif.
 struct QuoteView: View {
     let text: String
 

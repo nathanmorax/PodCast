@@ -24,14 +24,15 @@ enum ColorName: String, CaseIterable {
     case oliveGreen
     case burntOrange
     case charcoalBrown
-    case lavender
     case background
 
     // MARK: Surfaces and ink
     case screenBackground
     case paper
     case ink
-    case lavenderInk
+    case accent
+    case accentInk
+    case surfaceMuted
     case readingBackground
     case readingText
     case surfaceRaised
@@ -39,7 +40,7 @@ enum ColorName: String, CaseIterable {
 }
 
 extension Color {
-    /// `Color(asset: .lavender)` instead of `Color("lavender")`: no typos.
+    /// `Color(asset: .accent)` instead of `Color("accent")`: no typos.
     init(asset name: ColorName) {
         self.init(name.rawValue)
     }

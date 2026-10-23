@@ -6,7 +6,7 @@
 import SwiftUI
 
 /// Following · Favorites · Downloads in Library, as three rows: a small
-/// lavender icon, the name in serif, how many there are, and ›.
+/// green icon, the name in serif, how many there are, and ›.
 /// The icons are the ones the app already uses for each action.
 struct CollectionRows: View {
 
