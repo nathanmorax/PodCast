@@ -33,8 +33,11 @@ final class AppNavigator {
     /// True on screens opened from Search (a category, a podcast): no bottom
     /// bar there. Set by MainContainerController as screens are shown.
     var hidesBottomBar = false
-    /// The podcast page shows no bottom bar at all (not even the mini player).
+    /// An episode's page shows no bottom bar at all (not even the mini
+    /// player): its artwork and Listen button take the screen.
     var hidesBarCompletely = false
+    /// A podcast's page (its episodes): the bar is only the mini player.
+    var isOnPodcastPage = false
 
     @ObservationIgnored
     weak var container: (any NavigationContainer)?

@@ -11,7 +11,9 @@ import SwiftUI
 /// - Search: only the search field (with its clear button). ⌄ to close
 ///   Search is at the top right of the screen; swiping down on the field or
 ///   pulling the screen down closes it too.
-/// - Screens opened from Search (a genre, a podcast): no bar.
+/// - A podcast's page (from Library or Search): only the mini player, full
+///   width, when something is playing.
+/// - Other screens opened from Search (a genre): no bar.
 /// - Swiping up on the search circle/field opens Search (no slide: the
 ///   keyboard coming up is the only motion).
 struct BottomBar: View {
@@ -34,7 +36,8 @@ struct BottomBar: View {
             isPlaying: isPlaying,
             inSearch: navigator.isShowingSearch || navigator.isSearching,
             isTyping: navigator.isSearching,
-            isSearchDetail: navigator.hidesBottomBar
+            isSearchDetail: navigator.hidesBottomBar,
+            isPodcastPage: navigator.isOnPodcastPage
         )
     }
 
@@ -57,7 +60,7 @@ struct BottomBar: View {
     // the field keeps its identity (and the keyboard) while the bar changes.
     var body: some View {
         Group {
-            if layout.showsSearchRow {
+            if layout.isVisible {
                 mainRow
             }
         }
@@ -83,8 +86,10 @@ struct BottomBar: View {
                     .transition(.barLeadingItem)
             }
 
-            searchElement
-                .matchedGeometryEffect(id: "search", in: namespace)
+            if layout.showsSearchRow {
+                searchElement
+                    .matchedGeometryEffect(id: "search", in: namespace)
+            }
 
             // In Search the row is only the field: ⌄ (close) lives at the top
             // right of the screen, in its navigation bar.
