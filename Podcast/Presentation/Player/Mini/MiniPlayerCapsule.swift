@@ -6,8 +6,8 @@
 import SwiftUI
 
 /// What's playing: artwork, title, a thin progress bar with the time left
-/// under it, and play/pause.
-/// Tapping the info opens the full player.
+/// under it, play/pause and ⟳ 15 (the same jump as the full player and the
+/// lock screen). Tapping the info opens the full player.
 struct MiniPlayerCapsule: View {
 
     @Environment(\.playerManager) private var manager
@@ -54,6 +54,20 @@ struct MiniPlayerCapsule: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(manager.viewModel.isPlaying ? Text("Pause") : Text("Play"))
+
+            Button {
+                manager.skipForward()
+            } label: {
+                Image(systemName: "goforward.15")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(AppColor.Text.primary)
+                    .frame(width: 40, height: 40)
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .disabled(!manager.canSkip)
+            .opacity(manager.canSkip ? 1 : 0.4)
+            .accessibilityLabel("Skip forward 15 seconds")
         }
         .padding(.leading, 9)
         .padding(.trailing, 6)

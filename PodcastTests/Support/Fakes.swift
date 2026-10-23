@@ -17,12 +17,15 @@ final class FakePlayerDataSource: PlayerDataSource {
     var onEpisodeStarted: (() -> Void)?
 
     private(set) var playedURLs: [URL] = []
+    /// The start each play asked for (nil = the beginning).
+    private(set) var startPercentages: [Float?] = []
     private(set) var resumeCount = 0
     private(set) var pauseCount = 0
 
     // Like AVPlayerDataSource, report the new state through the callback.
-    func play(url: URL) {
+    func play(url: URL, startingAt percentage: Float?) {
         playedURLs.append(url)
+        startPercentages.append(percentage)
         onStateChange?(true)
     }
 

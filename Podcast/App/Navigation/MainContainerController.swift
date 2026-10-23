@@ -417,11 +417,15 @@ extension MainContainerController: UINavigationControllerDelegate {
         if navigator.hidesBottomBar != isSearchDetail {
             navigator.hidesBottomBar = isSearchDetail
         }
-        // A podcast's page or an episode's page, from any tab: no bar, not
-        // even the mini player (their artwork goes edge to edge).
-        let isPodcastPage = viewController is EpisodesController || viewController is EpisodeDetailController
-        if navigator.hidesBarCompletely != isPodcastPage {
-            navigator.hidesBarCompletely = isPodcastPage
+        // A podcast's page, from any stack: only the mini player (no search).
+        let isPodcastPage = viewController is EpisodesController
+        if navigator.isOnPodcastPage != isPodcastPage {
+            navigator.isOnPodcastPage = isPodcastPage
+        }
+        // An episode's page: no bar, not even the mini player.
+        let isEpisodePage = viewController is EpisodeDetailController
+        if navigator.hidesBarCompletely != isEpisodePage {
+            navigator.hidesBarCompletely = isEpisodePage
         }
     }
 

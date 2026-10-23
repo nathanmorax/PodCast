@@ -34,7 +34,7 @@ final class PlayerManager {
         self.recentlyPlayed = recentlyPlayed
         self.viewModel = viewModel
         self.nowPlaying = nowPlaying
-        connectNowPlaying()
+        connectPlayback()
     }
     
     var currentEpisode: Episode?
@@ -61,7 +61,7 @@ final class PlayerManager {
     func restoreLastPlayed() {
         guard currentEpisode == nil, let last = recentlyPlayed.items.first else { return }
         // Finished episodes start again from the beginning.
-        let progress = last.progress < 0.98 ? last.progress : 0
+        let progress = last.resumeProgress
         currentEpisode = last.episode
         defer { publishNowPlaying() }
         restoredProgress = progress
@@ -160,6 +160,18 @@ final class PlayerManager {
         viewModel.togglePlayPause()
     }
 
+    /// The mini player's ⟳ 15. Does nothing until the audio is loaded (the
+    /// episode restored at launch, before its first play).
+    func skipForward() {
+        handle(.skipForward)
+    }
+
+    /// Whether ⟳ 15 can act right now. (Re-read when play/pause changes:
+    /// that's also when a restored episode gets loaded.)
+    var canSkip: Bool {
+        currentEpisode != nil && restoredProgress == nil
+    }
+
     /// The app is being closed (force quit): remember where the listener was
     /// in the current episode, then stop the audio.
     func stopForTermination() {
@@ -177,12 +189,24 @@ extension PlayerManager {
 
     /// Listens to the player (play, pause, seek, length known) and to the
     /// controls outside the app.
-    private func connectNowPlaying() {
-        guard let nowPlaying else { return }
-        viewModel.onPlaybackChange = { [weak self] in self?.publishNowPlaying() }
-        nowPlaying.onCommand = { [weak self] command in
+    private func connectPlayback() {
+        viewModel.onPlaybackChange = { [weak self] in
+            guard let self else { return }
+            // Paused: remember where, so "Recently played" and the next
+            // launch resume from here even if the app is closed later.
+            if !viewModel.isPlaying { saveProgress() }
+            publishNowPlaying()
+        }
+        nowPlaying?.onCommand = { [weak self] command in
             self?.handle(command) ?? false
         }
+    }
+
+    /// Saves how far the current episode got. Skipped for an episode restored
+    /// at launch and not played yet: its saved position is already the right one.
+    func saveProgress() {
+        guard let current = currentEpisode, restoredProgress == nil else { return }
+        recentlyPlayed.updateProgress(for: current, progress: Double(viewModel.progress))
     }
 
     /// Sends the current episode and position to the lock screen.
