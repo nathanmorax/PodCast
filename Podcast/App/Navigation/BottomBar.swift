@@ -152,7 +152,7 @@ struct BottomBar: View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(AppColor.lavenderInk)
+                .foregroundStyle(AppColor.accentInk)
                 .accessibilityHidden(true)
 
             TextField("Search podcasts", text: Binding(

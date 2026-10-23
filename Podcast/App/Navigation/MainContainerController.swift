@@ -42,7 +42,7 @@ final class MainContainerController: UIViewController, NavigationContainer {
     private static func makeStack(root: UIViewController) -> UINavigationController {
         let navigation = UINavigationController(rootViewController: root)
         // Back arrows and bar buttons in the app's violet.
-        navigation.navigationBar.tintColor = ColorName.lavenderInk.uiColor
+        navigation.navigationBar.tintColor = ColorName.accentInk.uiColor
         // Standard (inline) titles everywhere: no large titles, so every
         // header sits at the same height.
         navigation.navigationBar.prefersLargeTitles = false
