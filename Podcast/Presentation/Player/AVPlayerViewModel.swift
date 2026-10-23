@@ -117,6 +117,10 @@ class AVPlayerViewModel {
         // Unknown until the new episode reports it (the lock screen waits for it).
         currentDurationSeconds = 0
         startAt = (progress ?? 0) > 0 ? progress : nil
+        // Not the previous episode's position: pausing before the first tick
+        // would save it for this one.
+        self.progress = progress ?? 0
+        remainingTimeText = ""
         player.play(url: url)
     }
 

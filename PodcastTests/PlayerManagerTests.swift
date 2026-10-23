@@ -148,3 +148,52 @@ struct PlayerManagerTests {
         #expect(sut.presentation == .hidden)
     }
 }
+
+@MainActor
+@Suite("Resume from Recently played")
+struct ResumeTests {
+
+    private let player = FakePlayerDataSource()
+    private let recentlyPlayed = RecentlyPlayedManager(userDefaults: .isolated())
+    private let sut: PlayerManager
+    private let episode = Fixtures.episode(streamUrl: "https://example.com/r.mp3", title: "Reanudar")
+
+    init() {
+        sut = PlayerManager(
+            downloadManager: DownloadManager(
+                userDefaults: .isolated(),
+                downloadsDirectory: FileManager.default.temporaryDirectory
+                    .appendingPathComponent("ResumeTests-\(UUID().uuidString)", isDirectory: true)
+            ),
+            recentlyPlayed: recentlyPlayed,
+            viewModel: AVPlayerViewModel(player: player)
+        )
+    }
+
+    @Test("Playing from a saved position starts there, not at 0:00")
+    func startsWhereLeft() {
+        sut.play(episode, from: 0.4)
+        #expect(abs(sut.viewModel.progress - 0.4) < 0.001)
+
+        // First tick from the new episode, still at 0:00: it jumps to 40%.
+        player.sendTime(current: 0, total: 1_000)
+        #expect(abs(sut.viewModel.currentPlaybackSeconds - 400) < 0.5)
+    }
+
+    @Test("Pausing saves where the episode is")
+    func pauseSaves() {
+        sut.play(episode)
+        player.sendTime(current: 300, total: 1_000)
+
+        sut.togglePlayPause()
+
+        #expect(abs((recentlyPlayed.items.first?.progress ?? 0) - 0.3) < 0.01)
+    }
+
+    @Test("A finished episode starts over")
+    func finishedStartsOver() {
+        let finished = RecentlyPlayed(episode: episode, lastPlayedAt: .now, progress: 0.99)
+        #expect(finished.resumeProgress == 0)
+        #expect(RecentlyPlayed(episode: episode, lastPlayedAt: .now, progress: 0.5).resumeProgress == 0.5)
+    }
+}

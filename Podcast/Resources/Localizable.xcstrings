@@ -72,16 +72,6 @@
         }
       }
     },
-    "%lld min left" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Faltan %lld min"
-          }
-        }
-      }
-    },
     "%lld of %lld" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -850,16 +840,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reproducir podcast"
-          }
-        }
-      }
-    },
-    "Played" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escuchado"
           }
         }
       }
