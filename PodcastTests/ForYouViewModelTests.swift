@@ -75,4 +75,38 @@ struct ForYouViewModelTests {
         #expect(sut.items.isEmpty)
         #expect(!sut.isLoading)
     }
+
+    @Test("After closing the app, the last row shows at once and then refreshes")
+    func savedRowShowsAtOnce() async {
+        let cache = ForYouCache(userDefaults: .isolated())
+        let podcast = Fixtures.podcast(id: 1)
+
+        // First launch: read the feed and save the row.
+        let first = ForYouViewModel(repository: MockSearchPodcastRepository(episodes: [episode("old", at: 1)]), cache: cache)
+        first.load(following: [podcast])
+        await first.loadTask?.value
+
+        // Next launch: the saved row is there before any feed is read…
+        let repository = MockSearchPodcastRepository(episodes: [episode("new", at: 2)])
+        let second = ForYouViewModel(repository: repository, cache: cache)
+        second.load(following: [podcast])
+        #expect(second.items.map(\.episode.title) == ["old"])
+
+        // …and the refresh replaces it in place.
+        await second.loadTask?.value
+        #expect(second.items.map(\.episode.title) == ["new"])
+        #expect(await repository.fetchedFeeds.count == 1)
+    }
+
+    @Test("The saved copy keeps only what the row can show, without the long notes")
+    func cacheIsLight() {
+        let cache = ForYouCache(userDefaults: .isolated())
+        var withNotes = episode("a", at: 3)
+        withNotes.showNotes = String(repeating: "x", count: 10_000)
+        cache.save([1: [episode("b", at: 1), withNotes, episode("c", at: 2)]])
+
+        let saved = cache.load()[1] ?? []
+        #expect(saved.map(\.title) == ["a", "c"])
+        #expect(saved.allSatisfy { $0.showNotes == nil })
+    }
 }

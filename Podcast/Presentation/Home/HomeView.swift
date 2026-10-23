@@ -23,7 +23,7 @@ struct HomeView: View {
     @Environment(\.interestsManager) private var interests
 
     /// Owned by the view: created once, keeps its results while Library lives.
-    @State private var forYou = ForYouViewModel()
+    @State private var forYou = ForYouViewModel(cache: .standard)
     /// Owned by the view: each category's shows stay while Library lives.
     @State private var browse = BrowseViewModel()
 

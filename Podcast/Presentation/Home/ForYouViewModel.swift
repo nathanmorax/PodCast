@@ -9,8 +9,11 @@ import Observation
 /// "For you" in Library: the latest episodes of the podcasts you follow,
 /// newest first, in one row.
 ///
-/// Each followed podcast's RSS is read once and kept in memory, so going
-/// back to Library (or following one more) only downloads what's missing.
+/// What was shown last time is saved (ForYouCache) and appears at once, even
+/// right after the app was closed; meanwhile each followed podcast's RSS is
+/// read again, once per launch, and the row updates in place when it lands.
+/// Going back to Library (or following one more) only downloads what's
+/// missing.
 @MainActor
 @Observable
 final class ForYouViewModel {
@@ -32,11 +35,20 @@ final class ForYouViewModel {
     @ObservationIgnored private let repository: any SearchPodcastRepository
     /// Episodes per podcast (trackId), newest first.
     @ObservationIgnored private var episodesByPodcast: [Int: [Episode]] = [:]
+    /// Podcasts whose feed was read in this launch (the rest come from the
+    /// saved copy and get refreshed).
+    @ObservationIgnored private var refreshed: Set<Int> = []
+    @ObservationIgnored private let cache: ForYouCache?
     /// Internal read access so tests can await it.
     @ObservationIgnored private(set) var loadTask: Task<Void, Never>?
 
-    init(repository: any SearchPodcastRepository = PodcastRepositoryImpl(remoteDataSource: PodcastRemoteDataService())) {
+    /// - Parameter cache: where the last row is saved between launches.
+    ///   Nil (tests, previews): memory only.
+    init(repository: any SearchPodcastRepository = PodcastRepositoryImpl(remoteDataSource: PodcastRemoteDataService()),
+         cache: ForYouCache? = nil) {
         self.repository = repository
+        self.cache = cache
+        self.episodesByPodcast = cache?.load() ?? [:]
     }
 
     func load(following: [Podcast]) {
@@ -44,12 +56,15 @@ final class ForYouViewModel {
         // What's cached shows right away.
         items = Self.latest(from: following, episodes: episodesByPodcast)
 
-        let missing = following.filter { episodesByPodcast[$0.trackId] == nil && $0.feedUrl != nil }
+        // Not read yet in this launch: new follows, and what came from the
+        // saved copy (shown already, refreshed quietly).
+        let missing = following.filter { !refreshed.contains($0.trackId) && $0.feedUrl != nil }
         guard !missing.isEmpty else {
             isLoading = false
             return
         }
 
+        // The spinner only when there's nothing to show yet.
         isLoading = true
         let repository = self.repository
         loadTask = Task {
@@ -70,8 +85,13 @@ final class ForYouViewModel {
             }
             guard !Task.isCancelled else { return }
             episodesByPodcast.merge(fetched) { _, new in new }
+            // Failed ones stay as saved and are tried again next time.
+            refreshed.formUnion(fetched.keys)
             items = Self.latest(from: following, episodes: episodesByPodcast)
             isLoading = false
+            // Only what you still follow is worth keeping.
+            let followed = Set(following.map(\.trackId))
+            cache?.save(episodesByPodcast.filter { followed.contains($0.key) })
         }
     }
 
