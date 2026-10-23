@@ -29,7 +29,7 @@ struct TranscribingIndicator: View {
         VStack(spacing: 18) {
             Image(systemName: "waveform")
                 .font(.system(size: 44, weight: .medium))
-                .foregroundStyle(AppColor.lavenderInk)
+                .foregroundStyle(AppColor.accentInk)
                 .symbolEffect(.variableColor.iterative.reversing, options: .repeating)
                 .accessibilityHidden(true)
 

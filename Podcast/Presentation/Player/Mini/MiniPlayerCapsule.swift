@@ -76,7 +76,7 @@ struct MiniPlayerCapsule: View {
     }
 }
 
-/// A thin capsule track with the played part in lavender, and the time left
+/// A thin capsule track with the played part in mustard, and the time left
 /// next to it ("−23:10"). Reads the progress itself, so the rest of the mini
 /// player doesn't update every tick.
 private struct MiniProgressBar: View {
@@ -92,7 +92,7 @@ private struct MiniProgressBar: View {
                 .frame(height: 4)
                 .overlay(alignment: .leading) {
                     Capsule()
-                        .fill(AppColor.lavender)
+                        .fill(AppColor.accent)
                         .scaleEffect(x: progress, y: 1, anchor: .leading)
                 }
                 .clipShape(Capsule())
