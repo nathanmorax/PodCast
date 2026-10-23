@@ -39,6 +39,14 @@ class AVPlayerViewModel {
         Double(progress) * currentDurationSeconds
     }
 
+    /// The episode's length, once the player knows it (0 before).
+    var durationSeconds: Double { currentDurationSeconds }
+
+    /// Called when what the lock screen shows must change: play/pause, a
+    /// seek, or the length becoming known. Not on every time tick: the
+    /// system moves its bar by itself.
+    @ObservationIgnored var onPlaybackChange: (() -> Void)?
+
     // MARK: - Init
     init(player: PlayerDataSource = AVPlayerDataSource()) {
         self.player = player
@@ -68,6 +76,7 @@ class AVPlayerViewModel {
             let current = CMTimeGetSeconds(current)
             guard total.isFinite, total > 0, current.isFinite else { return }
 
+            let lengthIsNew = currentDurationSeconds != total
             currentDurationSeconds = total
             // First update of a resumed episode: jump to where it was left.
             if let start = startAt {
@@ -84,8 +93,13 @@ class AVPlayerViewModel {
             }
             progress = reported
             remainingTimeText = Self.shortTime(max(total - current, 0))
+            // The lock screen learns the length (and where it is) once.
+            if lengthIsNew { onPlaybackChange?() }
         }
-        player.onStateChange = { [weak self] in self?.isPlaying = $0 }
+        player.onStateChange = { [weak self] in
+            self?.isPlaying = $0
+            self?.onPlaybackChange?()
+        }
         player.onEpisodeStarted = { [weak self] in }
     }
 
@@ -100,6 +114,8 @@ class AVPlayerViewModel {
     /// - Parameter progress: 0...1 to resume from (nil or 0 = the beginning).
     func playEpisode(url: URL, startingAt progress: Float? = nil) {
         currentURL = url
+        // Unknown until the new episode reports it (the lock screen waits for it).
+        currentDurationSeconds = 0
         startAt = (progress ?? 0) > 0 ? progress : nil
         player.play(url: url)
     }
@@ -116,14 +132,26 @@ class AVPlayerViewModel {
         isPlaying ? player.pause() : player.resume()
     }
 
-    func seekForward()  { player.seek(by: 15)  }
-    func seekBackward() { player.seek(by: -15) }
+    func seekForward()  { seek(bySeconds: 15) }
+    func seekBackward() { seek(bySeconds: -15) }
+
+    /// Jumps from where it is now (the 15 s buttons, the lock screen's, the
+    /// AirPods'). With the length known it goes through `seek(to:)`, so the
+    /// bar moves at once and the lock screen hears about it.
+    private func seek(bySeconds delta: Double) {
+        guard currentDurationSeconds > 0 else {
+            player.seek(by: Int64(delta))
+            return
+        }
+        seek(toSeconds: min(max(currentPlaybackSeconds + delta, 0), currentDurationSeconds))
+    }
     /// Jumps there now in the UI (no waiting for the stream), then seeks.
     func seek(to percentage: Float) {
         let target = min(max(percentage, 0), 1)
         progress = target
         pendingSeek = (target, Date())
         player.seek(to: target)
+        onPlaybackChange?()
     }
 
     /// Jumps to a second of the episode (a chapter, a transcript line).
