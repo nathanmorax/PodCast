@@ -5,8 +5,8 @@
 
 import SwiftUI
 
-/// "What do you like to listen to?" — one screen, all lavender (the app's
-/// brand color). Genres are white pills; picked ones turn deep lavender with
+/// "What do you like to listen to?" — one screen, all in the accent color (the app's
+/// brand color). Genres are white pills; picked ones turn deep green with
 /// a check. Shown on first launch and from Home's "Edit".
 struct OnboardingView: View {
 
@@ -19,7 +19,7 @@ struct OnboardingView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            AppColor.lavender
+            AppColor.accent
                 .ignoresSafeArea()
 
             ScrollView {
@@ -43,7 +43,8 @@ struct OnboardingView: View {
                     chooseForMeButton
                         .padding(.top, 18)
                 }
-                .foregroundStyle(.white)
+                // Ink on the mustard background (white on it was 2:1).
+                .foregroundStyle(AppColor.Text.onPastel)
                 .padding(.horizontal, 20)
                 .padding(.top, 56)
                 .padding(.bottom, 120) // room for the button
@@ -76,10 +77,10 @@ struct OnboardingView: View {
                 Text(genre.name)
                     .font(AppFont.button)
             }
-            .foregroundStyle(isOn ? Color.white : AppColor.lavenderInk)
+            .foregroundStyle(isOn ? AppColor.screenBackground : AppColor.accentInk)
             .padding(.horizontal, isOn ? 16 : 20)
             .frame(height: 48)
-            .background(Capsule().fill(isOn ? AppColor.lavenderInk : Color.white.opacity(0.9)))
+            .background(Capsule().fill(isOn ? AppColor.accentInk : Color.white.opacity(0.9)))
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -99,9 +100,9 @@ struct OnboardingView: View {
                     .monospacedDigit()
                     .contentTransition(.numericText())
                     .frame(minWidth: 24, minHeight: 24)
-                    .background(Circle().fill(AppColor.lavender.opacity(0.25)))
+                    .background(Circle().fill(AppColor.accent.opacity(0.25)))
             }
-            .foregroundStyle(AppColor.lavenderInk)
+            .foregroundStyle(AppColor.accentInk)
             .frame(maxWidth: .infinity)
             .frame(height: 56)
             .background(Capsule().fill(.white))
@@ -121,7 +122,7 @@ struct OnboardingView: View {
         } label: {
             Label("Choose for me", systemImage: "sparkles")
                 .font(AppFont.label)
-                .foregroundStyle(.white)
+                .foregroundStyle(AppColor.Text.onPastel)
                 .underline()
         }
         .buttonStyle(.plain)
@@ -132,7 +133,7 @@ struct OnboardingView: View {
             withAnimation(AppAnimation.onboarding) { model.cancel(into: interests) }
         }
         .font(AppFont.label)
-        .foregroundStyle(.white.opacity(0.85))
+        .foregroundStyle(AppColor.Text.onPastel.opacity(0.8))
         .padding(.horizontal, 20)
         .frame(minHeight: 44)
     }

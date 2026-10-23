@@ -21,19 +21,27 @@ enum AppColor {
     static let oliveGreen    = Color(asset: .oliveGreen)
     static let burntOrange   = Color(asset: .burntOrange)
     static let charcoalBrown = Color(asset: .charcoalBrown)
-    static let lavender      = Color(asset: .lavender)
     static let background    = Color(asset: .background)
 
     // MARK: - Surfaces and ink
 
-    /// Light grey behind Inicio and Biblioteca.
+    // The palette of the "Binsoo" sketches: warm cream paper, near-black ink,
+    // mustard and field green taken from the film photo. Dark mode is the
+    // same palette inverted (cream on near-black). Contrast, checked:
+    // ink on cream 14.7:1, field green on cream 7.6:1, light green on
+    // near-black 10.7:1, ink on mustard 8.7:1.
+
+    /// Warm cream behind every screen (light) / near-black (dark).
     static let screenBackground = Color(asset: .screenBackground)
-    /// Soft white of the full player.
+    /// Lighter cream of the full player and sheets / raised near-black.
     static let paper            = Color(asset: .paper)
-    /// Near-black text of the full player.
+    /// Near-black text (light) / cream text (dark).
     static let ink              = Color(asset: .ink)
-    /// Dark lavender: selected tab, accents on light backgrounds.
-    static let lavenderInk      = Color(asset: .lavenderInk)
+    /// Mustard: fills (play pills, progress, highlights). Text on it is ink.
+    static let accent           = Color(asset: .accent)
+    /// Field green: accent text and icons, selected states, links
+    /// (deep green on cream / light green on near-black).
+    static let accentInk        = Color(asset: .accentInk)
     /// Transcript page: sepia paper (light) / warm near-black (dark).
     /// Softer than white/black: ~13–14:1 contrast without the glare.
     static let readingBackground = Color(asset: .readingBackground)
@@ -62,9 +70,9 @@ enum AppColor {
         /// The selected pill of a segmented control, a focused field:
         /// white / a lighter grey than the cards.
         static let raised    = Color(asset: .surfaceRaised)
-        /// A quiet grey block (Search's category cards): a step above the
-        /// screen in both light and dark.
-        static let muted     = Color(uiColor: .systemGray5)
+        /// A quiet block (Search's category cards, unselected chips): a step
+        /// darker than the cream (light) / lighter than the black (dark).
+        static let muted     = Color(asset: .surfaceMuted)
     }
 
     /// Text on the app's light surfaces. One ink at three strengths, so
@@ -76,24 +84,25 @@ enum AppColor {
         static let secondary = AppColor.ink.opacity(0.55)
         /// Hints, timestamps, chevrons, played items.
         static let tertiary  = AppColor.ink.opacity(0.35)
-        /// On violet or dark fills.
-        static let inverse   = Color.white
+        /// On ink or green fills: cream in light mode, near-black in dark
+        /// (always the opposite of the fill, so it stays readable).
+        static let inverse   = AppColor.screenBackground
         /// On pastel or light-violet fills (genre cards, play buttons):
         /// stays dark in dark mode, where `primary` turns light.
         static let onPastel  = Color(asset: .inkOnPastel)
         /// Links and text buttons ("Edit", "Clear", "Try again").
-        static let link      = AppColor.lavenderInk
+        static let link      = AppColor.accentInk
     }
 
-    /// The app's main color: violet. Primary buttons, links, selection,
-    /// progress and the navigation bar's buttons use it (AccentColor in the
-    /// asset catalog is the same violet, so system controls match).
+    /// The app's accent: field green for text and icons, mustard for fills.
+    /// AccentColor in the asset catalog is the same green, so system
+    /// controls (back arrow, switches, links) match.
     enum Accent {
-        /// Deep violet: filled buttons, links, selected states, icons.
-        static let strong = AppColor.lavenderInk
-        /// Light violet: play buttons, progress, highlights.
-        static let soft   = AppColor.lavender
-        /// A violet tint for backgrounds behind violet icons/text.
-        static let wash   = AppColor.lavender.opacity(0.18)
+        /// Field green: links, selected states, accent icons and text.
+        static let strong = AppColor.accentInk
+        /// Mustard: play pills, progress, highlights.
+        static let soft   = AppColor.accent
+        /// A mustard tint behind accent icons/text.
+        static let wash   = AppColor.accent.opacity(0.22)
     }
 }

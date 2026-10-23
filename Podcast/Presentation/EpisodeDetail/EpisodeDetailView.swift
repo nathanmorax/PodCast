@@ -141,7 +141,7 @@ struct EpisodeDetailView: View {
 
     // MARK: - Actions
 
-    /// Listen (lavender pill), then save, download and share as circles —
+    /// Listen (mustard pill), then save, download and share as circles —
     /// the same row as the podcast page.
     private var actionsRow: some View {
         HStack(spacing: 10) {

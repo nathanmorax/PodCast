@@ -41,11 +41,11 @@ struct PlayerView: View {
         _chapters = State(initialValue: EpisodeChapter.parse(showNotes: episode.chapterSource))
     }
     
-    // MARK: - Style (soft white, near-black ink, lavender accent)
+    // MARK: - Style (cream paper, ink, mustard accent)
     
     private static let paper = AppColor.paper
     private static let ink = AppColor.ink
-    private static let accent = AppColor.lavender
+    private static let accent = AppColor.accent
     
     
     var body: some View {
@@ -365,7 +365,7 @@ struct PlayerView: View {
     }
 
     /// Read like an article: every line in serif; the one being said becomes
-    /// a quote (italic, with a lavender “).
+    /// a quote (italic, with an accent “).
     private func transcriptRow(_ segment: LocalTranscriptSegment) -> some View {
         let isCurrent = transcript.currentSegment?.id == segment.id
         return Button {
@@ -443,7 +443,7 @@ struct PlayerView: View {
         let isCurrent = currentChapter?.id == chapter.id
         let isPast = !isCurrent && chapter.start < viewModel.currentPlaybackSeconds
         let dotColor: Color = isCurrent ? Self.accent : Color.clear
-        let titleColor: Color = isCurrent ? AppColor.lavenderInk : Self.ink.opacity(isPast ? 0.45 : 1)
+        let titleColor: Color = isCurrent ? AppColor.accentInk : Self.ink.opacity(isPast ? 0.45 : 1)
         let titleWeight: Font.Weight = isCurrent ? .bold : .medium
         return Button {
             viewModel.seek(toSeconds: chapter.start)
@@ -452,7 +452,7 @@ struct PlayerView: View {
                 Text(AVPlayerViewModel.shortTime(chapter.start))
                     .font(AppFont.footnote)
                     .monospacedDigit()
-                    .foregroundStyle(isCurrent ? AppColor.lavenderInk : Self.ink.opacity(0.45))
+                    .foregroundStyle(isCurrent ? AppColor.accentInk : Self.ink.opacity(0.45))
                     .frame(width: 52, alignment: .leading)
                 Text(chapter.title)
                     .font(AppFont.itemTitle.weight(titleWeight))
@@ -503,7 +503,7 @@ struct PlayerView: View {
             if let icon {
                 Image(systemName: icon)
                     .font(.system(size: 28, weight: .regular))
-                    .foregroundStyle(AppColor.lavenderInk)
+                    .foregroundStyle(AppColor.accentInk)
                     .accessibilityHidden(true)
             }
             title
@@ -524,10 +524,10 @@ struct PlayerView: View {
         Button(action: action) {
             Text(title)
                 .font(AppFont.label)
-                .foregroundStyle(.white)
+                .foregroundStyle(AppColor.Text.inverse)
                 .padding(.horizontal, 22)
                 .frame(height: 44)
-                .background(Capsule().fill(AppColor.lavenderInk))
+                .background(Capsule().fill(AppColor.accentInk))
         }
         .buttonStyle(.plain)
     }
@@ -663,7 +663,7 @@ struct PlayerView: View {
     
     // MARK: - Controls
     
-    /// −15 · lavender play/pause · +15, nothing else in the main row.
+    /// −15 · accent play/pause · +15, nothing else in the main row.
     private var controlsSection: some View {
         HStack(spacing: 40) {
             seekBackwardButton

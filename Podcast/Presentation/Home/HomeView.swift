@@ -166,7 +166,7 @@ struct HomeView: View {
         VStack(spacing: 14) {
             Image(systemName: "waveform")
                 .font(.system(size: 40, weight: .semibold))
-                .foregroundStyle(AppColor.lavenderInk)
+                .foregroundStyle(AppColor.accentInk)
                 .accessibilityHidden(true)
             Text("Nothing followed yet")
                 .font(AppFont.sectionTitle)

@@ -6,7 +6,7 @@
 import SwiftUI
 
 /// A category's number 1: its cover big, a large "1", the name in serif and
-/// a lavender "Listen" that plays its newest episode.
+/// a mustard "Listen" that plays its newest episode.
 struct TopPodcastCard: View {
 
     let podcast: Podcast
