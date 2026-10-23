@@ -11,7 +11,8 @@ import Observation
 @Observable
 final class PlayerManager {
     
-    static let shared = PlayerManager()
+    /// The app's player: the only one wired to the lock screen.
+    static let shared = PlayerManager(nowPlaying: SystemNowPlayingService())
 
     @ObservationIgnored
     private let downloadManager: DownloadManager
@@ -19,14 +20,21 @@ final class PlayerManager {
     @ObservationIgnored
     private let recentlyPlayed: RecentlyPlayedManager
 
+    /// Lock screen, Control Center and AirPods. Nil in tests and previews.
+    @ObservationIgnored
+    private let nowPlaying: (any NowPlayingService)?
+
     init(
         downloadManager: DownloadManager = .shared,
         recentlyPlayed: RecentlyPlayedManager = .shared,
-        viewModel: AVPlayerViewModel = AVPlayerViewModel()
+        viewModel: AVPlayerViewModel = AVPlayerViewModel(),
+        nowPlaying: (any NowPlayingService)? = nil
     ) {
         self.downloadManager = downloadManager
         self.recentlyPlayed = recentlyPlayed
         self.viewModel = viewModel
+        self.nowPlaying = nowPlaying
+        connectNowPlaying()
     }
     
     var currentEpisode: Episode?
@@ -55,6 +63,7 @@ final class PlayerManager {
         // Finished episodes start again from the beginning.
         let progress = last.progress < 0.98 ? last.progress : 0
         currentEpisode = last.episode
+        defer { publishNowPlaying() }
         restoredProgress = progress
         viewModel.progress = Float(progress)
         presentation = .mini
@@ -96,6 +105,7 @@ final class PlayerManager {
         recentlyPlayed.record(episode)
         
         currentEpisode = episode
+        // The lock screen hears about it once playback starts (onPlaybackChange).
         startPlayback(of: episode, startingAt: progress)
         
         withAnimation(AppAnimation.playerPresentation) {
@@ -157,5 +167,63 @@ final class PlayerManager {
             recentlyPlayed.updateProgress(for: current, progress: Double(viewModel.progress))
         }
         viewModel.stop()
+        nowPlaying?.clear()
+    }
+}
+
+// MARK: - Lock screen, Control Center, AirPods
+
+extension PlayerManager {
+
+    /// Listens to the player (play, pause, seek, length known) and to the
+    /// controls outside the app.
+    private func connectNowPlaying() {
+        guard let nowPlaying else { return }
+        viewModel.onPlaybackChange = { [weak self] in self?.publishNowPlaying() }
+        nowPlaying.onCommand = { [weak self] command in
+            self?.handle(command) ?? false
+        }
+    }
+
+    /// Sends the current episode and position to the lock screen.
+    func publishNowPlaying() {
+        guard let nowPlaying else { return }
+        guard let episode = currentEpisode else {
+            nowPlaying.clear()
+            return
+        }
+        // A restored episode isn't loaded yet: its position is the saved one.
+        let elapsed = restoredProgress.map { $0 * (episode.durationSeconds ?? 0) }
+            ?? viewModel.currentPlaybackSeconds
+        nowPlaying.update(NowPlayingState(
+            episode: episode,
+            durationSeconds: viewModel.durationSeconds > 0 ? viewModel.durationSeconds : (episode.durationSeconds ?? 0),
+            elapsedSeconds: elapsed,
+            isPlaying: viewModel.isPlaying
+        ))
+    }
+
+    /// A control pressed outside the app. False when there's nothing to act on.
+    @discardableResult
+    func handle(_ command: RemoteCommand) -> Bool {
+        guard currentEpisode != nil else { return false }
+        switch command {
+        case .play:
+            if !viewModel.isPlaying { togglePlayPause() }
+        case .pause:
+            if viewModel.isPlaying { togglePlayPause() }
+        case .togglePlayPause:
+            togglePlayPause()
+        case .skipForward:
+            guard restoredProgress == nil else { return false }
+            viewModel.seekForward()
+        case .skipBackward:
+            guard restoredProgress == nil else { return false }
+            viewModel.seekBackward()
+        case .seek(let seconds):
+            guard restoredProgress == nil else { return false }
+            viewModel.seek(toSeconds: seconds)
+        }
+        return true
     }
 }
