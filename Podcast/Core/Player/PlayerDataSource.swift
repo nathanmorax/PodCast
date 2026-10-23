@@ -17,7 +17,9 @@ protocol PlayerDataSource: AnyObject {
     var onEpisodeStarted: (() -> Void)? { get set }
     
     
-    func play(url: URL)
+    /// Loads and plays. With a start (0...1) it begins there, silent until
+    /// it gets there: resuming never plays the first seconds.
+    func play(url: URL, startingAt percentage: Float?)
     func resume()
     func pause()
     func seek(by seconds: Int64)

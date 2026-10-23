@@ -135,8 +135,10 @@ struct PlayerManagerTests {
 
         sut.togglePlayPause()
         #expect(player.playedURLs.count == 1)
+        // The player starts there itself.
+        #expect(player.startPercentages.last == 0.5)
 
-        // First time update with a length: it jumps to the saved position.
+        // A tick still at 0:00 while it loads doesn't move the bar back.
         player.sendTime(current: 0, total: 1_000)
         #expect(abs(sut.viewModel.progress - 0.5) < 0.001)
     }
@@ -173,11 +175,18 @@ struct ResumeTests {
     @Test("Playing from a saved position starts there, not at 0:00")
     func startsWhereLeft() {
         sut.play(episode, from: 0.4)
+
+        // The player itself is told to start at 40% (not to play 0:00 and jump).
+        #expect(player.startPercentages.last == 0.4)
         #expect(abs(sut.viewModel.progress - 0.4) < 0.001)
 
-        // First tick from the new episode, still at 0:00: it jumps to 40%.
+        // A tick still at 0:00 while it loads doesn't move the bar back.
         player.sendTime(current: 0, total: 1_000)
         #expect(abs(sut.viewModel.currentPlaybackSeconds - 400) < 0.5)
+
+        // Once there, it follows the player as usual.
+        player.sendTime(current: 401, total: 1_000)
+        #expect(abs(sut.viewModel.currentPlaybackSeconds - 401) < 0.5)
     }
 
     @Test("Pausing saves where the episode is")

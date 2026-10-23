@@ -31,9 +31,12 @@ class AVPlayerViewModel {
     /// Where the last seek is going. Until the player gets there, the time
     /// observer still reports the old position; ignoring it keeps the bar
     /// from jumping back for a moment after letting go.
-    @ObservationIgnored private var pendingSeek: (target: Float, startedAt: Date)?
-    /// Where to start once the new episode reports its length (resume).
-    @ObservationIgnored private var startAt: Float?
+    @ObservationIgnored private var pendingSeek: (target: Float, until: Date)?
+
+    /// How long the bar trusts a seek before going back to what the player
+    /// says. Resuming waits longer: the stream has to load first.
+    private static let seekPatience: TimeInterval = 2
+    private static let resumePatience: TimeInterval = 20
 
     var currentPlaybackSeconds: Double {
         Double(progress) * currentDurationSeconds
@@ -78,17 +81,16 @@ class AVPlayerViewModel {
 
             let lengthIsNew = currentDurationSeconds != total
             currentDurationSeconds = total
-            // First update of a resumed episode: jump to where it was left.
-            if let start = startAt {
-                startAt = nil
-                seek(to: start)
-                return
-            }
             let reported = Float(current / total)
             if let seek = pendingSeek {
                 let arrived = abs(reported - seek.target) < 0.01
-                let gaveUp = Date().timeIntervalSince(seek.startedAt) > 2
-                guard arrived || gaveUp else { return }
+                guard arrived || Date() > seek.until else {
+                    // Still going there: keep showing the target (a resumed
+                    // episode shows where it was left, never 0:00).
+                    remainingTimeText = Self.shortTime(max(total * Double(1 - seek.target), 0))
+                    if lengthIsNew { onPlaybackChange?() }
+                    return
+                }
                 pendingSeek = nil
             }
             progress = reported
@@ -116,12 +118,14 @@ class AVPlayerViewModel {
         currentURL = url
         // Unknown until the new episode reports it (the lock screen waits for it).
         currentDurationSeconds = 0
-        startAt = (progress ?? 0) > 0 ? progress : nil
-        // Not the previous episode's position: pausing before the first tick
-        // would save it for this one.
-        self.progress = progress ?? 0
+        let start = (progress ?? 0) > 0 ? progress : nil
+        // The bar starts where the episode will (not the previous episode's
+        // position, and not 0:00 while a resume loads).
+        self.progress = start ?? 0
+        pendingSeek = start.map { ($0, Date().addingTimeInterval(Self.resumePatience)) }
         remainingTimeText = ""
-        player.play(url: url)
+        // The player starts there itself, silent until it arrives.
+        player.play(url: url, startingAt: start)
     }
 
     /// Stops for good: pauses and gives the audio session back to the system
@@ -153,7 +157,7 @@ class AVPlayerViewModel {
     func seek(to percentage: Float) {
         let target = min(max(percentage, 0), 1)
         progress = target
-        pendingSeek = (target, Date())
+        pendingSeek = (target, Date().addingTimeInterval(Self.seekPatience))
         player.seek(to: target)
         onPlaybackChange?()
     }
