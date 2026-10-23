@@ -41,34 +41,27 @@ struct RecentlyPlayedRow: View {
     }
 }
 
-/// Cover with a thin progress line at its foot, the title in serif and
-/// what's left ("23 min left", or "Played").
+/// Cover, the title in serif, and a lavender capsule with play, a small bar
+/// filled up to where you left off, and the minutes still to go ("23 min").
 private struct RecentlyPlayedCard: View {
 
     let item: RecentlyPlayed
 
     static let side: CGFloat = 140
 
-    private var isFinished: Bool { item.progress >= 0.98 }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Color.clear
                 .frame(width: Self.side, height: Self.side)
                 .overlay { PodcastImage(source: item.episode.imageUrl) }
-                .overlay(alignment: .bottom) { progressLine }
                 .clipShape(RoundedRectangle(cornerRadius: LibraryCover.cornerRadius, style: .continuous))
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text(item.episode.title)
-                    .font(AppFont.cardTitle)
-                    .foregroundStyle(AppColor.Text.primary)
-                    .lineLimit(2, reservesSpace: true)
-                Text(status)
-                    .font(AppFont.caption)
-                    .foregroundStyle(isFinished ? AppColor.Text.secondary : AppColor.Accent.strong)
-                    .lineLimit(1)
-            }
+            Text(item.episode.title)
+                .font(AppFont.cardTitle)
+                .foregroundStyle(AppColor.Text.primary)
+                .lineLimit(2, reservesSpace: true)
+
+            ResumeCapsule(progress: item.progress, minutes: minutes)
         }
         .frame(width: Self.side, alignment: .leading)
         .contentShape(Rectangle())
@@ -76,27 +69,51 @@ private struct RecentlyPlayedCard: View {
         .accessibilityHint("Resumes the episode")
     }
 
-    /// Lavender over a dark track, on the cover's bottom edge.
-    private var progressLine: some View {
-        GeometryReader { proxy in
-            Capsule()
-                .fill(AppColor.Accent.soft)
-                .frame(width: proxy.size.width * item.progress)
-        }
-        .frame(height: 4)
-        .background(.black.opacity(0.35))
-        .opacity(item.progress > 0 ? 1 : 0)
-        .accessibilityHidden(true)
-    }
-
-    /// "23 min left" while in the middle; "Played" once finished.
-    private var status: String {
-        if isFinished { return String(localized: "Played") }
-        guard let total = item.episode.durationSeconds, item.progress > 0 else {
+    /// What's still to go; the whole length when it was finished (it starts
+    /// over) or the length isn't known yet.
+    private var minutes: String {
+        guard let total = item.episode.durationSeconds, total > 0 else {
             return item.episode.durationDisplayText
         }
-        let minutes = max(1, Int(((1 - item.progress) * total / 60).rounded(.up)))
-        return String(localized: "\(minutes) min left")
+        let left = item.progress < RecentlyPlayed.finishedThreshold ? (1 - item.progress) * total : total
+        return String(localized: "\(max(1, Int((left / 60).rounded(.up)))) min")
+    }
+}
+
+/// ▶ ━━━━──── 23 min, like the play pill of an episode row, with the bar
+/// painted up to where the listener stopped.
+private struct ResumeCapsule: View {
+
+    let progress: Double
+    let minutes: String
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "play.fill")
+                .font(.system(size: 9, weight: .bold))
+                .accessibilityHidden(true)
+
+            Capsule()
+                .fill(AppColor.Accent.strong.opacity(0.2))
+                .frame(height: 3)
+                .overlay(alignment: .leading) {
+                    Capsule()
+                        .fill(AppColor.Accent.strong)
+                        .scaleEffect(x: min(max(progress, 0), 1), y: 1, anchor: .leading)
+                }
+                .clipShape(Capsule())
+                .accessibilityHidden(true)
+
+            Text(minutes)
+                .font(AppFont.captionStrong)
+                .monospacedDigit()
+                .lineLimit(1)
+                .fixedSize()
+        }
+        .foregroundStyle(AppColor.Accent.strong)
+        .padding(.horizontal, 10)
+        .frame(height: 26)
+        .background(AppColor.Accent.wash, in: .capsule)
     }
 }
 

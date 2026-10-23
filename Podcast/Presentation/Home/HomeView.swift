@@ -82,8 +82,8 @@ struct HomeView: View {
             RecentlyPlayedRow(
                 items: played,
                 onResume: { item in
-                    // Finished ones start over.
-                    playerManager.play(item.episode, from: item.progress < 0.98 ? item.progress : 0)
+                    // From where it was left (finished ones start over).
+                    playerManager.play(item.episode, from: item.resumeProgress)
                 },
                 onOpen: { onOpenPlayedEpisode($0.episode) },
                 onRemove: { item in
