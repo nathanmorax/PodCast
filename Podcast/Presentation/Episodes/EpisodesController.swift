@@ -17,13 +17,18 @@ import SwiftUI
 /// rows itself, so there's nothing left to disagree. This controller keeps
 /// the UIKit parts: the navigation bar over the cover, the sheets, and the
 /// header's actions.
-final class EpisodesController: UIViewController {
+final class EpisodesController: UIViewController, ZoomDismissible {
 
     var podcast: Podcast? {
         didSet {
             // One request: episodes and the description come from the same feed.
             loadEpisodes()
         }
+    }
+
+    convenience init(podcast: Podcast) {
+        self.init()
+        self.podcast = podcast
     }
 
     private let headerActions = EpisodeHeaderActions()
@@ -106,7 +111,7 @@ final class EpisodesController: UIViewController {
         updateNavigationBar()
     }
 
-    // MARK: - Drag down to close (EpisodesController+Zoom)
+    // MARK: - Drag down to close (pushZooming)
 
     /// At the top (or pulled past it): dragging down closes the page.
     var isScrolledToTop: Bool { scrollOffset <= 1 }
