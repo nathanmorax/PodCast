@@ -721,6 +721,16 @@
         }
       }
     },
+    "More" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más"
+          }
+        }
+      }
+    },
     "Music" : {
       "localizations" : {
         "es" : {

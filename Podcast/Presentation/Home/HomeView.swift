@@ -123,10 +123,10 @@ struct HomeView: View {
 
             if forYou.items.isEmpty && forYou.isLoading {
                 ProgressView()
-                    .frame(maxWidth: .infinity, minHeight: 180)
+                    .frame(maxWidth: .infinity, minHeight: ForYouCard.height)
                     .padding(.horizontal, 20)
             } else {
-                ForYouEpisodesRow(
+                ForYouRow(
                     items: forYou.items,
                     onOpen: { onOpenEpisode($0.episode, $0.podcast) },
                     onPlay: { playerManager.play($0) },
