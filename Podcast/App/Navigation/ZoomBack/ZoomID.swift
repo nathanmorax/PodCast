@@ -18,7 +18,8 @@ enum ZoomID: Hashable {
     /// and in "Recently played" apart: each closes back into its own card.
     case episode(String, section: Section)
 
-    /// A row that opens a list (Following, Favorites, Downloads).
+    /// A row or button that opens a list (Following, Favorites, Downloads,
+    /// the Inbox).
     case collection(Collection)
 
     enum Section: Hashable {
@@ -30,5 +31,6 @@ enum ZoomID: Hashable {
         case following
         case favorites
         case downloads
+        case inbox
     }
 }

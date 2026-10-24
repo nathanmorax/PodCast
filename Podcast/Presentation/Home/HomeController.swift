@@ -71,21 +71,28 @@ final class HomeController: UIViewController {
         hosting.didMove(toParent: self)
     }
 
+    /// Keeps the tray's hosting controller alive (the bar only holds its view).
+    private var inboxButtonHost: UIHostingController<InboxBarButton>?
+
     /// The tray, top right. SwiftUI (for its badge) in a bar button; its
     /// view is also what the Inbox zooms out of and back into.
+    ///
+    /// Not added as a child controller: the bar's views belong to the
+    /// navigation controller, and UIKit crashes when a child of this screen
+    /// ends up in there (UIViewControllerHierarchyInconsistency).
     private func setupInboxButton() {
-        let button = UIHostingController(rootView: InboxBarButton(forYou: forYou) { [weak self] items in
+        let host = UIHostingController(rootView: InboxBarButton(forYou: forYou) { [weak self] items in
             self?.pushZooming(InboxController(items: items), from: .collection(.inbox))
         })
-        button.sizingOptions = .intrinsicContentSize
-        button.view.backgroundColor = .clear
-        addChild(button)
-        let item = UIBarButtonItem(customView: button.view)
+        host.sizingOptions = .intrinsicContentSize
+        host.view.backgroundColor = .clear
+        inboxButtonHost = host
+
+        let item = UIBarButtonItem(customView: host.view)
         // Its own look (tray + badge): no glass capsule behind it.
         item.hidesSharedBackground = true
         navigationItem.rightBarButtonItem = item
-        button.didMove(toParent: self)
-        ZoomSources.shared.register(button.view, id: .collection(.inbox), cornerRadius: 22)
+        ZoomSources.shared.register(host.view, id: .collection(.inbox), cornerRadius: 22)
     }
 
     /// Everything Home opens zooms out of its item and closes back into it

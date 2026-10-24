@@ -33,8 +33,9 @@ final class ForYouViewModel {
     private(set) var isLoading = false
 
     @ObservationIgnored private let repository: any SearchPodcastRepository
-    /// Episodes per podcast (trackId), newest first.
-    @ObservationIgnored private var episodesByPodcast: [Int: [Episode]] = [:]
+    /// Episodes per podcast (trackId), newest first. Observed: the Inbox
+    /// (InboxFeed) is built from them too.
+    private(set) var episodesByPodcast: [Int: [Episode]] = [:]
     /// Podcasts whose feed was read in this launch (the rest come from the
     /// saved copy and get refreshed).
     @ObservationIgnored private var refreshed: Set<Int> = []

@@ -19,10 +19,13 @@ import SwiftUI
 /// header's actions.
 final class EpisodesController: UIViewController, ZoomDismissible {
 
+    /// Set in `init(podcast:)`. Changing it later (already on screen)
+    /// reloads the feed.
     var podcast: Podcast? {
         didSet {
-            // One request: episodes and the description come from the same feed.
-            loadEpisodes()
+            // Inside an initializer Swift doesn't call didSet, so the first
+            // load happens in viewDidLoad; this one is for later changes.
+            if isViewLoaded { loadEpisodes() }
         }
     }
 
@@ -48,6 +51,8 @@ final class EpisodesController: UIViewController, ZoomDismissible {
         view.backgroundColor = ColorName.screenBackground.uiColor
         setupPage()
         listenToHeaderEvents()
+        // One request: episodes and the description come from the same feed.
+        loadEpisodes()
     }
 
     override func viewWillAppear(_ animated: Bool) {
