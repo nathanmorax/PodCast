@@ -48,6 +48,7 @@ enum AppFont {
     static let cardHeadline = Font.system(.title3, design: .serif, weight: .bold)
     static let itemTitle    = Font.system(.headline, design: .serif, weight: .bold)
     static let cardTitle    = Font.system(.subheadline, design: .serif, weight: .bold)
+    static let cardDeck     = Font.system(.callout, design: .serif)
     static let quote        = Font.system(.title3, design: .serif).italic()
     static let quoteSmall   = Font.system(.footnote, design: .serif).italic()
 
