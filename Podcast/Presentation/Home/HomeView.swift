@@ -23,8 +23,9 @@ struct HomeView: View {
     @Environment(\.downloadManager) private var downloadManager
     @Environment(\.interestsManager) private var interests
 
-    /// Owned by the view: created once, keeps its results while Library lives.
-    @State private var forYou = ForYouViewModel(cache: .standard)
+    /// Owned by HomeController: the Inbox button in the navigation bar reads
+    /// the same episodes.
+    let forYou: ForYouViewModel
     /// Owned by the view: each category's shows stay while Library lives.
     @State private var browse = BrowseViewModel()
 
@@ -200,6 +201,7 @@ struct HomeView: View {
 
 #Preview {
     HomeView(
+        forYou: ForYouViewModel(),
         onOpenPodcast: { _ in },
         onOpenEpisode: { _, _ in },
         onOpenPlayedEpisode: { _ in },
