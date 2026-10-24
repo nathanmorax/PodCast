@@ -53,10 +53,10 @@ struct HomeView: View {
                     librarySection
                 }
 
-                VStack(alignment: .leading, spacing: 14) {
-                    dateHeader
-                    collectionsSection
-                }
+//                VStack(alignment: .leading, spacing: 14) {
+//                    dateHeader
+//                    collectionsSection
+//                }
 
                 if !played.isEmpty {
                     recentlyPlayedSection
@@ -91,22 +91,27 @@ struct HomeView: View {
 
     // MARK: - Recently played
 
+    /// Every episode played as a big card, one per page (newest first).
     private var recentlyPlayedSection: some View {
         VStack(alignment: .leading, spacing: 14) {
             LibrarySectionHeader(title: "Recently played")
 
-            RecentlyPlayedRow(
+            RecentlyPlayedCarousel(
                 items: played,
-                onResume: { item in
-                    // From where it was left (finished ones start over).
-                    playerManager.play(item.episode, from: item.resumeProgress)
-                },
+                onResume: resume,
                 onOpen: { onOpenPlayedEpisode($0.episode) },
-                onRemove: { item in
-                    withAnimation(AppAnimation.listChange) { recentlyPlayed.remove(item) }
-                }
+                onRemove: remove
             )
         }
+    }
+
+    /// From where it was left (finished ones start over).
+    private func resume(_ item: RecentlyPlayed) {
+        playerManager.play(item.episode, from: item.resumeProgress)
+    }
+
+    private func remove(_ item: RecentlyPlayed) {
+        withAnimation(AppAnimation.listChange) { recentlyPlayed.remove(item) }
     }
 
     // MARK: - Library
