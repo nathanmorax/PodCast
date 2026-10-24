@@ -6,17 +6,17 @@
 import SwiftUI
 
 /// The Inbox tray as Library's navigation bar button (top right): counts
-/// what's new in the episodes "For you" already downloaded and opens the
-/// Inbox with them. Hosted in a UIBarButtonItem by HomeController.
+/// what's new in the followed podcasts' episodes and opens the Inbox with
+/// them. Hosted in a UIBarButtonItem by HomeController.
 struct InboxBarButton: View {
 
-    let forYou: ForYouViewModel
-    let onOpen: ([ForYouViewModel.Item]) -> Void
+    let feed: FollowingFeedViewModel
+    let onOpen: ([PodcastEpisode]) -> Void
 
     @Environment(\.favoritesManager) private var favoritesManager
 
-    private var items: [ForYouViewModel.Item] {
-        InboxFeed.items(following: favoritesManager.favorites, episodes: forYou.episodesByPodcast)
+    private var items: [PodcastEpisode] {
+        InboxFeed.items(following: favoritesManager.favorites, episodes: feed.episodesByPodcast)
     }
 
     private var newCount: Int {

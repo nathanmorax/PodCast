@@ -13,8 +13,8 @@ import SwiftUI
 /// the card) offers Play and Go to podcast.
 struct ForYouRow: View {
 
-    let items: [ForYouViewModel.Item]
-    let onOpen: (ForYouViewModel.Item) -> Void
+    let items: [PodcastEpisode]
+    let onOpen: (PodcastEpisode) -> Void
     let onPlay: (Episode) -> Void
     let onOpenPodcast: (Podcast) -> Void
 
@@ -53,7 +53,7 @@ struct ForYouRow: View {
 /// artwork's color, which both the card and the ••• use.
 private struct ForYouRowCard: View {
 
-    let item: ForYouViewModel.Item
+    let item: PodcastEpisode
     let onOpen: () -> Void
     let onPlay: () -> Void
     let onOpenPodcast: () -> Void

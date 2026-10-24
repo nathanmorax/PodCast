@@ -14,7 +14,7 @@ import SwiftUI
 /// ForYouRow.
 struct ForYouCard: View {
 
-    let item: ForYouViewModel.Item
+    let item: PodcastEpisode
     /// The artwork's color; nil while it's being read (a neutral gray).
     let tint: ArtworkTint?
 
@@ -25,7 +25,7 @@ struct ForYouCard: View {
     static var artworkWidth: CGFloat { height * artworkRatio }
 
     /// The episode's own artwork; the podcast's when the feed has none.
-    static func artworkSource(for item: ForYouViewModel.Item) -> String? {
+    static func artworkSource(for item: PodcastEpisode) -> String? {
         if let image = item.episode.imageUrl, !image.isEmpty { return image }
         return item.podcast.artworkUrl600
     }
