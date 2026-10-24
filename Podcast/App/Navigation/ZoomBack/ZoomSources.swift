@@ -3,22 +3,21 @@
 //  Podcast
 //
 
-import SwiftUI
 import UIKit
 
-/// The podcast covers on screen, so a podcast's page can close back into
-/// the item it was opened from (like Apple Podcasts).
+/// The items on screen that a screen can zoom out of and back into.
 ///
-/// The system zoom transition (EpisodesController.make) needs a UIView to
-/// zoom from and back into. SwiftUI images inside hosting controllers have
-/// none, so the covers that open a podcast are drawn by UIKit
-/// (ZoomSourceImage) and register here. Being the real cover matters: the
-/// system hides the source while the page travels and shows it again once
-/// the page lands on it. An invisible view behind a SwiftUI image left the
-/// image on screen the whole time, and the landing looked like a jump.
+/// The system zoom transition (`pushZooming(_:from:)`) needs a UIView to
+/// zoom from. SwiftUI content inside hosting controllers has none, so the
+/// items are drawn by UIKit (ZoomSourceImage for a cover, ZoomSourceHost for
+/// anything else) and register here under a ZoomID. Being the real item
+/// matters: the system hides it while the screen travels and shows it again
+/// once the screen lands on it. An invisible view behind a SwiftUI image
+/// left the image on screen the whole time, and the landing looked like a
+/// jump.
 ///
-/// No gesture is added to the cover: a gesture inside a Button's label
-/// takes the tap away from the Button, and the item stops opening.
+/// No gesture is added to the item: a gesture inside a Button's label takes
+/// the tap away from the Button, and the item stops opening.
 @MainActor
 final class ZoomSources {
 
@@ -26,28 +25,25 @@ final class ZoomSources {
 
     private struct Entry {
         weak var view: UIView?
-        var podcastID: Int
-        var cornerRadius: CGFloat
+        var id: ZoomID
     }
 
     private var entries: [ObjectIdentifier: Entry] = [:]
 
-    func register(_ view: UIView, podcastID: Int, cornerRadius: CGFloat) {
+    func register(_ view: UIView, id: ZoomID, cornerRadius: CGFloat) {
         entries = entries.filter { $0.value.view != nil }
         // The zoom takes the source's shape: a circle, rounded corners…
         view.layer.cornerRadius = cornerRadius
         view.layer.cornerCurve = .continuous
-        entries[ObjectIdentifier(view)] = Entry(view: view, podcastID: podcastID, cornerRadius: cornerRadius)
+        entries[ObjectIdentifier(view)] = Entry(view: view, id: id)
     }
 
-    /// The podcast's cover: the zoom transition grows the page out of it
-    /// and shrinks it back into it. The one on screen (the biggest, if it
-    /// shows up in more than one place).
-    func anchor(for podcastID: Int) -> UIView? {
+    /// The item's view: the one on screen, the biggest if the item shows up
+    /// in more than one place. nil (scrolled away): the system zooms from
+    /// the middle of the screen instead.
+    func anchor(for id: ZoomID) -> UIView? {
         let alive = entries.values.compactMap { entry -> UIView? in
-            guard entry.podcastID == podcastID,
-                  let view = entry.view,
-                  !view.bounds.isEmpty else { return nil }
+            guard entry.id == id, let view = entry.view, !view.bounds.isEmpty else { return nil }
             return view
         }
         let onScreen = alive.filter { $0.window != nil }

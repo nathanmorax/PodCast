@@ -20,11 +20,18 @@ struct CollectionRows: View {
     var body: some View {
         VStack(spacing: 0) {
             Divider()
-            CollectionRow(title: "Following", systemImage: "square.stack", count: following, action: onOpenFollowing)
+            // Each row is what its list zooms out of and back into.
+            ZoomSourceHost(id: .collection(.following)) {
+                CollectionRow(title: "Following", systemImage: "square.stack", count: following, action: onOpenFollowing)
+            }
             Divider()
-            CollectionRow(title: "Favorites", systemImage: "bookmark", count: favorites, action: onOpenFavorites)
+            ZoomSourceHost(id: .collection(.favorites)) {
+                CollectionRow(title: "Favorites", systemImage: "bookmark", count: favorites, action: onOpenFavorites)
+            }
             Divider()
-            CollectionRow(title: "Downloads", systemImage: "arrow.down.circle", count: downloads, action: onOpenDownloads)
+            ZoomSourceHost(id: .collection(.downloads)) {
+                CollectionRow(title: "Downloads", systemImage: "arrow.down.circle", count: downloads, action: onOpenDownloads)
+            }
             Divider()
         }
     }

@@ -20,20 +20,28 @@ struct ForYouEpisodesRow: View {
         ScrollView(.horizontal) {
             LazyHStack(spacing: 12) {
                 ForEach(items) { item in
-                    Button {
-                        onOpen(item)
-                    } label: {
-                        EpisodeCover(item: item, side: Self.side)
-                    }
-                    .buttonStyle(.plain)
-                    .contextMenu {
-                        Button("Play", systemImage: "play.fill") {
-                            onPlay(item.episode)
+                    // The whole card (text included) is what the episode's
+                    // page zooms out of and back into.
+                    ZoomSourceHost(
+                        id: .episode(item.episode.streamUrl, section: .forYou),
+                        cornerRadius: LibraryCover.cornerRadius
+                    ) {
+                        Button {
+                            onOpen(item)
+                        } label: {
+                            EpisodeCover(item: item, side: Self.side)
                         }
-                        Button("Go to podcast", systemImage: "square.stack") {
-                            onOpenPodcast(item.podcast)
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            Button("Play", systemImage: "play.fill") {
+                                onPlay(item.episode)
+                            }
+                            Button("Go to podcast", systemImage: "square.stack") {
+                                onOpenPodcast(item.podcast)
+                            }
                         }
                     }
+                    .frame(width: Self.side, height: Self.side)
                 }
             }
         }

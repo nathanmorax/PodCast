@@ -25,15 +25,27 @@ final class HomeController: UIViewController {
         let home = HomeView(
             onOpenPodcast: { [weak self] podcast in self?.open(podcast) },
             onOpenEpisode: { [weak self] episode, podcast in
-                self?.push(EpisodeDetailController(episode: episode, podcastName: podcast.trackName))
+                self?.pushZooming(
+                    EpisodeDetailController(episode: episode, podcastName: podcast.trackName),
+                    from: .episode(episode.streamUrl, section: .forYou)
+                )
             },
             onOpenPlayedEpisode: { [weak self] episode in
-                self?.push(EpisodeDetailController(episode: episode, podcastName: nil))
+                self?.pushZooming(
+                    EpisodeDetailController(episode: episode, podcastName: nil),
+                    from: .episode(episode.streamUrl, section: .recentlyPlayed)
+                )
             },
             onSearch: { AppNavigator.shared.showSearch() },
-            onOpenFollowing: { [weak self] in self?.push(FollowingController()) },
-            onOpenFavorites: { [weak self] in self?.push(SavedEpisodesController(.favorites)) },
-            onOpenDownloads: { [weak self] in self?.push(SavedEpisodesController(.downloads)) }
+            onOpenFollowing: { [weak self] in
+                self?.pushZooming(FollowingController(), from: .collection(.following))
+            },
+            onOpenFavorites: { [weak self] in
+                self?.pushZooming(SavedEpisodesController(.favorites), from: .collection(.favorites))
+            },
+            onOpenDownloads: { [weak self] in
+                self?.pushZooming(SavedEpisodesController(.downloads), from: .collection(.downloads))
+            }
         )
         let hosting = UIHostingController(rootView: home)
         hosting.view.translatesAutoresizingMaskIntoConstraints = false
@@ -49,12 +61,9 @@ final class HomeController: UIViewController {
         hosting.didMove(toParent: self)
     }
 
-    private func push(_ screen: UIViewController) {
-        navigationController?.pushViewController(screen, animated: true)
-    }
-
+    /// Everything Home opens zooms out of its item and closes back into it
+    /// (pushZooming): podcasts, episodes, and the collections.
     private func open(_ podcast: Podcast) {
-        let episodes = EpisodesController.make(for: podcast)
-        navigationController?.pushViewController(episodes, animated: true)
+        pushZooming(EpisodesController(podcast: podcast), from: .podcast(podcast.id))
     }
 }
