@@ -29,3 +29,7 @@ struct PinnedCover: View {
             .offset(y: -(pull?.distance ?? 0))
     }
 }
+
+#Preview {
+    PinnedCover(source: Podcast.mock.artworkUrl600, height: 320, pull: nil)
+}

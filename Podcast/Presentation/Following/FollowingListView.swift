@@ -85,7 +85,7 @@ private struct FollowingRow: View {
         HStack(spacing: 12) {
             Color.clear
                 .frame(width: 52, height: 52)
-                .overlay { PodcastImage(source: podcast.artworkUrl600) }
+                .overlay { ZoomSourceImage(podcast: podcast, cornerRadius: 12) }
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
             VStack(alignment: .leading, spacing: 2) {

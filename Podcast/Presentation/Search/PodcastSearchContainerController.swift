@@ -117,8 +117,7 @@ final class PodcastSearchContainerController: UIViewController {
     private func open(_ podcast: Podcast) {
         // Opening it again moves it to the front of "Recent".
         RecentSearchesManager.shared.record(podcast)
-        let episodes = EpisodesController()
-        episodes.podcast = podcast
+        let episodes = EpisodesController.make(for: podcast)
         navigationController?.pushViewController(episodes, animated: true)
     }
 

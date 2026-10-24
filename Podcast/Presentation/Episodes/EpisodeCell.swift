@@ -79,3 +79,8 @@ struct EpisodeCell: View {
         .padding(.vertical, 8)
     }
 }
+
+#Preview(traits: .sizeThatFitsLayout) {
+    EpisodeCell(viewModel: EpisodeActionViewModel(episode: .mock), onInfo: {})
+        .environment(\.playerManager, .preview)
+}

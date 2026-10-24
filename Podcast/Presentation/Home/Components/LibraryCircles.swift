@@ -24,7 +24,7 @@ struct LibraryCircles: View {
                         VStack(spacing: 8) {
                             Color.clear
                                 .frame(width: Self.side, height: Self.side)
-                                .overlay { PodcastImage(source: podcast.artworkUrl600) }
+                                .overlay { ZoomSourceImage(podcast: podcast, cornerRadius: Self.side / 2) }
                                 .clipShape(Circle())
                                 .accessibilityHidden(true)
                             Text(podcast.trackName ?? "")

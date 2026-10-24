@@ -10,15 +10,27 @@ import SwiftUI
 ///
 /// LazyVStack: each row is as tall as its content and placed right below the
 /// previous one, so rows can't overlap; only the rows on screen are built.
+///
+/// Dragging down from the top closes the page: the system's zoom transition
+/// does it (EpisodesController+Zoom), shrinking the page back into the cover
+/// it was opened from. Nothing custom here: a second pull-to-close fought
+/// the system's gesture and made the landing jump.
 struct PodcastEpisodesView: View {
 
     let podcast: Podcast
     let viewModel: EpisodesViewModel
     let actions: EpisodeHeaderActions
-    let pull: HeaderPull
-    /// Vertical scroll position (negative while pulled past the top).
+    /// Vertical scroll position (0 at rest, negative while pulled down).
     let onScroll: (CGFloat) -> Void
     let onShowInfo: (Episode) -> Void
+
+    /// The artwork's color, read once it loads. Already known (opened
+    /// before): the page starts painted, no fade.
+    @State private var loadedTint: ArtworkTint?
+
+    private var tint: ArtworkTint? {
+        loadedTint ?? ArtworkTintLoader.cachedTint(for: podcast.artworkUrl600)
+    }
 
     var body: some View {
         ScrollView {
@@ -28,10 +40,10 @@ struct PodcastEpisodesView: View {
                     isFavorite: viewModel.isFavorite(podcast),
                     podcastDescription: viewModel.podcastDescription,
                     isLoadingDescription: viewModel.isLoadingDescription,
-                    actions: actions,
-                    pull: pull
+                    tint: tint,
+                    actions: actions
                 )
-                .padding(.bottom, 8)
+                .padding(.bottom, 12)
 
                 if viewModel.isLoadingEpisodes && viewModel.episodes.isEmpty {
                     ProgressView()
@@ -48,12 +60,17 @@ struct PodcastEpisodesView: View {
             }
             .padding(.bottom, 8)
         }
-        // The cover starts under the status bar and the (clear) navigation bar.
-        .ignoresSafeArea(edges: .top)
+        // The page starts below the navigation bar, so the cover never sits
+        // under the status bar or touches the top edge.
         .onScrollGeometryChange(for: CGFloat.self) { geometry in
             geometry.contentOffset.y + geometry.contentInsets.top
         } action: { _, offset in
             onScroll(offset)
+        }
+        // The cells' 600 px artwork: usually in memory already.
+        .task(id: podcast.id) {
+            let tint = await ArtworkTintLoader.tint(for: podcast.artworkUrl600)
+            withAnimation(.easeInOut(duration: 0.35)) { loadedTint = tint }
         }
     }
 
@@ -62,4 +79,19 @@ struct PodcastEpisodesView: View {
         guard episode.streamUrl == viewModel.episodes.last?.streamUrl else { return }
         viewModel.loadMoreEpisodes()
     }
+}
+
+#Preview {
+    let viewModel = EpisodesViewModel(repository: PreviewSearchRepository(), favoritesManager: .preview)
+    NavigationStack {
+        PodcastEpisodesView(
+            podcast: .mock,
+            viewModel: viewModel,
+            actions: EpisodeHeaderActions(),
+            onScroll: { _ in },
+            onShowInfo: { _ in }
+        )
+        .task { viewModel.loadEpisodes(feedURL: "preview") }
+    }
+    .environment(\.playerManager, .preview)
 }

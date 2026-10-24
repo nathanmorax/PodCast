@@ -56,3 +56,8 @@ struct QuoteView: View {
         }
     }
 }
+
+#Preview(traits: .sizeThatFitsLayout) {
+    QuoteView(text: EpisodeNotes("Si un átomo fuera un estadio, el núcleo sería una canica. El resto es vacío.").quote ?? "")
+        .padding()
+}
