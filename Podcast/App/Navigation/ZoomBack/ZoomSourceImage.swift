@@ -6,22 +6,35 @@
 import SwiftUI
 import UIKit
 
-/// A podcast's cover drawn by UIKit, so the zoom transition can grow the
-/// podcast's page out of it and shrink the page back into it (ZoomSources).
-/// Looks like PodcastImage: fills its frame, same cache, gray while loading.
+/// A cover drawn by UIKit, so a screen can zoom out of it and back into it
+/// (`pushZooming(_:from:)`). Looks like PodcastImage: fills its frame, same
+/// cache, gray while loading.
 struct ZoomSourceImage: UIViewRepresentable {
 
-    let podcast: Podcast
+    let id: ZoomID
+    /// A URL, or an asset name (previews).
+    let source: String?
     let cornerRadius: CGFloat
+
+    init(id: ZoomID, source: String?, cornerRadius: CGFloat) {
+        self.id = id
+        self.source = source
+        self.cornerRadius = cornerRadius
+    }
+
+    /// A podcast's cover.
+    init(podcast: Podcast, cornerRadius: CGFloat) {
+        self.init(id: .podcast(podcast.id), source: podcast.artworkUrl600, cornerRadius: cornerRadius)
+    }
 
     func makeUIView(context: Context) -> ZoomSourceImageView {
         ZoomSourceImageView()
     }
 
     func updateUIView(_ view: ZoomSourceImageView, context: Context) {
-        // Rows are reused for other podcasts: register and load again.
-        ZoomSources.shared.register(view, podcastID: podcast.id, cornerRadius: cornerRadius)
-        view.load(podcast.artworkUrl600)
+        // Rows are reused for other items: register and load again.
+        ZoomSources.shared.register(view, id: id, cornerRadius: cornerRadius)
+        view.load(source)
     }
 
     static func dismantleUIView(_ view: ZoomSourceImageView, coordinator: ()) {
@@ -66,7 +79,7 @@ final class ZoomSourceImageView: UIView {
 
         guard let newSource, !newSource.isEmpty else { return }
         guard newSource.hasPrefix("http"), let url = URL(string: newSource) else {
-            imageView.image = UIImage(named: newSource)   // previews
+            imageView.image = UIImage(named: newSource)
             return
         }
         if let cached = ImageMemoryCache.shared.image(for: url) {

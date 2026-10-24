@@ -10,7 +10,7 @@ import SwiftUI
 /// list). Like the podcast page: the navigation bar is clear over the
 /// artwork and turns solid, with the episode's title, once it scrolls away;
 /// no bottom bar.
-final class EpisodeDetailController: UIViewController {
+final class EpisodeDetailController: UIViewController, ZoomDismissible {
 
     private let episode: Episode
     private let podcastName: String?
@@ -58,7 +58,13 @@ final class EpisodeDetailController: UIViewController {
 
     // MARK: - Scroll
 
+    /// At the top (or pulled past it): dragging down closes the page
+    /// (pushZooming).
+    var isScrolledToTop: Bool { scrollOffset <= 1 }
+    private var scrollOffset: CGFloat = 0
+
     private func didScroll(to offset: CGFloat) {
+        scrollOffset = offset
         // Pulled past the top: the artwork stays pinned to the top.
         let pull = max(0, -offset)
         if headerPull.distance != pull {

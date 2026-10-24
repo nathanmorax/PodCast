@@ -17,13 +17,21 @@ import SwiftUI
 /// rows itself, so there's nothing left to disagree. This controller keeps
 /// the UIKit parts: the navigation bar over the cover, the sheets, and the
 /// header's actions.
-final class EpisodesController: UIViewController {
+final class EpisodesController: UIViewController, ZoomDismissible {
 
+    /// Set in `init(podcast:)`. Changing it later (already on screen)
+    /// reloads the feed.
     var podcast: Podcast? {
         didSet {
-            // One request: episodes and the description come from the same feed.
-            loadEpisodes()
+            // Inside an initializer Swift doesn't call didSet, so the first
+            // load happens in viewDidLoad; this one is for later changes.
+            if isViewLoaded { loadEpisodes() }
         }
+    }
+
+    convenience init(podcast: Podcast) {
+        self.init()
+        self.podcast = podcast
     }
 
     private let headerActions = EpisodeHeaderActions()
@@ -43,6 +51,8 @@ final class EpisodesController: UIViewController {
         view.backgroundColor = ColorName.screenBackground.uiColor
         setupPage()
         listenToHeaderEvents()
+        // One request: episodes and the description come from the same feed.
+        loadEpisodes()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -106,7 +116,7 @@ final class EpisodesController: UIViewController {
         updateNavigationBar()
     }
 
-    // MARK: - Drag down to close (EpisodesController+Zoom)
+    // MARK: - Drag down to close (pushZooming)
 
     /// At the top (or pulled past it): dragging down closes the page.
     var isScrolledToTop: Bool { scrollOffset <= 1 }

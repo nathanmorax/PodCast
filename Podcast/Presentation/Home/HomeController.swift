@@ -6,15 +6,24 @@
 import UIKit
 import SwiftUI
 
-/// Root of the "Inicio" tab. Hosts HomeView and pushes the screens it opens.
-/// The title is the native large title, like Biblioteca and Buscar.
+/// Root of the Library tab. Hosts HomeView and pushes the screens it opens.
+///
+/// The navigation bar stays (hiding it here and showing it on every push
+/// moved the next screen's content mid-transition, a jump plus the bar's
+/// hairline). It shows no title, the page's first section ("Library") is
+/// the title, and holds the Inbox tray on the right.
 final class HomeController: UIViewController {
+
+    /// Shared by the page ("For you") and the Inbox button: one download.
+    private lazy var forYou = ForYouViewModel(cache: .standard)
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        // Kept for VoiceOver and the back button's menu; not shown.
         title = String(localized: "Library")
-        showTitleOnLeading()
+        navigationItem.titleView = UIView()
         navigationItem.largeTitleDisplayMode = .never
+        setupInboxButton()
         // Same gray as the content, so the large title area doesn't show a
         // white band above it.
         view.backgroundColor = ColorName.screenBackground.uiColor
@@ -23,17 +32,30 @@ final class HomeController: UIViewController {
 
     private func setupHosting() {
         let home = HomeView(
+            forYou: forYou,
             onOpenPodcast: { [weak self] podcast in self?.open(podcast) },
             onOpenEpisode: { [weak self] episode, podcast in
-                self?.push(EpisodeDetailController(episode: episode, podcastName: podcast.trackName))
+                self?.pushZooming(
+                    EpisodeDetailController(episode: episode, podcastName: podcast.trackName),
+                    from: .episode(episode.streamUrl, section: .forYou)
+                )
             },
             onOpenPlayedEpisode: { [weak self] episode in
-                self?.push(EpisodeDetailController(episode: episode, podcastName: nil))
+                self?.pushZooming(
+                    EpisodeDetailController(episode: episode, podcastName: nil),
+                    from: .episode(episode.streamUrl, section: .recentlyPlayed)
+                )
             },
             onSearch: { AppNavigator.shared.showSearch() },
-            onOpenFollowing: { [weak self] in self?.push(FollowingController()) },
-            onOpenFavorites: { [weak self] in self?.push(SavedEpisodesController(.favorites)) },
-            onOpenDownloads: { [weak self] in self?.push(SavedEpisodesController(.downloads)) }
+            onOpenFollowing: { [weak self] in
+                self?.pushZooming(FollowingController(), from: .collection(.following))
+            },
+            onOpenFavorites: { [weak self] in
+                self?.pushZooming(SavedEpisodesController(.favorites), from: .collection(.favorites))
+            },
+            onOpenDownloads: { [weak self] in
+                self?.pushZooming(SavedEpisodesController(.downloads), from: .collection(.downloads))
+            }
         )
         let hosting = UIHostingController(rootView: home)
         hosting.view.translatesAutoresizingMaskIntoConstraints = false
@@ -49,12 +71,33 @@ final class HomeController: UIViewController {
         hosting.didMove(toParent: self)
     }
 
-    private func push(_ screen: UIViewController) {
-        navigationController?.pushViewController(screen, animated: true)
+    /// Keeps the tray's hosting controller alive (the bar only holds its view).
+    private var inboxButtonHost: UIHostingController<InboxBarButton>?
+
+    /// The tray, top right. SwiftUI (for its badge) in a bar button; its
+    /// view is also what the Inbox zooms out of and back into.
+    ///
+    /// Not added as a child controller: the bar's views belong to the
+    /// navigation controller, and UIKit crashes when a child of this screen
+    /// ends up in there (UIViewControllerHierarchyInconsistency).
+    private func setupInboxButton() {
+        let host = UIHostingController(rootView: InboxBarButton(forYou: forYou) { [weak self] items in
+            self?.pushZooming(InboxController(items: items), from: .collection(.inbox))
+        })
+        host.sizingOptions = .intrinsicContentSize
+        host.view.backgroundColor = .clear
+        inboxButtonHost = host
+
+        let item = UIBarButtonItem(customView: host.view)
+        // Its own look (tray + badge): no glass capsule behind it.
+        item.hidesSharedBackground = true
+        navigationItem.rightBarButtonItem = item
+        ZoomSources.shared.register(host.view, id: .collection(.inbox), cornerRadius: 22)
     }
 
+    /// Everything Home opens zooms out of its item and closes back into it
+    /// (pushZooming): podcasts, episodes, and the collections.
     private func open(_ podcast: Podcast) {
-        let episodes = EpisodesController.make(for: podcast)
-        navigationController?.pushViewController(episodes, animated: true)
+        pushZooming(EpisodesController(podcast: podcast), from: .podcast(podcast.id))
     }
 }

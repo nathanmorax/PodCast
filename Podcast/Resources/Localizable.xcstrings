@@ -72,6 +72,16 @@
         }
       }
     },
+    "%lld new" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld nuevos"
+          }
+        }
+      }
+    },
     "%lld of %lld" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -415,6 +425,16 @@
         }
       }
     },
+    "Earlier" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anteriores"
+          }
+        }
+      }
+    },
     "Edit" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -599,6 +619,16 @@
         }
       }
     },
+    "Inbox" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bandeja"
+          }
+        }
+      }
+    },
     "It's made on your iPhone and can take a few minutes." : {
       "localizations" : {
         "es" : {
@@ -721,12 +751,42 @@
         }
       }
     },
+    "More" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más"
+          }
+        }
+      }
+    },
     "Music" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Música"
+          }
+        }
+      }
+    },
+    "New" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nuevos"
+          }
+        }
+      }
+    },
+    "New episodes from the podcasts you follow show up here." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí llegan los episodios nuevos de los podcasts que sigues."
           }
         }
       }
@@ -757,6 +817,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aún no hay favoritos"
+          }
+        }
+      }
+    },
+    "No new episodes" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay episodios nuevos"
           }
         }
       }

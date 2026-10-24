@@ -53,7 +53,13 @@ private struct RecentlyPlayedCard: View {
         VStack(alignment: .leading, spacing: 8) {
             Color.clear
                 .frame(width: Self.side, height: Self.side)
-                .overlay { PodcastImage(source: item.episode.imageUrl) }
+                .overlay {
+                    ZoomSourceImage(
+                        id: .episode(item.episode.streamUrl, section: .recentlyPlayed),
+                        source: item.episode.imageUrl,
+                        cornerRadius: LibraryCover.cornerRadius
+                    )
+                }
                 .clipShape(RoundedRectangle(cornerRadius: LibraryCover.cornerRadius, style: .continuous))
 
             Text(item.episode.title)
