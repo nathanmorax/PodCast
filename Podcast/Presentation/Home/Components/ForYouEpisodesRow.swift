@@ -82,3 +82,12 @@ private struct EpisodeCover: View {
             .accessibilityHint("Opens the episode")
     }
 }
+
+#Preview {
+    ForYouEpisodesRow(
+        items: Episode.mocks.map { ForYouViewModel.Item(podcast: .mock, episode: $0) },
+        onOpen: { _ in },
+        onPlay: { _ in },
+        onOpenPodcast: { _ in }
+    )
+}

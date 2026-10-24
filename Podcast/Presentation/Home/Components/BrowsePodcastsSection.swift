@@ -128,7 +128,7 @@ private struct BrowseCover: View {
         VStack(alignment: .leading, spacing: 4) {
             Color.clear
                 .frame(width: Self.side, height: Self.side)
-                .overlay { PodcastImage(source: podcast.artworkUrl600) }
+                .overlay { ZoomSourceImage(podcast: podcast, cornerRadius: LibraryCover.cornerRadius) }
                 .clipShape(RoundedRectangle(cornerRadius: LibraryCover.cornerRadius, style: .continuous))
                 .padding(.bottom, 4)
                 .accessibilityHidden(true)
@@ -148,4 +148,14 @@ private struct BrowseCover: View {
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
     }
+}
+
+#Preview {
+    BrowsePodcastsSection(
+        viewModel: BrowseViewModel(repository: PreviewSearchRepository()),
+        interests: InterestsManager.preview.genres,
+        onOpenPodcast: { _ in },
+        onShowAll: {}
+    )
+    .background(AppColor.screenBackground)
 }

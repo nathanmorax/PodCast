@@ -74,4 +74,21 @@ extension InterestsManager {
     }
 }
 
+/// Answers every search instantly with mock data: previews never touch the
+/// network.
+struct PreviewSearchRepository: SearchPodcastRepository {
+
+    func searchPodcast(query: String) async throws -> [Podcast] {
+        await RecentSearchesManager.preview.items
+    }
+
+    func searchEpisodes(query: String) async throws -> [EpisodeSearchResult] {
+        Episode.mocks.map { EpisodeSearchResult(episode: $0, podcastName: $0.author) }
+    }
+
+    func fetchFeed(feedURL: String) async throws -> PodcastFeed {
+        PodcastFeed(description: "A preview show about previews.", episodes: Episode.mocks)
+    }
+}
+
 #endif

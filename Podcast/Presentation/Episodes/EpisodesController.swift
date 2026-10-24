@@ -27,7 +27,6 @@ final class EpisodesController: UIViewController {
     }
 
     private let headerActions = EpisodeHeaderActions()
-    private let headerPull = HeaderPull()
     private var eventsTask: Task<Void, Never>?
     private var hosting: UIHostingController<PodcastEpisodesView>?
 
@@ -37,17 +36,11 @@ final class EpisodesController: UIViewController {
         return EpisodesViewModel(repository: repository)
     }()
 
-    private enum Layout {
-        /// The cover's height (EpisodeHeaderView). Past it, the navigation
-        /// bar turns solid and shows the podcast's name.
-        static let heroHeight: CGFloat = 420
-    }
-
     // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = ColorName.screenBackground.uiColor
         setupPage()
         listenToHeaderEvents()
     }
@@ -81,9 +74,8 @@ final class EpisodesController: UIViewController {
             podcast: podcast,
             viewModel: viewModel,
             actions: headerActions,
-            pull: headerPull,
             onScroll: { [weak self] offset in self?.didScroll(to: offset) },
-            onShowInfo: { [weak self] episode in self?.showInfo(for: episode) }
+            onShowInfo: { [weak self] episode in self?.showInfo(for: episode) },
         )
         let hosting = UIHostingController(rootView: page)
         hosting.view.translatesAutoresizingMaskIntoConstraints = false
@@ -111,13 +103,13 @@ final class EpisodesController: UIViewController {
 
     private func didScroll(to offset: CGFloat) {
         scrollOffset = offset
-        // Pulled past the top: the cover stays pinned to the top of the screen.
-        let pull = max(0, -offset)
-        if headerPull.distance != pull {
-            headerPull.distance = pull
-        }
         updateNavigationBar()
     }
+
+    // MARK: - Drag down to close (EpisodesController+Zoom)
+
+    /// At the top (or pulled past it): dragging down closes the page.
+    var isScrolledToTop: Bool { scrollOffset <= 1 }
 
     // MARK: - Navigation bar over the cover
 
@@ -138,8 +130,7 @@ final class EpisodesController: UIViewController {
     /// Transparent over the cover; solid with the podcast's name once the
     /// cover has scrolled away.
     private func updateNavigationBar() {
-        let threshold = Layout.heroHeight - view.safeAreaInsets.top - 60
-        let collapsed = scrollOffset > threshold
+        let collapsed = scrollOffset > EpisodeHeaderView.nameScrollsAwayAt
         guard collapsed != isHeaderCollapsed || navigationItem.standardAppearance == nil else { return }
         isHeaderCollapsed = collapsed
         let appearance = collapsed ? solidBarAppearance : transparentBarAppearance

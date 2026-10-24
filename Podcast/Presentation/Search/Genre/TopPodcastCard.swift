@@ -18,7 +18,7 @@ struct TopPodcastCard: View {
         Button(action: onOpen) {
             Color.clear
                 .frame(height: 300)
-                .overlay { PodcastImage(source: podcast.artworkUrl600) }
+                .overlay { ZoomSourceImage(podcast: podcast, cornerRadius: 10) }
                 .overlay {
                     LinearGradient(colors: [.clear, .black.opacity(0.78)], startPoint: .center, endPoint: .bottom)
                 }

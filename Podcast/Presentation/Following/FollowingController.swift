@@ -36,8 +36,7 @@ final class FollowingController: UIViewController {
     }
 
     private func open(_ podcast: Podcast) {
-        let episodes = EpisodesController()
-        episodes.podcast = podcast
+        let episodes = EpisodesController.make(for: podcast)
         navigationController?.pushViewController(episodes, animated: true)
     }
 }
