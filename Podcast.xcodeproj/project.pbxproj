@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		BA1FD1682F283A2700EBD902 /* SDWebImage in Frameworks */ = {isa = PBXBuildFile; productRef = BA1FD1672F283A2700EBD902 /* SDWebImage */; };
-		BA1FD16A2F283A2700EBD902 /* SDWebImageMapKit in Frameworks */ = {isa = PBXBuildFile; productRef = BA1FD1692F283A2700EBD902 /* SDWebImageMapKit */; };
 		BA1FD16D2F283A5700EBD902 /* FeedKit in Frameworks */ = {isa = PBXBuildFile; productRef = BA1FD16C2F283A5700EBD902 /* FeedKit */; };
 		BA1FD16F2F283A5700EBD902 /* XMLKit in Frameworks */ = {isa = PBXBuildFile; productRef = BA1FD16E2F283A5700EBD902 /* XMLKit */; };
 /* End PBXBuildFile section */
@@ -50,8 +48,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				BA1FD16D2F283A5700EBD902 /* FeedKit in Frameworks */,
-				BA1FD16A2F283A2700EBD902 /* SDWebImageMapKit in Frameworks */,
-				BA1FD1682F283A2700EBD902 /* SDWebImage in Frameworks */,
 				BA1FD16F2F283A5700EBD902 /* XMLKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -168,7 +164,6 @@
 			);
 			mainGroup = 0BCC34422AFB195C005A3E38;
 			packageReferences = (
-				BA1FD1662F283A2700EBD902 /* XCRemoteSwiftPackageReference "SDWebImage" */,
 				BA1FD16B2F283A5700EBD902 /* XCRemoteSwiftPackageReference "FeedKit" */,
 			);
 			productRefGroup = 0BCC344C2AFB195C005A3E38 /* Products */;
@@ -476,14 +471,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		BA1FD1662F283A2700EBD902 /* XCRemoteSwiftPackageReference "SDWebImage" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SDWebImage/SDWebImage";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.21.5;
-			};
-		};
 		BA1FD16B2F283A5700EBD902 /* XCRemoteSwiftPackageReference "FeedKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/nmdias/FeedKit.git";
@@ -495,16 +482,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		BA1FD1672F283A2700EBD902 /* SDWebImage */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = BA1FD1662F283A2700EBD902 /* XCRemoteSwiftPackageReference "SDWebImage" */;
-			productName = SDWebImage;
-		};
-		BA1FD1692F283A2700EBD902 /* SDWebImageMapKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = BA1FD1662F283A2700EBD902 /* XCRemoteSwiftPackageReference "SDWebImage" */;
-			productName = SDWebImageMapKit;
-		};
 		BA1FD16C2F283A5700EBD902 /* FeedKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = BA1FD16B2F283A5700EBD902 /* XCRemoteSwiftPackageReference "FeedKit" */;
