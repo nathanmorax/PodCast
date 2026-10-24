@@ -7,11 +7,14 @@ import SwiftUI
 
 /// One episode you played, big, like Apple Podcasts' episode cards (a page
 /// of RecentlyPlayedCarousel), straight on the page:
-/// - the show: its small cover, its name in serif, when you played it;
+/// - the show's name in serif, and when you played it;
 /// - the artwork filling the card's width (with how far you got as a
 ///   mustard line along its bottom);
 /// - the title in serif, its short description;
 /// - what's left ("23 MIN LEFT") and •••.
+///
+/// The one playing now is here too: its artwork moves slowly and carries a
+/// "Playing" badge, and its progress and minutes follow the player.
 ///
 /// Tapping it resumes; ••• (or holding it) offers Resume, the details and
 /// removing it. The details open zooming out of the artwork.
@@ -22,7 +25,21 @@ struct RecentlyPlayedHero: View {
     let onOpen: () -> Void
     let onRemove: () -> Void
 
-    private static let showCoverSide: CGFloat = 52
+    @Environment(\.playerManager) private var playerManager
+
+    /// This card's episode is the one in the player.
+    private var isCurrent: Bool {
+        playerManager.currentEpisode?.streamUrl == item.episode.streamUrl
+    }
+
+    private var isPlaying: Bool {
+        isCurrent && playerManager.viewModel.isPlaying
+    }
+
+    /// Live for the episode in the player; as saved for the others.
+    private var progress: Double {
+        isCurrent ? Double(playerManager.viewModel.progress) : item.progress
+    }
     /// Width ÷ height of the big artwork (the square cover, cropped).
     private static let artworkRatio: CGFloat = 16 / 9
     private static let artworkCornerRadius: CGFloat = 10
@@ -69,26 +86,19 @@ struct RecentlyPlayedHero: View {
 
     // MARK: - The show
 
-    /// Small cover, the name in serif, "2 HOURS AGO" under it.
+    /// The name in serif, "2 HOURS AGO" under it.
     private var showHeader: some View {
-        HStack(spacing: 14) {
-            PodcastImage(source: item.artworkSource)
-                .frame(width: Self.showCoverSide, height: Self.showCoverSide)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .accessibilityHidden(true)
+        VStack(alignment: .leading, spacing: 4) {
+            // Always there (a blank line when the feed has no author):
+            // every card in the carousel keeps the same height.
+            Text(item.episode.author.isEmpty ? " " : item.episode.author)
+                .font(AppFont.itemTitle)
+                .foregroundStyle(AppColor.Text.primary)
+                .lineLimit(1)
 
-            VStack(alignment: .leading, spacing: 4) {
-                // Always there (a blank line when the feed has no author):
-                // every card in the carousel keeps the same height.
-                Text(item.episode.author.isEmpty ? " " : item.episode.author)
-                    .font(AppFont.itemTitle)
-                    .foregroundStyle(AppColor.Text.primary)
-                    .lineLimit(1)
-
-                Text(item.lastPlayedAt, format: .relative(presentation: .named))
-                    .overlineStyle()
-                    .lineLimit(1)
-            }
+            Text(item.lastPlayedAt, format: .relative(presentation: .named))
+                .overlineStyle()
+                .lineLimit(1)
         }
     }
 
@@ -107,8 +117,17 @@ struct RecentlyPlayedHero: View {
                     source: item.artworkSource,
                     cornerRadius: Self.artworkCornerRadius
                 )
+                .nowPlayingDrift(isPlaying)
+            }
+            .overlay(alignment: .bottomLeading) {
+                if isPlaying {
+                    NowPlayingBadge()
+                        .padding(12)
+                        .transition(.opacity.combined(with: .scale(scale: 0.9, anchor: .bottomLeading)))
+                }
             }
             .overlay(alignment: .bottom) { progressLine }
+            .animation(.easeInOut(duration: 0.3), value: isPlaying)
             .clipShape(RoundedRectangle(cornerRadius: Self.artworkCornerRadius, style: .continuous))
             .accessibilityHidden(true)
     }
@@ -120,7 +139,7 @@ struct RecentlyPlayedHero: View {
             .overlay(alignment: .leading) {
                 Rectangle()
                     .fill(AppColor.Accent.soft)
-                    .scaleEffect(x: min(max(item.progress, 0), 1), y: 1, anchor: .leading)
+                    .scaleEffect(x: min(max(progress, 0), 1), y: 1, anchor: .leading)
             }
     }
 
@@ -144,7 +163,7 @@ struct RecentlyPlayedHero: View {
 
     /// "23 MIN LEFT"; the ••• sits at its right (overlay).
     private var footer: some View {
-        Text("\(item.minutesLeftText) left")
+        Text("\(item.minutesLeftText(at: progress)) left")
             .overlineStyle()
             .lineLimit(1)
             .frame(minHeight: 20, alignment: .leading)
