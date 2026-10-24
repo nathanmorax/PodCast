@@ -12,6 +12,9 @@ struct LibraryCovers: View {
 
     let podcasts: [Podcast]
     let onOpen: (Podcast) -> Void
+    /// Whether the covers go past the screen's edge (some are out of view):
+    /// Library shows "See All" only then.
+    var onOverflowChange: (Bool) -> Void = { _ in }
 
     static let side: CGFloat = 80
     static let cornerRadius: CGFloat = 8
@@ -43,5 +46,12 @@ struct LibraryCovers: View {
         }
         .contentMargins(.horizontal, 20, for: .scrollContent)
         .scrollIndicators(.hidden)
+        // Wider than what's on screen (margins included): some are hidden.
+        .onScrollGeometryChange(for: Bool.self) { geometry in
+            geometry.contentSize.width + geometry.contentInsets.leading + geometry.contentInsets.trailing
+                > geometry.containerSize.width + 1
+        } action: { _, overflows in
+            onOverflowChange(overflows)
+        }
     }
 }

@@ -1209,6 +1209,16 @@
         }
       }
     },
+    "See All" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver todo"
+          }
+        }
+      }
+    },
     "See all %lld" : {
       "localizations" : {
         "es" : {
