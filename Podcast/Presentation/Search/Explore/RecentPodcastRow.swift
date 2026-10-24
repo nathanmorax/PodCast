@@ -17,7 +17,7 @@ struct RecentPodcastRow: View {
         HStack(spacing: 12) {
             Button(action: onOpen) {
                 HStack(spacing: 12) {
-                    PodcastImage(source: podcast.artworkUrl600)
+                    ZoomSourceImage(podcast: podcast, cornerRadius: 6)
                         .frame(width: 44, height: 44)
                         .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                         .accessibilityHidden(true)

@@ -26,7 +26,7 @@ struct PodcastCellUI: View {
                     .accessibilityLabel(Text("Number \(rank)"))
             }
 
-            PodcastImage(source: podcast.artworkUrl600)
+            ZoomSourceImage(podcast: podcast, cornerRadius: 6)
                 .frame(width: coverSide, height: coverSide)
                 .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                 .accessibilityHidden(true)

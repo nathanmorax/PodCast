@@ -38,8 +38,7 @@ final class GenrePodcastsController: UIViewController {
 
     private func open(_ podcast: Podcast) {
         RecentSearchesManager.shared.record(podcast)
-        let episodes = EpisodesController()
-        episodes.podcast = podcast
+        let episodes = EpisodesController.make(for: podcast)
         navigationController?.pushViewController(episodes, animated: true)
     }
 }
