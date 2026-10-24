@@ -5,11 +5,12 @@
 
 import SwiftUI
 
-/// "Library", the main screen:
-/// 1. Today's date, and Following · Favorites · Downloads as three rows.
-/// 2. Recently played: what you listened to, with how far you got. The
+/// "Library", the main screen (no title on top: the first section's name,
+/// "Library", is the title):
+/// 1. Library: the podcasts you follow, as square covers with their names.
+/// 2. Today's date, and Following · Favorites · Downloads as three rows.
+/// 3. Recently played: what you listened to, with how far you got. The
 ///    episode playing now lives in the mini player, so it isn't repeated here.
-/// 3. Library: the podcasts you follow, as round covers with their names.
 /// 4. For you: the latest episodes of the podcasts you follow.
 /// 5. Browse podcasts: category chips and a row of shows; "Show all" opens
 ///    the interests picker.
@@ -47,6 +48,10 @@ struct HomeView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 32) {
+                if !following.isEmpty {
+                    librarySection
+                }
+
                 VStack(alignment: .leading, spacing: 14) {
                     dateHeader
                     collectionsSection
@@ -60,7 +65,6 @@ struct HomeView: View {
                 if following.isEmpty {
                     emptyState
                 } else {
-                    librarySection
                     forYouSection
                 }
 
@@ -106,11 +110,11 @@ struct HomeView: View {
 
     // MARK: - Library
 
-    /// The podcasts you follow, as circles; "Show all" opens Following.
+    /// The podcasts you follow, as square covers; "Show all" opens Following.
     private var librarySection: some View {
         VStack(alignment: .leading, spacing: 14) {
             LibrarySectionHeader(title: "Library", onShowAll: onOpenFollowing)
-            LibraryCircles(podcasts: following, onOpen: onOpenPodcast)
+            LibraryCovers(podcasts: following, onOpen: onOpenPodcast)
         }
     }
 

@@ -6,14 +6,15 @@
 import UIKit
 import SwiftUI
 
-/// Root of the "Inicio" tab. Hosts HomeView and pushes the screens it opens.
-/// The title is the native large title, like Biblioteca and Buscar.
+/// Root of the Library tab. Hosts HomeView and pushes the screens it opens.
+/// No navigation bar here: the page's first section, "Library", is its
+/// title. The screens it opens show the bar again (back button).
 final class HomeController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        // Kept for VoiceOver and the back button's menu; not shown.
         title = String(localized: "Library")
-        showTitleOnLeading()
         navigationItem.largeTitleDisplayMode = .never
         // Same gray as the content, so the large title area doesn't show a
         // white band above it.
@@ -59,6 +60,16 @@ final class HomeController: UIViewController {
             hosting.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         hosting.didMove(toParent: self)
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
     }
 
     /// Everything Home opens zooms out of its item and closes back into it
