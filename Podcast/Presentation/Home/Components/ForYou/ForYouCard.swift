@@ -106,12 +106,3 @@ struct ForYouCard: View {
     }
 
 }
-
-#Preview {
-    ForYouCard(
-        item: ForYouViewModel.Item(podcast: .mock, episode: Episode.mocks[0]),
-        tint: ArtworkTint(red: 0.27, green: 0.55, blue: 0.62)
-    )
-        .frame(width: 340)
-        .padding()
-}

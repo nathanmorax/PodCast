@@ -226,12 +226,3 @@ struct BottomBar: View {
             }
     }
 }
-
-#Preview {
-    ZStack(alignment: .bottom) {
-        AppColor.screenBackground.ignoresSafeArea()
-        BottomBar(navigator: .shared)
-            .padding(.horizontal, 16)
-    }
-    .environment(\.playerManager, .preview)
-}

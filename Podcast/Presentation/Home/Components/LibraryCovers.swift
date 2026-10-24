@@ -13,12 +13,12 @@ struct LibraryCovers: View {
     let podcasts: [Podcast]
     let onOpen: (Podcast) -> Void
 
-    static let side: CGFloat = 96
+    static let side: CGFloat = 80
     static let cornerRadius: CGFloat = 8
 
     var body: some View {
         ScrollView(.horizontal) {
-            LazyHStack(alignment: .top, spacing: 16) {
+            LazyHStack(alignment: .top, spacing: 8) {
                 ForEach(podcasts, id: \.trackId) { podcast in
                     Button {
                         onOpen(podcast)
@@ -44,8 +44,4 @@ struct LibraryCovers: View {
         .contentMargins(.horizontal, 20, for: .scrollContent)
         .scrollIndicators(.hidden)
     }
-}
-
-#Preview {
-    LibraryCovers(podcasts: [.mock], onOpen: { _ in })
 }

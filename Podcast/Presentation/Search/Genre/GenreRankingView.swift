@@ -92,11 +92,3 @@ struct GenreRankingView: View {
         }
     }
 }
-
-#Preview {
-    GenreRankingView(
-        viewModel: GenreRankingViewModel(genre: .mock),
-        onOpenPodcast: { _ in },
-        onPlay: { _ in }
-    )
-}

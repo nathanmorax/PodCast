@@ -81,8 +81,3 @@ struct TopPodcastCard: View {
         .disabled(isPreparing)
     }
 }
-
-#Preview(traits: .sizeThatFitsLayout) {
-    TopPodcastCard(podcast: .mock, isPreparing: false, onOpen: {}, onListen: {})
-        .padding()
-}

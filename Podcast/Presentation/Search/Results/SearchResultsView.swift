@@ -102,10 +102,3 @@ struct SearchResultsView: View {
         }
     }
 }
-
-#Preview {
-    let viewModel = PodcastSearchViewModel(repository: PreviewSearchRepository(), debounce: .zero)
-    SearchResultsView(viewModel: viewModel, onOpenPodcast: { _ in }, onOpenEpisode: { _ in })
-        .task { viewModel.search("preview") }
-        .environment(\.favoritesManager, .preview)
-}

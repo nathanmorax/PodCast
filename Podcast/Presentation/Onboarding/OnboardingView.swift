@@ -138,8 +138,3 @@ struct OnboardingView: View {
         .frame(minHeight: 44)
     }
 }
-
-#Preview {
-    OnboardingView(selectedIDs: ["1303", "1533"])
-        .environment(\.interestsManager, .preview)
-}

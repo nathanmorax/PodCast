@@ -74,9 +74,3 @@ private struct CollectionRow: View {
         .accessibilityElement(children: .combine)
     }
 }
-
-#Preview(traits: .sizeThatFitsLayout) {
-    CollectionRows(following: 12, favorites: 4, downloads: 0,
-                   onOpenFollowing: {}, onOpenFavorites: {}, onOpenDownloads: {})
-        .padding()
-}

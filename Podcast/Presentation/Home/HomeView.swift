@@ -196,22 +196,3 @@ struct HomeView: View {
         .padding(.top, 24)
     }
 }
-
-// MARK: - Preview
-
-#Preview {
-    HomeView(
-        forYou: ForYouViewModel(),
-        onOpenPodcast: { _ in },
-        onOpenEpisode: { _, _ in },
-        onOpenPlayedEpisode: { _ in },
-        onSearch: {},
-        onOpenFollowing: {},
-        onOpenFavorites: {},
-        onOpenDownloads: {}
-    )
-    .environment(\.favoritesManager, .preview)
-    .environment(\.playerManager, .preview)
-    .environment(\.recentlyPlayed, .preview)
-    .environment(\.interestsManager, .preview)
-}

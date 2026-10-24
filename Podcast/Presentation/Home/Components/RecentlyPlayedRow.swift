@@ -122,14 +122,3 @@ private struct ResumeCapsule: View {
         .background(AppColor.Accent.wash, in: .capsule)
     }
 }
-
-#Preview {
-    RecentlyPlayedRow(
-        items: Episode.mocks.enumerated().map { offset, episode in
-            RecentlyPlayed(episode: episode, lastPlayedAt: .now, progress: Double(offset) * 0.3)
-        },
-        onResume: { _ in },
-        onOpen: { _ in },
-        onRemove: { _ in }
-    )
-}

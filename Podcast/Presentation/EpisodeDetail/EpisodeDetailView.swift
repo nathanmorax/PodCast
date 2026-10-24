@@ -216,8 +216,3 @@ struct EpisodeDetailView: View {
             .background(Circle().fill(isOn ? AppColor.Accent.soft : AppColor.Text.primary.opacity(0.1)))
     }
 }
-
-#Preview {
-    EpisodeDetailView(episode: .mock, podcastName: "Café con Datos", pull: HeaderPull(),
-                      onPlay: {}, onScroll: { _ in })
-}

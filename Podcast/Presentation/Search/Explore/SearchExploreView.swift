@@ -109,7 +109,3 @@ private struct GenreGrid: View {
         .scrollIndicators(.hidden)
     }
 }
-
-#Preview {
-    SearchExploreView(onOpenPodcast: { _ in }, onSelectGenre: { _ in })
-}

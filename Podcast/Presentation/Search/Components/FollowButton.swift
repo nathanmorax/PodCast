@@ -35,8 +35,3 @@ struct FollowButton: View {
         .accessibilityLabel(isFollowing ? Text("Unfollow") : Text("Follow"))
     }
 }
-
-#Preview {
-    FollowButton(podcast: .mock)
-        .padding()
-}

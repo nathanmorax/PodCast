@@ -42,7 +42,7 @@ enum AppFont {
 
     // MARK: New York — titles
 
-    static let display      = Font.system(.largeTitle, design: .serif, weight: .bold)
+    static let display      = Font.system(.headline, design: .serif, weight: .bold)
     static let title        = Font.system(.title, design: .serif, weight: .bold)
     static let sectionTitle = Font.system(.title2, design: .serif, weight: .bold)
     static let cardHeadline = Font.system(.title3, design: .serif, weight: .bold)

@@ -59,8 +59,3 @@ struct RecentPodcastRow: View {
             .joined(separator: " · ")
     }
 }
-
-#Preview(traits: .sizeThatFitsLayout) {
-    RecentPodcastRow(podcast: .mock, onOpen: {}, onRemove: {})
-        .padding()
-}

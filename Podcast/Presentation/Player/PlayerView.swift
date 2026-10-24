@@ -750,8 +750,3 @@ struct PlayerView: View {
             }
     }
 }
-
-#Preview {
-    PlayerView(episode: .mock)
-        .environment(\.playerManager, .preview)
-}

@@ -149,13 +149,3 @@ private struct BrowseCover: View {
         .accessibilityElement(children: .combine)
     }
 }
-
-#Preview {
-    BrowsePodcastsSection(
-        viewModel: BrowseViewModel(repository: PreviewSearchRepository()),
-        interests: InterestsManager.preview.genres,
-        onOpenPodcast: { _ in },
-        onShowAll: {}
-    )
-    .background(AppColor.screenBackground)
-}

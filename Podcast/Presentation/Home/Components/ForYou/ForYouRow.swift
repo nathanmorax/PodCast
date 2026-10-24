@@ -101,12 +101,3 @@ private struct ForYouRowCard: View {
         Button("Go to podcast", systemImage: "square.stack", action: onOpenPodcast)
     }
 }
-
-#Preview {
-    ForYouRow(
-        items: Episode.mocks.map { ForYouViewModel.Item(podcast: .mock, episode: $0) },
-        onOpen: { _ in },
-        onPlay: { _ in },
-        onOpenPodcast: { _ in }
-    )
-}

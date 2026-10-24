@@ -28,8 +28,3 @@ struct LibrarySectionHeader: View {
         .padding(.horizontal, 20)
     }
 }
-
-#Preview(traits: .sizeThatFitsLayout) {
-    LibrarySectionHeader(title: "Browse podcasts") {}
-        .padding(.vertical)
-}

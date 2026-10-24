@@ -27,34 +27,51 @@ extension UIImage {
         context.interpolationQuality = .medium
         context.draw(cgImage, in: CGRect(x: 0, y: 0, width: side, height: side))
 
-        var edge: [SIMD3<Double>] = []
-        var total = SIMD3<Double>(repeating: 0)
+        // Plain Doubles, no SIMD: `reduce(_, +)` over SIMD types has many
+        // overloads to pick from and was slow to type-check.
+        var edge: [(r: Double, g: Double, b: Double)] = []
+        var totalR = 0.0, totalG = 0.0, totalB = 0.0
         let ring = 2
         for y in 0..<side {
             for x in 0..<side {
                 let offset = (y * side + x) * 4
-                let pixel = SIMD3<Double>(
-                    Double(pixels[offset]) / 255,
-                    Double(pixels[offset + 1]) / 255,
-                    Double(pixels[offset + 2]) / 255
-                )
-                total += pixel
+                let r = Double(pixels[offset]) / 255
+                let g = Double(pixels[offset + 1]) / 255
+                let b = Double(pixels[offset + 2]) / 255
+                totalR += r
+                totalG += g
+                totalB += b
                 if x < ring || y < ring || x >= side - ring || y >= side - ring {
-                    edge.append(pixel)
+                    edge.append((r, g, b))
                 }
             }
         }
 
-        let edgeMean = edge.reduce(SIMD3<Double>(repeating: 0), +) / Double(edge.count)
-        // How far the edge pixels stray from their mean: small = flat background.
-        let spread = edge
-            .map { pixel -> Double in
-                let d = pixel - edgeMean
-                return (d * d).sum().squareRoot()
-            }
-            .reduce(0, +) / Double(edge.count)
+        let edgeCount = Double(edge.count)
+        var edgeR = 0.0, edgeG = 0.0, edgeB = 0.0
+        for pixel in edge {
+            edgeR += pixel.r
+            edgeG += pixel.g
+            edgeB += pixel.b
+        }
+        edgeR /= edgeCount
+        edgeG /= edgeCount
+        edgeB /= edgeCount
 
-        let picked = spread < 0.14 ? edgeMean : total / Double(side * side)
-        return ArtworkTint(red: picked.x, green: picked.y, blue: picked.z).softened()
+        // How far the edge pixels stray from their mean: small = flat background.
+        var spread = 0.0
+        for pixel in edge {
+            let dr: Double = pixel.r - edgeR
+            let dg: Double = pixel.g - edgeG
+            let db: Double = pixel.b - edgeB
+            spread += (dr * dr + dg * dg + db * db).squareRoot()
+        }
+        spread /= edgeCount
+
+        let pixelCount = Double(side * side)
+        if spread < 0.14 {
+            return ArtworkTint(red: edgeR, green: edgeG, blue: edgeB).softened()
+        }
+        return ArtworkTint(red: totalR / pixelCount, green: totalG / pixelCount, blue: totalB / pixelCount).softened()
     }
 }

@@ -80,16 +80,3 @@ private struct InboxRow: View {
         }
     }
 }
-
-#Preview("With episodes") {
-    InboxView(
-        items: Episode.mocks.map { ForYouViewModel.Item(podcast: .mock, episode: $0) },
-        newSince: .distantPast,
-        onOpen: { _ in }
-    )
-    .environment(\.playerManager, .preview)
-}
-
-#Preview("Empty") {
-    InboxView(items: [], newSince: .now, onOpen: { _ in })
-}

@@ -73,8 +73,3 @@ private struct CoverFan: View {
         .accessibilityHidden(true)
     }
 }
-
-#Preview(traits: .sizeThatFitsLayout) {
-    GenreCard(genre: .mock, coverURLs: ["appicon", "appicon", "appicon"])
-        .padding()
-}

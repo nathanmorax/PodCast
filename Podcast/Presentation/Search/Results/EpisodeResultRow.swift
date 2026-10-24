@@ -73,8 +73,3 @@ struct EpisodeResultRow: View {
         return text.isEmpty ? nil : text
     }
 }
-
-#Preview(traits: .sizeThatFitsLayout) {
-    EpisodeResultRow(result: EpisodeSearchResult(episode: .mock, podcastName: "Global News"))
-        .padding()
-}

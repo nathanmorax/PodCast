@@ -11,8 +11,8 @@ import SwiftUI
 /// most of our SwiftUI views live inside UIKit cells (`UIHostingConfiguration`).
 /// The SwiftUI environment does NOT flow from `RootView` through UIKit into those
 /// cells, so a type-based `@Environment(DownloadManager.self)` would crash there.
-/// A default that resolves to the singleton works everywhere, and previews/tests
-/// override it with `.environment(\.downloadManager, .preview)`.
+/// A default that resolves to the singleton works everywhere; tests can
+/// override it with `.environment(\.downloadManager, …)`.
 ///
 /// The defaults are stable: `.shared` is always the same instance (see the
 /// SwiftUI guidance on unstable `@Entry` defaults).

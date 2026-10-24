@@ -80,18 +80,3 @@ struct PodcastEpisodesView: View {
         viewModel.loadMoreEpisodes()
     }
 }
-
-#Preview {
-    let viewModel = EpisodesViewModel(repository: PreviewSearchRepository(), favoritesManager: .preview)
-    NavigationStack {
-        PodcastEpisodesView(
-            podcast: .mock,
-            viewModel: viewModel,
-            actions: EpisodeHeaderActions(),
-            onScroll: { _ in },
-            onShowInfo: { _ in }
-        )
-        .task { viewModel.loadEpisodes(feedURL: "preview") }
-    }
-    .environment(\.playerManager, .preview)
-}
