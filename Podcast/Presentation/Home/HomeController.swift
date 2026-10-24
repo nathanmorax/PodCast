@@ -14,8 +14,9 @@ import SwiftUI
 /// the title, and holds the Inbox tray on the right.
 final class HomeController: UIViewController {
 
-    /// Shared by the page ("For you") and the Inbox button: one download.
-    private lazy var forYou = ForYouViewModel(cache: .standard)
+    /// The followed podcasts' episodes: the Inbox and its button. The page
+    /// loads it (HomeView), the button reads it.
+    private lazy var followingFeed = FollowingFeedViewModel(cache: .standard)
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,7 +33,7 @@ final class HomeController: UIViewController {
 
     private func setupHosting() {
         let home = HomeView(
-            forYou: forYou,
+            followingFeed: followingFeed,
             onOpenPodcast: { [weak self] podcast in self?.open(podcast) },
             onOpenEpisode: { [weak self] episode, podcast in
                 self?.pushZooming(
@@ -81,7 +82,7 @@ final class HomeController: UIViewController {
     /// navigation controller, and UIKit crashes when a child of this screen
     /// ends up in there (UIViewControllerHierarchyInconsistency).
     private func setupInboxButton() {
-        let host = UIHostingController(rootView: InboxBarButton(forYou: forYou) { [weak self] items in
+        let host = UIHostingController(rootView: InboxBarButton(feed: followingFeed) { [weak self] items in
             self?.pushZooming(InboxController(items: items), from: .collection(.inbox))
         })
         host.sizingOptions = .intrinsicContentSize

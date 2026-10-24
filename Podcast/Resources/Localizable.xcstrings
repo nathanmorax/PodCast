@@ -153,6 +153,16 @@
         }
       }
     },
+    "Based on your interests" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Según tus intereses"
+          }
+        }
+      }
+    },
     "Browse podcasts" : {
       "localizations" : {
         "es" : {
@@ -965,7 +975,6 @@
       }
     },
     "Playing" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {

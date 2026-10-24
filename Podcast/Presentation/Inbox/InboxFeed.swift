@@ -6,8 +6,8 @@
 import Foundation
 
 /// What the Inbox lists: every recent episode of the podcasts you follow,
-/// newest first. Pure: it reads the episodes "For you" already downloaded
-/// (ForYouViewModel), so the Inbox costs no extra network.
+/// newest first. Pure: it reads the episodes FollowingFeedViewModel already
+/// downloaded.
 enum InboxFeed {
 
     /// How far back the Inbox goes.
@@ -17,18 +17,18 @@ enum InboxFeed {
 
     static func items(following podcasts: [Podcast],
                       episodes: [Int: [Episode]],
-                      now: Date = .now) -> [ForYouViewModel.Item] {
+                      now: Date = .now) -> [PodcastEpisode] {
         let oldest = now.addingTimeInterval(-window)
         let all = podcasts.flatMap { podcast in
             (episodes[podcast.trackId] ?? [])
                 .filter { $0.pubDate >= oldest && $0.pubDate <= now }
-                .map { ForYouViewModel.Item(podcast: podcast, episode: $0) }
+                .map { PodcastEpisode(podcast: podcast, episode: $0) }
         }
         return Array(all.sorted { $0.episode.pubDate > $1.episode.pubDate }.prefix(limit))
     }
 
     /// The ones published after the Inbox was last opened.
-    static func newCount(in items: [ForYouViewModel.Item], since lastSeen: Date) -> Int {
+    static func newCount(in items: [PodcastEpisode], since lastSeen: Date) -> Int {
         items.lazy.filter { $0.episode.pubDate > lastSeen }.count
     }
 }
