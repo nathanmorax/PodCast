@@ -10,16 +10,16 @@ import SwiftUI
 /// Each row says which podcast it's from. Hosted by InboxController.
 struct InboxView: View {
 
-    let items: [ForYouViewModel.Item]
+    let items: [PodcastEpisode]
     /// Episodes after this are "New" (when the Inbox was opened before).
     let newSince: Date
-    let onOpen: (ForYouViewModel.Item) -> Void
+    let onOpen: (PodcastEpisode) -> Void
 
-    private var newItems: [ForYouViewModel.Item] {
+    private var newItems: [PodcastEpisode] {
         items.filter { $0.episode.pubDate > newSince }
     }
 
-    private var earlierItems: [ForYouViewModel.Item] {
+    private var earlierItems: [PodcastEpisode] {
         items.filter { $0.episode.pubDate <= newSince }
     }
 
@@ -46,7 +46,7 @@ struct InboxView: View {
     }
 
     @ViewBuilder
-    private func section(_ title: LocalizedStringKey, items: [ForYouViewModel.Item]) -> some View {
+    private func section(_ title: LocalizedStringKey, items: [PodcastEpisode]) -> some View {
         if !items.isEmpty {
             LibrarySectionHeader(title: title)
                 .padding(.top, 12)
@@ -65,7 +65,7 @@ struct InboxView: View {
 /// The podcast's name over the usual episode row.
 private struct InboxRow: View {
 
-    let item: ForYouViewModel.Item
+    let item: PodcastEpisode
     let showsSeparator: Bool
     let onOpen: () -> Void
 
@@ -79,17 +79,4 @@ private struct InboxRow: View {
             EpisodeRow(episode: item.episode, showsSeparator: showsSeparator, onShowInfo: onOpen)
         }
     }
-}
-
-#Preview("With episodes") {
-    InboxView(
-        items: Episode.mocks.map { ForYouViewModel.Item(podcast: .mock, episode: $0) },
-        newSince: .distantPast,
-        onOpen: { _ in }
-    )
-    .environment(\.playerManager, .preview)
-}
-
-#Preview("Empty") {
-    InboxView(items: [], newSince: .now, onOpen: { _ in })
 }

@@ -152,7 +152,3 @@ struct EpisodeInfoSheet: View {
         .buttonStyle(.plain)
     }
 }
-
-#Preview {
-    EpisodeInfoSheet(episode: .mock, onPlay: {})
-}

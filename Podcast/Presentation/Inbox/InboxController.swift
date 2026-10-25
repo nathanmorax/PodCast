@@ -11,10 +11,10 @@ import SwiftUI
 /// visit still shows what was new.
 final class InboxController: UIViewController {
 
-    private let items: [ForYouViewModel.Item]
+    private let items: [PodcastEpisode]
     private let newSince: Date
 
-    init(items: [ForYouViewModel.Item], seen: InboxSeen = .shared) {
+    init(items: [PodcastEpisode], seen: InboxSeen = .shared) {
         self.items = items
         self.newSince = seen.lastSeen
         super.init(nibName: nil, bundle: nil)

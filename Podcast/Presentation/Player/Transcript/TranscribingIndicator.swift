@@ -54,7 +54,3 @@ struct TranscribingIndicator: View {
         .accessibilityAddTraits(.updatesFrequently)
     }
 }
-
-#Preview {
-    TranscribingIndicator()
-}

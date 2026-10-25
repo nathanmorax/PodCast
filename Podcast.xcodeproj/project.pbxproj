@@ -7,11 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		BA1FD1682F283A2700EBD902 /* SDWebImage in Frameworks */ = {isa = PBXBuildFile; productRef = BA1FD1672F283A2700EBD902 /* SDWebImage */; };
-		BA1FD16A2F283A2700EBD902 /* SDWebImageMapKit in Frameworks */ = {isa = PBXBuildFile; productRef = BA1FD1692F283A2700EBD902 /* SDWebImageMapKit */; };
 		BA1FD16D2F283A5700EBD902 /* FeedKit in Frameworks */ = {isa = PBXBuildFile; productRef = BA1FD16C2F283A5700EBD902 /* FeedKit */; };
 		BA1FD16F2F283A5700EBD902 /* XMLKit in Frameworks */ = {isa = PBXBuildFile; productRef = BA1FD16E2F283A5700EBD902 /* XMLKit */; };
-		BA1FD1772F283CE100EBD902 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = BA1FD1762F283CE100EBD902 /* Alamofire */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,10 +47,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BA1FD1772F283CE100EBD902 /* Alamofire in Frameworks */,
 				BA1FD16D2F283A5700EBD902 /* FeedKit in Frameworks */,
-				BA1FD16A2F283A2700EBD902 /* SDWebImageMapKit in Frameworks */,
-				BA1FD1682F283A2700EBD902 /* SDWebImage in Frameworks */,
 				BA1FD16F2F283A5700EBD902 /* XMLKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -170,9 +164,7 @@
 			);
 			mainGroup = 0BCC34422AFB195C005A3E38;
 			packageReferences = (
-				BA1FD1662F283A2700EBD902 /* XCRemoteSwiftPackageReference "SDWebImage" */,
 				BA1FD16B2F283A5700EBD902 /* XCRemoteSwiftPackageReference "FeedKit" */,
-				BA1FD1752F283CE100EBD902 /* XCRemoteSwiftPackageReference "Alamofire" */,
 			);
 			productRefGroup = 0BCC344C2AFB195C005A3E38 /* Products */;
 			projectDirPath = "";
@@ -231,7 +223,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -285,7 +277,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -295,7 +287,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -342,7 +334,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;
@@ -360,7 +352,6 @@
 				INFOPLIST_FILE = Podcast/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -369,6 +360,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -Xfrontend -warn-long-function-bodies=150 -Xfrontend -warn-long-expression-type-checking=150";
 				PRODUCT_BUNDLE_IDENTIFIER = nathan.mora.Podcast;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -389,7 +381,6 @@
 				INFOPLIST_FILE = Podcast/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -480,14 +471,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		BA1FD1662F283A2700EBD902 /* XCRemoteSwiftPackageReference "SDWebImage" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SDWebImage/SDWebImage";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.21.5;
-			};
-		};
 		BA1FD16B2F283A5700EBD902 /* XCRemoteSwiftPackageReference "FeedKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/nmdias/FeedKit.git";
@@ -496,27 +479,9 @@
 				minimumVersion = 10.3.0;
 			};
 		};
-		BA1FD1752F283CE100EBD902 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
-			requirement = {
-				kind = exactVersion;
-				version = 5.6.4;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		BA1FD1672F283A2700EBD902 /* SDWebImage */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = BA1FD1662F283A2700EBD902 /* XCRemoteSwiftPackageReference "SDWebImage" */;
-			productName = SDWebImage;
-		};
-		BA1FD1692F283A2700EBD902 /* SDWebImageMapKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = BA1FD1662F283A2700EBD902 /* XCRemoteSwiftPackageReference "SDWebImage" */;
-			productName = SDWebImageMapKit;
-		};
 		BA1FD16C2F283A5700EBD902 /* FeedKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = BA1FD16B2F283A5700EBD902 /* XCRemoteSwiftPackageReference "FeedKit" */;
@@ -526,11 +491,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = BA1FD16B2F283A5700EBD902 /* XCRemoteSwiftPackageReference "FeedKit" */;
 			productName = XMLKit;
-		};
-		BA1FD1762F283CE100EBD902 /* Alamofire */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = BA1FD1752F283CE100EBD902 /* XCRemoteSwiftPackageReference "Alamofire" */;
-			productName = Alamofire;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

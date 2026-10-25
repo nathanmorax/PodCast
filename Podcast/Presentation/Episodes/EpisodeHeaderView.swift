@@ -10,8 +10,8 @@ import SwiftUI
 // MARK: - Style Constants
 
 private enum HeaderStyle {
-    static let coverSide: CGFloat = 240
-    static let coverCornerRadius: CGFloat = 16
+    static let coverSide: CGFloat = 170
+    static let coverCornerRadius: CGFloat = 12
     static let horizontalPadding: CGFloat = 24
     static let topPadding: CGFloat = 12
     static let nameTopPadding: CGFloat = 22
@@ -40,11 +40,13 @@ struct EpisodeHeaderView: View {
             VStack(spacing: 0) {
                 heroSection
                 followButton
-                actionsRow
+//                actionsRow
             }
             .frame(maxWidth: .infinity)
             .padding(.bottom, 28)
-            .background { tintedBackground }
+            // Two layers, one over the other (see tintedColor).
+            .background { tintedGradient }
+            .background { tintedColor }
 
             episodesCaption
         }
@@ -58,14 +60,22 @@ struct EpisodeHeaderView: View {
     private var secondaryTextColor: Color { tint?.secondaryText ?? AppColor.Text.secondary }
 
     /// The color goes on above the header too (under the navigation bar and
-    /// when the page is pulled down), so the top never shows a seam.
-    private var tintedBackground: some View {
-        VStack(spacing: 0) {
-            backgroundTop.frame(height: 1000)
-            LinearGradient(colors: [backgroundTop, backgroundBottom], startPoint: .top, endPoint: .bottom)
-        }
-        .padding(.top, -1000)
-        .animation(.easeInOut(duration: 0.35), value: tint)
+    /// when the page is pulled down).
+    ///
+    /// One flat color under everything, and the gradient laid *over* it,
+    /// never two shapes edge to edge: where two shapes meet, antialiasing
+    /// leaves a 1 px line, and it showed right under the navigation bar,
+    /// most of all while the zoom transition scales the page.
+    private var tintedColor: some View {
+        backgroundTop
+            .padding(.top, -1000)
+            .animation(.easeInOut(duration: 0.35), value: tint)
+    }
+
+    /// Deeper toward the bottom, over the flat color: the header's size only.
+    private var tintedGradient: some View {
+        LinearGradient(colors: [.clear, backgroundBottom], startPoint: .top, endPoint: .bottom)
+            .animation(.easeInOut(duration: 0.35), value: tint)
     }
 
     // MARK: - Hero
@@ -84,19 +94,21 @@ struct EpisodeHeaderView: View {
 
             VStack(spacing: 6) {
                 // Editorial: the name in serif, like a magazine cover.
-                Text(podcast.trackName ?? "")
+                Text(podcast.artistName ?? "")
                     .font(AppFont.display)
                     .foregroundStyle(textColor)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .minimumScaleFactor(0.7)
+                
+                
 
-                if !heroCaption.isEmpty {
-                    Text(heroCaption)
-                        .overlineStyle(color: secondaryTextColor)
-                        .multilineTextAlignment(.center)
-                        .lineLimit(1)
-                }
+//                if !heroCaption.isEmpty {
+//                    Text(heroCaption)
+//                        .overlineStyle(color: secondaryTextColor)
+//                        .multilineTextAlignment(.center)
+//                        .lineLimit(1)
+//                }
             }
             .padding(.top, HeaderStyle.nameTopPadding)
             .accessibilityElement(children: .combine)
@@ -206,34 +218,4 @@ struct EpisodeHeaderView: View {
                 .padding(.bottom, 4)
         }
     }
-}
-
-#Preview("Tinted") {
-    ScrollView {
-        EpisodeHeaderView(
-            podcast: .mock,
-            isFavorite: true,
-            tint: ArtworkTint(red: 0.62, green: 0.58, blue: 0.86),
-            actions: EpisodeHeaderActions()
-        )
-    }
-    .background(AppColor.screenBackground)
-}
-
-#Preview("Light artwork") {
-    ScrollView {
-        EpisodeHeaderView(
-            podcast: .mock,
-            tint: ArtworkTint(red: 0.93, green: 0.86, blue: 0.62),
-            actions: EpisodeHeaderActions()
-        )
-    }
-    .background(AppColor.screenBackground)
-}
-
-#Preview("Loading color") {
-    ScrollView {
-        EpisodeHeaderView(podcast: .mock, actions: EpisodeHeaderActions())
-    }
-    .background(AppColor.screenBackground)
 }

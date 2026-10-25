@@ -6,105 +6,118 @@
 import Foundation
 import Observation
 
-/// "For you" in Library: the latest episodes of the podcasts you follow,
-/// newest first, in one row.
+/// "For you · Based on your interests": the newest episode of podcasts you
+/// DON'T follow yet, from the categories you chose. Discovery: what you
+/// follow already has the Inbox, and what you started has Recently played,
+/// so nothing here repeats them.
 ///
-/// What was shown last time is saved (ForYouCache) and appears at once, even
-/// right after the app was closed; meanwhile each followed podcast's RSS is
-/// read again, once per launch, and the row updates in place when it lands.
-/// Going back to Library (or following one more) only downloads what's
-/// missing.
+/// For each interest, the top shows of that category (the same search the
+/// category page uses), skipping the ones you follow; then each one's
+/// newest episode. Loaded once per set of interests while Library lives.
 @MainActor
 @Observable
 final class ForYouViewModel {
 
-    struct Item: Identifiable, Sendable {
-        let podcast: Podcast
-        let episode: Episode
-        var id: String { episode.streamUrl }
-    }
+    /// Shows taken from each category.
+    static let perGenre = 2
+    /// Categories used (the first interests).
+    static let maxGenres = 4
+    /// With no interests chosen: the catalog's first categories.
+    static let fallbackGenres = 3
 
-    /// How many episodes Library shows.
-    static let shownCount = 10
-    /// At most this many from one podcast, so a daily show doesn't fill the row.
-    static let perPodcast = 2
-
-    private(set) var items: [Item] = []
+    private(set) var items: [PodcastEpisode] = []
     private(set) var isLoading = false
 
     @ObservationIgnored private let repository: any SearchPodcastRepository
-    /// Episodes per podcast (trackId), newest first. Observed: the Inbox
-    /// (InboxFeed) is built from them too.
-    private(set) var episodesByPodcast: [Int: [Episode]] = [:]
-    /// Podcasts whose feed was read in this launch (the rest come from the
-    /// saved copy and get refreshed).
-    @ObservationIgnored private var refreshed: Set<Int> = []
-    @ObservationIgnored private let cache: ForYouCache?
+    /// What the current items were made for (interests + followed).
+    @ObservationIgnored private var loadedKey: String?
     /// Internal read access so tests can await it.
     @ObservationIgnored private(set) var loadTask: Task<Void, Never>?
 
-    /// - Parameter cache: where the last row is saved between launches.
-    ///   Nil (tests, previews): memory only.
-    init(repository: any SearchPodcastRepository = PodcastRepositoryImpl(remoteDataSource: PodcastRemoteDataService()),
-         cache: ForYouCache? = nil) {
+    init(repository: any SearchPodcastRepository = PodcastRepositoryImpl(remoteDataSource: PodcastRemoteDataService())) {
         self.repository = repository
-        self.cache = cache
-        self.episodesByPodcast = cache?.load() ?? [:]
     }
 
-    func load(following: [Podcast]) {
+    /// What's shown: following one of them takes it out right away (it's in
+    /// the Inbox from then on).
+    func visibleItems(excluding followed: Set<Int>) -> [PodcastEpisode] {
+        items.filter { !followed.contains($0.podcast.trackId) }
+    }
+
+    func load(interests: [Genre], following: [Podcast]) {
+        let genres = Array((interests.isEmpty
+            ? Array(Genre.podcastCatalog.prefix(Self.fallbackGenres))
+            : interests).prefix(Self.maxGenres))
+        let followed = Set(following.map(\.trackId))
+        let key = genres.map(\.id).joined(separator: ",")
+        // Same interests: keep what's there (a new follow is filtered out
+        // by visibleItems, no new download).
+        guard key != loadedKey || (items.isEmpty && !isLoading) else { return }
+        loadedKey = key
+
         loadTask?.cancel()
-        // What's cached shows right away.
-        items = Self.latest(from: following, episodes: episodesByPodcast)
-
-        // Not read yet in this launch: new follows, and what came from the
-        // saved copy (shown already, refreshed quietly).
-        let missing = following.filter { !refreshed.contains($0.trackId) && $0.feedUrl != nil }
-        guard !missing.isEmpty else {
-            isLoading = false
-            return
-        }
-
-        // The spinner only when there's nothing to show yet.
         isLoading = true
         let repository = self.repository
         loadTask = Task {
-            // All feeds at once; a failed one just adds nothing.
-            let fetched = await withTaskGroup(of: (Int, [Episode]?).self) { group in
-                for podcast in missing {
+            // 1. Each category's top shows, all at once.
+            let rankings = await withTaskGroup(of: (Int, [Podcast]).self) { group in
+                for (index, genre) in genres.enumerated() {
+                    group.addTask {
+                        (index, (try? await repository.searchPodcast(query: genre.name)) ?? [])
+                    }
+                }
+                var results: [[Podcast]] = Array(repeating: [], count: genres.count)
+                for await (index, podcasts) in group { results[index] = podcasts }
+                return results
+            }
+            guard !Task.isCancelled else { return }
+            let picked = Self.pick(from: rankings, excluding: followed, perGenre: Self.perGenre)
+
+            // 2. Each picked show's newest episode, all at once.
+            let newest = await withTaskGroup(of: (Int, Episode?).self) { group in
+                for podcast in picked {
                     guard let feedURL = podcast.feedUrl else { continue }
                     group.addTask {
                         let feed = try? await repository.fetchFeed(feedURL: feedURL)
-                        return (podcast.trackId, feed?.episodes.sorted { $0.pubDate > $1.pubDate })
+                        return (podcast.trackId, feed?.episodes.max { $0.pubDate < $1.pubDate })
                     }
                 }
-                var results: [Int: [Episode]] = [:]
-                for await (id, episodes) in group {
-                    if let episodes { results[id] = episodes }
+                var results: [Int: Episode] = [:]
+                for await (id, episode) in group {
+                    if let episode { results[id] = episode }
                 }
                 return results
             }
             guard !Task.isCancelled else { return }
-            episodesByPodcast.merge(fetched) { _, new in new }
-            // Failed ones stay as saved and are tried again next time.
-            refreshed.formUnion(fetched.keys)
-            items = Self.latest(from: following, episodes: episodesByPodcast)
+            // In the picked order: categories take turns.
+            items = picked.compactMap { podcast in
+                newest[podcast.trackId].map { PodcastEpisode(podcast: podcast, episode: $0) }
+            }
             isLoading = false
-            // Only what you still follow is worth keeping.
-            let followed = Set(following.map(\.trackId))
-            cache?.save(episodesByPodcast.filter { followed.contains($0.key) })
         }
     }
 
-    /// Pure: the newest episodes across these podcasts (at most `perPodcast`
-    /// each, `shownCount` in all), newest first.
-    static func latest(from podcasts: [Podcast], episodes: [Int: [Episode]]) -> [Item] {
-        let all = podcasts.flatMap { podcast in
-            (episodes[podcast.trackId] ?? [])
-                .sorted { $0.pubDate > $1.pubDate }
-                .prefix(perPodcast)
-                .map { Item(podcast: podcast, episode: $0) }
+    /// Pure: from each category's ranking, the first `perGenre` shows you
+    /// don't follow and that no other category took; categories take turns
+    /// (1st of each, then 2nd of each…), so one doesn't fill the row.
+    static func pick(from rankings: [[Podcast]], excluding followed: Set<Int>, perGenre: Int) -> [Podcast] {
+        var taken = followed
+        let candidates: [[Podcast]] = rankings.map { ranking in
+            var mine: [Podcast] = []
+            for podcast in ranking where mine.count < perGenre
+                && podcast.feedUrl != nil
+                && !taken.contains(podcast.trackId) {
+                mine.append(podcast)
+                taken.insert(podcast.trackId)
+            }
+            return mine
         }
-        return Array(all.sorted { $0.episode.pubDate > $1.episode.pubDate }.prefix(shownCount))
+        var result: [Podcast] = []
+        for round in 0..<perGenre {
+            for list in candidates where round < list.count {
+                result.append(list[round])
+            }
+        }
+        return result
     }
 }

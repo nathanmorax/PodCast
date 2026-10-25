@@ -67,7 +67,3 @@ struct SavedEpisodesView: View {
         }
     }
 }
-
-#Preview {
-    SavedEpisodesView(collection: .favorites, onOpen: { _ in })
-}

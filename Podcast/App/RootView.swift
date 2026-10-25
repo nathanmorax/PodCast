@@ -5,7 +5,6 @@
 //  Created by Jonathan Mora on 12/05/26.
 //
 
-
 import SwiftUI
 
 struct RootView: View {
@@ -88,9 +87,4 @@ struct RootView: View {
                 .environment(\.episodeActions, headerActions)
         }
     }
-}
-
-#Preview {
-    RootView()
-        .environment(\.playerManager, .preview)
 }

@@ -9,8 +9,8 @@ import SwiftUI
 /// "Library", is the title):
 /// 1. Library: the podcasts you follow, as square covers with their names.
 /// 2. Today's date, and Following · Favorites · Downloads as three rows.
-/// 3. Recently played: what you listened to, with how far you got. The
-///    episode playing now lives in the mini player, so it isn't repeated here.
+/// 3. Recently played: big cards, one per page, the one playing now first
+///    (its artwork moves while it plays).
 /// 4. For you: the latest episodes of the podcasts you follow.
 /// 5. Browse podcasts: category chips and a row of shows; "Show all" opens
 ///    the interests picker.
@@ -24,8 +24,10 @@ struct HomeView: View {
     @Environment(\.interestsManager) private var interests
 
     /// Owned by HomeController: the Inbox button in the navigation bar reads
-    /// the same episodes.
-    let forYou: ForYouViewModel
+    /// the same episodes. Loaded here, as follows change.
+    let followingFeed: FollowingFeedViewModel
+    /// Owned by the view: "For you" stays while Library lives.
+    @State private var forYou = ForYouViewModel()
     /// Owned by the view: each category's shows stay while Library lives.
     @State private var browse = BrowseViewModel()
 
@@ -40,10 +42,10 @@ struct HomeView: View {
 
     private var following: [Podcast] { favoritesManager.favorites }
 
-    /// Recently played, minus the one in the mini player.
+    /// Recently played, the one in the player included (its card shows it
+    /// playing).
     private var played: [RecentlyPlayed] {
-        let current = playerManager.currentEpisode?.streamUrl
-        return recentlyPlayed.items.filter { $0.id != current }
+        recentlyPlayed.items
     }
 
     var body: some View {
@@ -53,10 +55,10 @@ struct HomeView: View {
                     librarySection
                 }
 
-                VStack(alignment: .leading, spacing: 14) {
-                    dateHeader
-                    collectionsSection
-                }
+//                VStack(alignment: .leading, spacing: 14) {
+//                    dateHeader
+//                    collectionsSection
+//                }
 
                 if !played.isEmpty {
                     recentlyPlayedSection
@@ -65,9 +67,9 @@ struct HomeView: View {
 
                 if following.isEmpty {
                     emptyState
-                } else {
-                    forYouSection
                 }
+
+                forYouSection
 
                 BrowsePodcastsSection(
                     viewModel: browse,
@@ -85,61 +87,82 @@ struct HomeView: View {
         .animation(AppAnimation.listChange, value: played.map(\.id))
         // Reload when you follow or unfollow a podcast.
         .task(id: following.map(\.trackId)) {
-            forYou.load(following: following)
+            followingFeed.load(following: following)
+        }
+        // "For you" depends on the interests (and skips what you follow).
+        .task(id: interests.genreIDs) {
+            forYou.load(interests: interests.genres, following: following)
         }
     }
 
     // MARK: - Recently played
 
+    /// Every episode played as a big card, one per page (newest first).
     private var recentlyPlayedSection: some View {
         VStack(alignment: .leading, spacing: 14) {
             LibrarySectionHeader(title: "Recently played")
 
-            RecentlyPlayedRow(
+            RecentlyPlayedCarousel(
                 items: played,
-                onResume: { item in
-                    // From where it was left (finished ones start over).
-                    playerManager.play(item.episode, from: item.resumeProgress)
-                },
+                onResume: resume,
                 onOpen: { onOpenPlayedEpisode($0.episode) },
-                onRemove: { item in
-                    withAnimation(AppAnimation.listChange) { recentlyPlayed.remove(item) }
-                }
+                onRemove: remove
             )
         }
     }
 
+    /// From where it was left (finished ones start over).
+    private func resume(_ item: RecentlyPlayed) {
+        playerManager.play(item.episode, from: item.resumeProgress)
+    }
+
+    private func remove(_ item: RecentlyPlayed) {
+        withAnimation(AppAnimation.listChange) { recentlyPlayed.remove(item) }
+    }
+
     // MARK: - Library
 
-    /// The podcasts you follow, as square covers; "Show all" opens Following.
+    /// The podcasts you follow, as square covers; the See All tile at the
+    /// end (only when they overflow) opens Following.
     private var librarySection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            LibrarySectionHeader(title: "Library", onShowAll: onOpenFollowing)
-            LibraryCovers(podcasts: following, onOpen: onOpenPodcast)
+            // No "Show all" up here: the row ends with a See All tile when
+            // the covers don't all fit.
+            LibrarySectionHeader(title: "Library")
+            LibraryCovers(podcasts: following, onOpen: onOpenPodcast, onSeeAll: onOpenFollowing)
         }
     }
 
     // MARK: - For you
 
-    /// The latest episodes of the podcasts you follow, in one row.
+    /// Podcasts you don't follow yet, from your interests: discovery. What
+    /// you follow is in the Inbox; what you started, in Recently played.
+    @ViewBuilder
     private var forYouSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            LibrarySectionHeader(title: "For you")
+        let items = forYou.visibleItems(excluding: Set(following.map(\.trackId)))
+        if !items.isEmpty || forYou.isLoading {
+            forYouContent(items)
+        }
+    }
 
-            if forYou.items.isEmpty && forYou.isLoading {
+    private func forYouContent(_ items: [PodcastEpisode]) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            LibrarySectionHeader(title: "For you", subtitle: "Based on your interests")
+
+            if items.isEmpty && forYou.isLoading {
                 ProgressView()
                     .frame(maxWidth: .infinity, minHeight: ForYouCard.height)
                     .padding(.horizontal, 20)
             } else {
                 ForYouRow(
-                    items: forYou.items,
+                    items: items,
                     onOpen: { onOpenEpisode($0.episode, $0.podcast) },
                     onPlay: { playerManager.play($0) },
                     onOpenPodcast: onOpenPodcast
                 )
             }
         }
-        .animation(AppAnimation.listChange, value: forYou.items.map(\.id))
+        .animation(AppAnimation.listChange, value: items.map(\.id))
     }
 
     // MARK: - Date and collections
@@ -195,23 +218,4 @@ struct HomeView: View {
         .padding(.horizontal, 32)
         .padding(.top, 24)
     }
-}
-
-// MARK: - Preview
-
-#Preview {
-    HomeView(
-        forYou: ForYouViewModel(),
-        onOpenPodcast: { _ in },
-        onOpenEpisode: { _, _ in },
-        onOpenPlayedEpisode: { _ in },
-        onSearch: {},
-        onOpenFollowing: {},
-        onOpenFavorites: {},
-        onOpenDownloads: {}
-    )
-    .environment(\.favoritesManager, .preview)
-    .environment(\.playerManager, .preview)
-    .environment(\.recentlyPlayed, .preview)
-    .environment(\.interestsManager, .preview)
 }

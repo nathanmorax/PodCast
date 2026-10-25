@@ -58,13 +58,21 @@ class AVPlayerViewModel {
     }
 
     // MARK: - Audio session
+    /// The category is quick to set; activating the session can block for a
+    /// moment (the system warned: "can lead to UI unresponsiveness if called
+    /// on the main thread"), so that part runs off the main thread.
     private func configureAudioSession() {
         do {
-            let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playback, mode: .default)
-            try session.setActive(true)
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
         } catch {
             print("Audio session error:", error)
+        }
+        Task.detached(priority: .userInitiated) {
+            do {
+                try AVAudioSession.sharedInstance().setActive(true)
+            } catch {
+                print("Audio session error:", error)
+            }
         }
     }
 
@@ -102,7 +110,7 @@ class AVPlayerViewModel {
             self?.isPlaying = $0
             self?.onPlaybackChange?()
         }
-        player.onEpisodeStarted = { [weak self] in }
+        player.onEpisodeStarted = {}
     }
 
     /// "43:20" under an hour, "1:02:05" above.
@@ -132,7 +140,9 @@ class AVPlayerViewModel {
     /// (other apps' audio can resume).
     func stop() {
         player.pause()
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        Task.detached(priority: .utility) {
+            try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        }
     }
 
     func togglePlayPause() {

@@ -36,12 +36,3 @@ struct EpisodeRow: View {
             .accessibilityAction(named: Text("Details"), onShowInfo)
     }
 }
-
-#Preview {
-    VStack(spacing: 0) {
-        ForEach(Episode.mocks, id: \.streamUrl) { episode in
-            EpisodeRow(episode: episode, showsSeparator: true, onShowInfo: {})
-        }
-    }
-    .environment(\.playerManager, .preview)
-}

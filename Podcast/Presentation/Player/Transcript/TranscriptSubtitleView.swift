@@ -149,12 +149,3 @@ enum ReadingTheme: String {
     var colorScheme: ColorScheme { self == .night ? .dark : .light }
     var toggled: ReadingTheme { self == .night ? .paper : .night }
 }
-
-#Preview("Noche") {
-    TranscriptSubtitleView(
-        previous: "Posponemos porque la tarea nos hace sentir algo incómodo.",
-        current: "El cerebro busca alivio inmediato, y lo encuentra en cualquier otra cosa.",
-        lineID: UUID(), isPlaying: true, timeText: "12:04 / 32:00",
-        onTogglePlay: {}, onClose: {}
-    )
-}

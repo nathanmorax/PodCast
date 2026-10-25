@@ -97,16 +97,3 @@ private struct RemotePodcastImage: View {
         }
     }
 }
-
-#Preview(traits: .sizeThatFitsLayout) {
-    HStack {
-        PodcastImage(source: Podcast.mock.artworkUrl600)
-            .frame(width: 100, height: 100)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-        // No artwork: the placeholder.
-        PodcastImage(source: nil)
-            .frame(width: 100, height: 100)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-    }
-    .padding()
-}

@@ -56,7 +56,7 @@ private struct RecentlyPlayedCard: View {
                 .overlay {
                     ZoomSourceImage(
                         id: .episode(item.episode.streamUrl, section: .recentlyPlayed),
-                        source: item.episode.imageUrl,
+                        source: item.artworkSource,
                         cornerRadius: LibraryCover.cornerRadius
                     )
                 }
@@ -67,22 +67,12 @@ private struct RecentlyPlayedCard: View {
                 .foregroundStyle(AppColor.Text.primary)
                 .lineLimit(2, reservesSpace: true)
 
-            ResumeCapsule(progress: item.progress, minutes: minutes)
+            ResumeCapsule(progress: item.progress, minutes: item.minutesLeftText)
         }
         .frame(width: Self.side, alignment: .leading)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityHint("Resumes the episode")
-    }
-
-    /// What's still to go; the whole length when it was finished (it starts
-    /// over) or the length isn't known yet.
-    private var minutes: String {
-        guard let total = item.episode.durationSeconds, total > 0 else {
-            return item.episode.durationDisplayText
-        }
-        let left = item.progress < RecentlyPlayed.finishedThreshold ? (1 - item.progress) * total : total
-        return String(localized: "\(max(1, Int((left / 60).rounded(.up)))) min")
     }
 }
 
@@ -121,15 +111,4 @@ private struct ResumeCapsule: View {
         .frame(height: 26)
         .background(AppColor.Accent.wash, in: .capsule)
     }
-}
-
-#Preview {
-    RecentlyPlayedRow(
-        items: Episode.mocks.enumerated().map { offset, episode in
-            RecentlyPlayed(episode: episode, lastPlayedAt: .now, progress: Double(offset) * 0.3)
-        },
-        onResume: { _ in },
-        onOpen: { _ in },
-        onRemove: { _ in }
-    )
 }

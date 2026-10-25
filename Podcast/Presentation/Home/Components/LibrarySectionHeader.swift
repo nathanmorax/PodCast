@@ -10,14 +10,23 @@ import SwiftUI
 struct LibrarySectionHeader: View {
 
     let title: LocalizedStringKey
+    /// A short line under the title, saying what the section is.
+    var subtitle: LocalizedStringKey? = nil
     var onShowAll: (() -> Void)? = nil
 
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
-            Text(title)
-                .font(AppFont.sectionTitle)
-                .foregroundStyle(AppColor.Text.primary)
-                .accessibilityAddTraits(.isHeader)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(AppFont.sectionTitle)
+                    .foregroundStyle(AppColor.Text.primary)
+                    .accessibilityAddTraits(.isHeader)
+                if let subtitle {
+                    Text(subtitle)
+                        .font(AppFont.footnote)
+                        .foregroundStyle(AppColor.Text.secondary)
+                }
+            }
             Spacer()
             if let onShowAll {
                 Button("Show all", action: onShowAll)
@@ -27,9 +36,4 @@ struct LibrarySectionHeader: View {
         }
         .padding(.horizontal, 20)
     }
-}
-
-#Preview(traits: .sizeThatFitsLayout) {
-    LibrarySectionHeader(title: "Browse podcasts") {}
-        .padding(.vertical)
 }

@@ -55,11 +55,3 @@ struct PodcastCellUI: View {
             .joined(separator: " · ")
     }
 }
-
-#Preview(traits: .sizeThatFitsLayout) {
-    VStack(spacing: 0) {
-        PodcastCellUI(podcast: .mock, rank: 2)
-        PodcastCellUI(podcast: .mock, coverSide: 48)
-    }
-    .padding()
-}

@@ -7,6 +7,7 @@ import Testing
 import Foundation
 @testable import Podcast
 
+/// "For you" is discovery: podcasts you don't follow, from your interests.
 @MainActor
 @Suite("ForYouViewModel")
 struct ForYouViewModelTests {
@@ -16,97 +17,56 @@ struct ForYouViewModelTests {
                 description: "", streamUrl: "https://example.com/\(name).mp3")
     }
 
-    @Test("Newest episodes of what you follow, newest first, two per podcast")
-    func latest() {
-        let a = Fixtures.podcast(id: 1), b = Fixtures.podcast(id: 2)
-        let items = ForYouViewModel.latest(from: [a, b], episodes: [
-            1: [episode("a1", at: 100), episode("a2", at: 300), episode("a3", at: 500)],
-            2: [episode("b1", at: 400)],
-        ])
+    private func ids(_ podcasts: [Podcast]) -> [Int] { podcasts.map(\.trackId) }
 
-        #expect(items.map(\.episode.title) == ["a3", "b1", "a2"])
+    @Test("Categories take turns, skipping what you follow and repeats")
+    func pick() {
+        let p = (1...6).map { Fixtures.podcast(id: $0) }
+        let picked = ForYouViewModel.pick(
+            from: [[p[0], p[1], p[2]], [p[1], p[3], p[4]]],
+            excluding: [p[0].trackId],
+            perGenre: 2
+        )
+        // Category 1: 2, 3 (1 is followed). Category 2: 4, 5 (2 already taken).
+        #expect(ids(picked) == [2, 4, 3, 5])
     }
 
-    @Test("Never more than shownCount")
-    func limit() {
-        let podcasts = (1...20).map { Fixtures.podcast(id: $0) }
-        let episodes = Dictionary(uniqueKeysWithValues: podcasts.map {
-            ($0.trackId, [episode("e\($0.trackId)", at: TimeInterval($0.trackId))])
-        })
-
-        #expect(ForYouViewModel.latest(from: podcasts, episodes: episodes).count == ForYouViewModel.shownCount)
+    @Test("Shows without a feed are skipped")
+    func pickNeedsFeed() {
+        let noFeed = Podcast(trackId: 9, trackName: "X", artistName: nil, artworkUrl600: nil,
+                             primaryGenreName: nil, trackCount: nil, feedUrl: nil)
+        let picked = ForYouViewModel.pick(from: [[noFeed, Fixtures.podcast(id: 2)]], excluding: [], perGenre: 1)
+        #expect(ids(picked) == [2])
     }
 
-    @Test("Reads each followed feed once")
-    func feedCache() async {
-        let repository = MockSearchPodcastRepository(episodes: [episode("x", at: 1)])
+    @Test("Loads the newest episode of shows you don't follow")
+    func load() async {
+        let repository = MockSearchPodcastRepository(
+            podcasts: [Fixtures.podcast(id: 1), Fixtures.podcast(id: 2)],
+            episodes: [episode("old", at: 1), episode("new", at: 2)]
+        )
         let sut = ForYouViewModel(repository: repository)
 
-        sut.load(following: [Fixtures.podcast(id: 1)])
-        await sut.loadTask?.value
-        sut.load(following: [Fixtures.podcast(id: 1)])
+        sut.load(interests: [Genre(id: "1489", name: "News")], following: [Fixtures.podcast(id: 1)])
         await sut.loadTask?.value
 
-        #expect(sut.items.map(\.episode.title) == ["x"])
-        #expect(await repository.fetchedFeeds == ["https://example.com/feed/1"])
+        #expect(sut.items.map(\.podcast.trackId) == [2])
+        #expect(sut.items.map(\.episode.title) == ["new"])
+        #expect(await repository.searchedQueries == ["News"])
         #expect(!sut.isLoading)
     }
 
-    @Test("Unfollowing removes its episodes right away")
-    func unfollow() async {
-        let repository = MockSearchPodcastRepository(episodes: [episode("x", at: 1)])
+    @Test("Following one of them takes it out right away, without reloading")
+    func followHides() async {
+        let repository = MockSearchPodcastRepository(
+            podcasts: [Fixtures.podcast(id: 2)], episodes: [episode("e", at: 1)]
+        )
         let sut = ForYouViewModel(repository: repository)
-
-        sut.load(following: [Fixtures.podcast(id: 1)])
-        await sut.loadTask?.value
-        sut.load(following: [])
-
-        #expect(sut.items.isEmpty)
-    }
-
-    @Test("A failed feed just adds nothing")
-    func failure() async {
-        let repository = MockSearchPodcastRepository(error: TestError())
-        let sut = ForYouViewModel(repository: repository)
-
-        sut.load(following: [Fixtures.podcast(id: 1)])
+        sut.load(interests: [Genre(id: "1489", name: "News")], following: [])
         await sut.loadTask?.value
 
-        #expect(sut.items.isEmpty)
-        #expect(!sut.isLoading)
-    }
-
-    @Test("After closing the app, the last row shows at once and then refreshes")
-    func savedRowShowsAtOnce() async {
-        let cache = ForYouCache(userDefaults: .isolated())
-        let podcast = Fixtures.podcast(id: 1)
-
-        // First launch: read the feed and save the row.
-        let first = ForYouViewModel(repository: MockSearchPodcastRepository(episodes: [episode("old", at: 1)]), cache: cache)
-        first.load(following: [podcast])
-        await first.loadTask?.value
-
-        // Next launch: the saved row is there before any feed is read…
-        let repository = MockSearchPodcastRepository(episodes: [episode("new", at: 2)])
-        let second = ForYouViewModel(repository: repository, cache: cache)
-        second.load(following: [podcast])
-        #expect(second.items.map(\.episode.title) == ["old"])
-
-        // …and the refresh replaces it in place.
-        await second.loadTask?.value
-        #expect(second.items.map(\.episode.title) == ["new"])
-        #expect(await repository.fetchedFeeds.count == 1)
-    }
-
-    @Test("The saved copy keeps only what the row can show, without the long notes")
-    func cacheIsLight() {
-        let cache = ForYouCache(userDefaults: .isolated())
-        var withNotes = episode("a", at: 3)
-        withNotes.showNotes = String(repeating: "x", count: 10_000)
-        cache.save([1: [episode("b", at: 1), withNotes, episode("c", at: 2)]])
-
-        let saved = cache.load()[1] ?? []
-        #expect(saved.map(\.title) == ["a", "c"])
-        #expect(saved.allSatisfy { $0.showNotes == nil })
+        #expect(sut.visibleItems(excluding: [2]).isEmpty)
+        sut.load(interests: [Genre(id: "1489", name: "News")], following: [Fixtures.podcast(id: 2)])
+        #expect(await repository.searchedQueries.count == 1)
     }
 }

@@ -27,8 +27,3 @@ struct SearchSectionHeader: View {
         }
     }
 }
-
-#Preview(traits: .sizeThatFitsLayout) {
-    SearchSectionHeader(title: "Recent", actionTitle: "Clear") {}
-        .padding()
-}

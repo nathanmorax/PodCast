@@ -123,8 +123,3 @@ private struct FollowingRow: View {
         .accessibilityElement(children: .combine)
     }
 }
-
-#Preview {
-    FollowingListView(onOpenPodcast: { _ in })
-        .environment(\.favoritesManager, .preview)
-}

@@ -81,26 +81,3 @@ private struct SeededGenerator: RandomNumberGenerator {
         return state
     }
 }
-
-// MARK: - Preview
-
-#Preview {
-    VStack(spacing: 24) {
-        Text("0%")
-        WaveformBars(progress: 0.0)
-            .frame(height: 40)
-        
-        Text("30%")
-        WaveformBars(progress: 0.3)
-            .frame(height: 40)
-        
-        Text("70%")
-        WaveformBars(progress: 0.7)
-            .frame(height: 40)
-        
-        Text("100%")
-        WaveformBars(progress: 1.0)
-            .frame(height: 40)
-    }
-    .padding()
-}

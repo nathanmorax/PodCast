@@ -1,6 +1,16 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%@ left" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quedan %@"
+          }
+        }
+      }
+    },
     "%@, current tab" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -139,6 +149,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Volver al reproductor"
+          }
+        }
+      }
+    },
+    "Based on your interests" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Según tus intereses"
           }
         }
       }
@@ -883,6 +903,16 @@
         }
       }
     },
+    "Page %lld of %lld" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Página %1$lld de %2$lld"
+          }
+        }
+      }
+    },
     "Pause" : {
       "localizations" : {
         "es" : {
@@ -945,7 +975,6 @@
       }
     },
     "Playing" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1069,7 +1098,6 @@
       }
     },
     "Resume" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1177,6 +1205,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Buscar podcasts"
+          }
+        }
+      }
+    },
+    "See All" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver todo"
           }
         }
       }

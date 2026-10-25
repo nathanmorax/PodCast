@@ -42,12 +42,3 @@ struct InboxButton: View {
             .transition(.scale.combined(with: .opacity))
     }
 }
-
-#Preview(traits: .sizeThatFitsLayout) {
-    HStack {
-        InboxButton(newCount: 0) {}
-        InboxButton(newCount: 3) {}
-        InboxButton(newCount: 120) {}
-    }
-    .padding()
-}

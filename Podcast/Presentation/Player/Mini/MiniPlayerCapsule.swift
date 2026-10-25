@@ -111,10 +111,3 @@ private struct MiniProgressBar: View {
         .accessibilityValue(Text(verbatim: remaining))
     }
 }
-
-#Preview(traits: .sizeThatFitsLayout) {
-    MiniPlayerCapsule(episode: .mock)
-        .frame(height: 62)
-        .padding()
-        .environment(\.playerManager, .preview)
-}

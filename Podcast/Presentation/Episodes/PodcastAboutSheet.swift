@@ -47,7 +47,3 @@ struct PodcastAboutSheet: View {
         .background(AppColor.paper.ignoresSafeArea())
     }
 }
-
-#Preview {
-    PodcastAboutSheet(podcast: .mock, description: "A show about everything.")
-}
