@@ -12,16 +12,29 @@ struct LibraryCovers: View {
 
     let podcasts: [Podcast]
     let onOpen: (Podcast) -> Void
-    /// Whether the covers go past the screen's edge (some are out of view):
-    /// Library shows "See All" only then.
-    var onOverflowChange: (Bool) -> Void = { _ in }
+    /// The last tile, "See All": only when the covers don't all fit.
+    let onSeeAll: () -> Void
+
+    private static let spacing: CGFloat = 8
+    private static let margin: CGFloat = 20
+
+    /// The row's visible width.
+    @State private var visibleWidth: CGFloat = 0
+
+    /// The covers alone (without the See All tile, so adding it can't
+    /// change the answer) are wider than the screen: some are out of view.
+    private var overflows: Bool {
+        let count = CGFloat(podcasts.count)
+        let coversWidth = count * Self.side + max(count - 1, 0) * Self.spacing + Self.margin * 2
+        return visibleWidth > 0 && coversWidth > visibleWidth
+    }
 
     static let side: CGFloat = 80
     static let cornerRadius: CGFloat = 8
 
     var body: some View {
         ScrollView(.horizontal) {
-            LazyHStack(alignment: .top, spacing: 8) {
+            LazyHStack(alignment: .top, spacing: Self.spacing) {
                 ForEach(podcasts, id: \.trackId) { podcast in
                     Button {
                         onOpen(podcast)
@@ -42,16 +55,42 @@ struct LibraryCovers: View {
                     }
                     .buttonStyle(.plain)
                 }
+
+                if overflows {
+                    seeAllTile
+                }
             }
         }
-        .contentMargins(.horizontal, 20, for: .scrollContent)
+        .contentMargins(.horizontal, Self.margin, for: .scrollContent)
         .scrollIndicators(.hidden)
-        // Wider than what's on screen (margins included): some are hidden.
-        .onScrollGeometryChange(for: Bool.self) { geometry in
-            geometry.contentSize.width + geometry.contentInsets.leading + geometry.contentInsets.trailing
-                > geometry.containerSize.width + 1
-        } action: { _, overflows in
-            onOverflowChange(overflows)
+        .onScrollGeometryChange(for: CGFloat.self) { geometry in
+            geometry.containerSize.width
+        } action: { _, width in
+            visibleWidth = width
         }
+    }
+
+    /// At the end of the row, the size of a cover: → and "See All".
+    private var seeAllTile: some View {
+        Button(action: onSeeAll) {
+            VStack(spacing: 6) {
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 16, weight: .semibold))
+                    .frame(width: 34, height: 34)
+                    .background(Circle().fill(AppColor.Text.primary.opacity(0.1)))
+                Text("See All")
+                    .font(AppFont.captionStrong)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            .foregroundStyle(AppColor.Text.primary)
+            .frame(width: Self.side, height: Self.side)
+            .background(
+                RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
+                    .fill(AppColor.Surface.muted)
+            )
+            .contentShape(RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
+        }
+        .buttonStyle(.plain)
     }
 }

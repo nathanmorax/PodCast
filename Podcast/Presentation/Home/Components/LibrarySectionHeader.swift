@@ -13,8 +13,6 @@ struct LibrarySectionHeader: View {
     /// A short line under the title, saying what the section is.
     var subtitle: LocalizedStringKey? = nil
     var onShowAll: (() -> Void)? = nil
-    /// The button's text ("Show all" unless a section says otherwise).
-    var showAllTitle: LocalizedStringKey = "Show all"
 
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
@@ -31,7 +29,7 @@ struct LibrarySectionHeader: View {
             }
             Spacer()
             if let onShowAll {
-                Button(showAllTitle, action: onShowAll)
+                Button("Show all", action: onShowAll)
                     .font(AppFont.label)
                     .foregroundStyle(AppColor.Text.secondary)
             }

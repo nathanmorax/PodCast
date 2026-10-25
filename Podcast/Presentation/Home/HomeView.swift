@@ -30,8 +30,6 @@ struct HomeView: View {
     @State private var forYou = ForYouViewModel()
     /// Owned by the view: each category's shows stay while Library lives.
     @State private var browse = BrowseViewModel()
-    /// The followed covers don't all fit on screen: "See All" shows.
-    @State private var libraryOverflows = false
 
     let onOpenPodcast: (Podcast) -> Void
     let onOpenEpisode: (Episode, Podcast) -> Void
@@ -124,18 +122,14 @@ struct HomeView: View {
 
     // MARK: - Library
 
-    /// The podcasts you follow, as square covers; "Show all" opens Following.
+    /// The podcasts you follow, as square covers; the See All tile at the
+    /// end (only when they overflow) opens Following.
     private var librarySection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            // "See All" only when some covers are off screen.
-            LibrarySectionHeader(
-                title: "Library",
-                onShowAll: libraryOverflows ? onOpenFollowing : nil,
-                showAllTitle: "See All"
-            )
-            LibraryCovers(podcasts: following, onOpen: onOpenPodcast) { overflows in
-                if overflows != libraryOverflows { libraryOverflows = overflows }
-            }
+            // No "Show all" up here: the row ends with a See All tile when
+            // the covers don't all fit.
+            LibrarySectionHeader(title: "Library")
+            LibraryCovers(podcasts: following, onOpen: onOpenPodcast, onSeeAll: onOpenFollowing)
         }
     }
 
