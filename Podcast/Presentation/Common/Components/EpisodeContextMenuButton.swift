@@ -13,7 +13,7 @@ struct EpisodeContextMenuButton: UIViewRepresentable {
 
     func makeUIView(context: Context) -> UIButton {
         let button = UIButton(type: .system)
-        let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)
+        let config = UIImage.SymbolConfiguration(pointSize: 13, weight: .semibold)
         button.setImage(UIImage(systemName: "ellipsis", withConfiguration: config), for: .normal)
         button.tintColor = .label
         button.showsMenuAsPrimaryAction = true  // ← abre el menú con tap, sin long press
@@ -24,14 +24,14 @@ struct EpisodeContextMenuButton: UIViewRepresentable {
     func updateUIView(_ uiView: UIButton, context: Context) {
         context.coordinator.viewModel = viewModel
         context.coordinator.onInfo = onInfo
-        uiView.menu = context.coordinator.makeMenu()
     }
 
     func makeCoordinator() -> Coordinator {
         Coordinator(viewModel: viewModel, onInfo: onInfo)
     }
 
-    class Coordinator: NSObject {
+    @MainActor
+    final class Coordinator: NSObject {
         var viewModel: EpisodeActionViewModel
         var onInfo: (() -> Void)?
 
@@ -40,34 +40,13 @@ struct EpisodeContextMenuButton: UIViewRepresentable {
             self.onInfo = onInfo
         }
 
-        @MainActor func makeMenu() -> UIMenu {
-            let download = UIAction(
-                title: String(localized: "Download"),
-                image: UIImage(systemName: "arrow.down.circle")
-            ) { [weak self] _ in
-                self?.viewModel.download()
+        /// Built each time it opens (EpisodeMenu), so it matches the
+        /// episode now.
+        func makeMenu() -> UIMenu {
+            EpisodeMenu.make { [weak self] in
+                guard let self else { return [] }
+                return EpisodeMenu.items(for: self.viewModel, onInfo: self.onInfo)
             }
-
-            let bookmarkTitle = viewModel.isBookmarked ? String(localized: "Remove bookmark") : String(localized: "Save")
-            let bookmarkIcon  = viewModel.isBookmarked ? "bookmark.slash.fill" : "bookmark.fill"
-            let bookmark = UIAction(
-                title: bookmarkTitle,
-                image: UIImage(systemName: bookmarkIcon)
-            ) { [weak self] _ in
-                self?.viewModel.toggleBookmark()
-            }
-
-            var items: [UIMenuElement] = []
-            if onInfo != nil {
-                items.append(UIAction(
-                    title: String(localized: "Details"),
-                    image: UIImage(systemName: "info.circle")
-                ) { [weak self] _ in
-                    self?.onInfo?()
-                })
-            }
-            items += [download, bookmark]
-            return UIMenu(children: items)
         }
     }
 }

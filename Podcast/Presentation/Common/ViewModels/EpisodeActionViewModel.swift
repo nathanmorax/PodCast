@@ -49,7 +49,6 @@ final class EpisodeActionViewModel {
 
     func playOrPause(presentation: PlayerManager.PlayerPresentation = .mini) {
         playerManager.playOrToggle(episode, presentation: presentation)
-        print("Duration: ", episode)
     }
 
     func toggleBookmark() {
