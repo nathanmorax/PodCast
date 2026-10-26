@@ -67,7 +67,7 @@ struct RecentlyPlayedHero: View {
                 actions
             } label: {
                 Image(systemName: "ellipsis")
-                    .font(.system(size: 17, weight: .bold))
+                    .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(AppColor.Text.primary)
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
@@ -163,9 +163,12 @@ struct RecentlyPlayedHero: View {
 
     /// "23 MIN LEFT"; the ••• sits at its right (overlay).
     private var footer: some View {
-        Text("\(item.minutesLeftText(at: progress)) left")
-            .overlineStyle()
-            .lineLimit(1)
-            .frame(minHeight: 20, alignment: .leading)
+        HStack(spacing: 6) {
+            Text("\(item.minutesLeftText(at: progress)) left")
+                .overlineStyle()
+                .lineLimit(1)
+            DownloadedBadge(episode: item.episode)
+        }
+        .frame(minHeight: 20, alignment: .leading)
     }
 }

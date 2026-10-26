@@ -79,6 +79,7 @@ struct EpisodeInfoSheet: View {
                     Text(episode.pubDate, format: .dateTime.day().month(.wide).year())
                     Text(verbatim: "·")
                     Text(episode.durationDisplayText)
+                    DownloadedBadge(episode: episode)
                 }
                 .font(AppFont.caption)
                 .foregroundStyle(AppColor.Text.secondary)
@@ -94,22 +95,16 @@ struct EpisodeInfoSheet: View {
         HStack(spacing: 22) {
             actionButton("Listen", systemImage: "play.fill", action: onPlay)
 
-            actionButton(actions.isBookmarked ? "Saved" : "Save",
-                         systemImage: actions.isBookmarked ? "bookmark.fill" : "bookmark") {
-                actions.toggleBookmark()
-            }
+            EpisodeSaveButton(actions: actions, style: .labeled)
 
-            actionButton(downloadTitle, systemImage: downloadIcon) {
-                if case .idle = actions.downloadState { actions.download() }
-                if case .failed = actions.downloadState { actions.download() }
-            }
+            EpisodeDownloadButton(actions: actions, style: .labeled)
 
             Spacer(minLength: 0)
 
             if let url = URL(string: episode.streamUrl) {
                 ShareLink(item: url, subject: Text(episode.title)) {
                     Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 17))
+                        .font(.system(size: 14, weight: .medium))
                         .foregroundStyle(AppColor.Text.secondary)
                         .frame(width: 44, height: 44)
                 }
@@ -121,22 +116,6 @@ struct EpisodeInfoSheet: View {
         .background(AppColor.paper)
         .overlay(alignment: .top) {
             Divider().opacity(0.6)
-        }
-    }
-
-    private var downloadTitle: LocalizedStringKey {
-        switch actions.downloadState {
-        case .downloaded: "Downloaded"
-        case .downloading, .waiting: "Downloading"
-        default: "Download"
-        }
-    }
-
-    private var downloadIcon: String {
-        switch actions.downloadState {
-        case .downloaded: "checkmark.circle"
-        case .downloading, .waiting: "arrow.down.circle.dotted"
-        default: "arrow.down"
         }
     }
 

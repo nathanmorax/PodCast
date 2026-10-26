@@ -161,8 +161,6 @@ final class EpisodesController: UIViewController, ZoomDismissible {
                 case .play:     self.playNewest()
                 case .about:    self.showAbout()
                 case .follow:   self.toggleFavorite()
-                case .bookmark: self.toggleFavorite()
-                case .download: break
                 }
             }
         }
