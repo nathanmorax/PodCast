@@ -15,6 +15,8 @@ final class EpisodeDetailController: UIViewController, ZoomDismissible {
     private let episode: Episode
     private let podcastName: String?
     private let headerPull = HeaderPull()
+    /// Save and download for this episode (the ••• menu reads and changes it).
+    private lazy var actions = EpisodeActionViewModel(episode: episode)
 
     init(episode: Episode, podcastName: String?) {
         self.episode = episode
@@ -30,6 +32,7 @@ final class EpisodeDetailController: UIViewController, ZoomDismissible {
         super.viewDidLoad()
         view.backgroundColor = ColorName.screenBackground.uiColor
         navigationItem.largeTitleDisplayMode = .never
+        setupMoreButton()
         setupHosting()
         updateNavigationBar(offset: 0)
     }
@@ -54,6 +57,32 @@ final class EpisodeDetailController: UIViewController, ZoomDismissible {
             hosting.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         hosting.didMove(toParent: self)
+    }
+
+    // MARK: - ••• (save, download, share)
+
+    /// Top right, a system bar button: on iOS 26 it gets its Liquid Glass
+    /// capsule, like the back button. Its menu is built each time it opens
+    /// (EpisodeMenu), so it shows "Saved", the download's progress, or
+    /// "Downloaded" as they are now.
+    private func setupMoreButton() {
+        let more = UIBarButtonItem(
+            title: String(localized: "More"),
+            image: UIImage(systemName: "ellipsis"),
+            menu: EpisodeMenu.make { [weak self] in
+                guard let self else { return [] }
+                return EpisodeMenu.items(for: self.actions, onShare: { [weak self] in self?.share() })
+            }
+        )
+        navigationItem.rightBarButtonItem = more
+    }
+
+    /// The share sheet with the episode's audio link, from the ••• button.
+    private func share() {
+        guard let url = URL(string: episode.streamUrl) else { return }
+        let sheet = UIActivityViewController(activityItems: [episode.title, url], applicationActivities: nil)
+        sheet.popoverPresentationController?.sourceItem = navigationItem.rightBarButtonItem
+        present(sheet, animated: true)
     }
 
     // MARK: - Scroll

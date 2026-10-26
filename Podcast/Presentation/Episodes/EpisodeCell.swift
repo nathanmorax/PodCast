@@ -59,6 +59,8 @@ struct EpisodeCell: View {
                     Text(episode.durationDisplayText)
                         .font(AppFont.footnote)
                         .foregroundStyle(AppColor.Text.secondary)
+
+                    DownloadedBadge(episode: episode)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

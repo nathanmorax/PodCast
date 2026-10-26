@@ -9,7 +9,8 @@ import SwiftUI
 /// - its artwork edge to edge, under the status bar (pinned when pulled);
 /// - the podcast's name as an overline and the title in serif over the fade;
 /// - a byline (author, how long ago, length);
-/// - Listen, and save / download / share;
+/// - Listen (save, download and share are in the ••• at the top:
+///   EpisodeDetailController);
 /// - the first sentence of the notes as a quote, then the rest.
 struct EpisodeDetailView: View {
 
@@ -21,9 +22,6 @@ struct EpisodeDetailView: View {
     /// Vertical scroll position (negative while pulled past the top).
     let onScroll: (CGFloat) -> Void
 
-    /// Save and download state. One-time seed: the screen is made per episode.
-    @State private var actions: EpisodeActionViewModel
-
     static let heroHeight: CGFloat = 460
 
     init(episode: Episode, podcastName: String?, pull: HeaderPull,
@@ -33,7 +31,6 @@ struct EpisodeDetailView: View {
         self.pull = pull
         self.onPlay = onPlay
         self.onScroll = onScroll
-        _actions = State(initialValue: EpisodeActionViewModel(episode: episode))
     }
 
     private var notes: EpisodeNotes {
@@ -130,6 +127,8 @@ struct EpisodeDetailView: View {
                 HStack(spacing: 0) {
                     Text(episode.pubDate, format: .relative(presentation: .named, unitsStyle: .wide))
                     Text(verbatim: " · \(episode.durationDisplayText)")
+                    DownloadedBadge(episode: episode)
+                        .padding(.leading, 5)
                 }
                 .font(AppFont.caption)
                 .foregroundStyle(AppColor.Text.secondary)
@@ -141,78 +140,17 @@ struct EpisodeDetailView: View {
 
     // MARK: - Actions
 
-    /// Listen (mustard pill), then save, download and share as circles —
-    /// the same row as the podcast page.
+    /// Listen, where it always was. Save, download and share moved to the
+    /// ••• in the navigation bar.
     private var actionsRow: some View {
-        HStack(spacing: 10) {
-            Button(action: onPlay) {
-                Label("Listen", systemImage: "play.fill")
-                    .font(AppFont.button)
-                    .foregroundStyle(AppColor.Text.onPastel)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 44)
-                    .background(Capsule().fill(AppColor.Accent.soft))
-            }
-            .buttonStyle(.plain)
-
-            Button {
-                actions.toggleBookmark()
-            } label: {
-                roundIcon(actions.isBookmarked ? "bookmark.fill" : "bookmark", isOn: actions.isBookmarked)
-            }
-            .buttonStyle(.plain)
-            .sensoryFeedback(.success, trigger: actions.isBookmarked)
-            .accessibilityLabel(actions.isBookmarked ? Text("Saved") : Text("Save"))
-
-            Button {
-                switch actions.downloadState {
-                case .idle, .failed: actions.download()
-                default: break
-                }
-            } label: {
-                roundIcon(downloadIcon, isOn: isDownloaded)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(downloadLabel)
-
-            if let url = URL(string: episode.streamUrl) {
-                ShareLink(item: url, subject: Text(episode.title)) {
-                    roundIcon("square.and.arrow.up")
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Share")
-            }
+        Button(action: onPlay) {
+            Label("Listen", systemImage: "play.fill")
+                .font(AppFont.button)
+                .foregroundStyle(AppColor.Text.onPastel)
+                .frame(maxWidth: .infinity)
+                .frame(height: 44)
+                .background(Capsule().fill(AppColor.Accent.soft))
         }
-    }
-
-    private var isDownloaded: Bool {
-        if case .downloaded = actions.downloadState { return true }
-        return false
-    }
-
-    private var downloadIcon: String {
-        switch actions.downloadState {
-        case .downloaded: "checkmark"
-        case .downloading, .waiting: "arrow.down.circle.dotted"
-        default: "arrow.down"
-        }
-    }
-
-    private var downloadLabel: Text {
-        switch actions.downloadState {
-        case .downloaded: Text("Downloaded")
-        case .downloading, .waiting: Text("Downloading")
-        default: Text("Download")
-        }
-    }
-
-    /// Small, light glyphs in 44 pt circles (the touch target stays 44).
-    private func roundIcon(_ name: String, isOn: Bool = false) -> some View {
-        Image(systemName: name)
-            .font(.system(size: 15, weight: .medium))
-            .contentTransition(.symbolEffect(.replace))
-            .foregroundStyle(isOn ? AppColor.Text.onPastel : AppColor.Text.primary)
-            .frame(width: 44, height: 44)
-            .background(Circle().fill(isOn ? AppColor.Accent.soft : AppColor.Text.primary.opacity(0.1)))
+        .buttonStyle(.plain)
     }
 }
