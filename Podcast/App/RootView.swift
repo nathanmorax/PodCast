@@ -72,6 +72,12 @@ struct RootView: View {
                     .zIndex(2)
             }
         }
+        // Downloading, offline, updating…: one word on glass, at the top.
+        .overlay(alignment: .top) {
+            if !interests.needsOnboarding {
+                StatusOverlay()
+            }
+        }
         .animation(AppAnimation.onboarding, value: interests.needsOnboarding)
         // Something was played before: the mini player shows it from the start.
         .task { manager.restoreLastPlayed() }
