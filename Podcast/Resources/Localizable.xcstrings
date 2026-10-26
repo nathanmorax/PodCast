@@ -203,6 +203,16 @@
         }
       }
     },
+    "Cancel download" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelar descarga"
+          }
+        }
+      }
+    },
     "Category" : {
       "localizations" : {
         "es" : {
@@ -391,6 +401,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Descargar"
+          }
+        }
+      }
+    },
+    "Download failed" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Falló la descarga"
           }
         }
       }
@@ -871,7 +891,19 @@
         }
       }
     },
-    "Number 1" : {},
+    "Number 1" : {
+
+    },
+    "Offline" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin conexión"
+          }
+        }
+      }
+    },
     "Opens the episode" : {
       "localizations" : {
         "es" : {
@@ -1057,11 +1089,32 @@
       }
     },
     "Remove bookmark" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Quitar guardado"
+          }
+        }
+      }
+    },
+    "Remove download" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitar descarga"
+          }
+        }
+      }
+    },
+    "Remove download?" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Quitar la descarga?"
           }
         }
       }
@@ -1113,6 +1166,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Continúa el episodio"
+          }
+        }
+      }
+    },
+    "Retry" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reintentar"
+          }
+        }
+      }
+    },
+    "Retry download" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reintentar descarga"
           }
         }
       }
@@ -1332,22 +1405,22 @@
         }
       }
     },
-    "TV & Film" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cine y TV"
-          }
-        }
-      }
-    },
     "Tap + on a podcast to follow it. It'll show up here." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Toca + en un podcast para seguirlo. Aparecerá aquí."
+          }
+        }
+      }
+    },
+    "Tap to remove" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca para quitar"
           }
         }
       }
@@ -1483,12 +1556,32 @@
         }
       }
     },
+    "TV & Film" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cine y TV"
+          }
+        }
+      }
+    },
     "Unfollow" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dejar de seguir"
+          }
+        }
+      }
+    },
+    "Updating" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizando"
           }
         }
       }
@@ -1510,6 +1603,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lo que escuches aparecerá aquí."
+          }
+        }
+      }
+    },
+    "You can download it again later." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puedes volver a descargarlo después."
           }
         }
       }

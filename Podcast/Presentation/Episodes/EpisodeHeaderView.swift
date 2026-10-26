@@ -194,10 +194,12 @@ struct EpisodeHeaderView: View {
 
     private func roundIcon(_ name: String) -> some View {
         Image(systemName: name)
-            .font(.system(size: 18, weight: .semibold))
+            .font(.system(size: 14, weight: .semibold))
             .foregroundStyle(textColor)
-            .frame(width: 50, height: 50)
+            .frame(width: 40, height: 40)
             .background(Circle().fill(textColor.opacity(0.16)))
+            .frame(width: 44, height: 44)
+            .contentShape(Circle())
     }
 
     /// The podcast on Apple Podcasts (opens in any app or browser).

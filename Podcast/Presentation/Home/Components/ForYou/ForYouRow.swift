@@ -79,7 +79,7 @@ private struct ForYouRowCard: View {
                 actions
             } label: {
                 Image(systemName: "ellipsis")
-                    .font(.system(size: 17, weight: .bold))
+                    .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(tint?.text ?? AppColor.Text.primary)
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())

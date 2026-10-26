@@ -94,6 +94,8 @@ struct ForYouCard: View {
             HStack(spacing: 0) {
                 Text(item.episode.pubDate, format: .relative(presentation: .numeric, unitsStyle: .abbreviated))
                 Text(verbatim: " · \(item.episode.durationDisplayText)")
+                DownloadedBadge(episode: item.episode)
+                    .padding(.leading, 5)
             }
             .font(AppFont.caption)
             .foregroundStyle(secondaryTextColor)

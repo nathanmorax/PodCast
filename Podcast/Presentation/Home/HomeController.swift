@@ -90,8 +90,8 @@ final class HomeController: UIViewController {
         inboxButtonHost = host
 
         let item = UIBarButtonItem(customView: host.view)
-        // Its own look (tray + badge): no glass capsule behind it.
-        item.hidesSharedBackground = true
+        // iOS 26: the bar's Liquid Glass capsule behind it, like the
+        // episode page's ••• and the back button.
         navigationItem.rightBarButtonItem = item
         ZoomSources.shared.register(host.view, id: .collection(.inbox), cornerRadius: 22)
     }

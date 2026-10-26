@@ -13,8 +13,6 @@ enum EpisodeHeaderEvent {
     case follow
     /// The ⓘ next to the description: the full "About" in a sheet.
     case about
-    case bookmark(Episode)
-    case download
 }
 
 // MARK: - EpisodeHeaderActions
