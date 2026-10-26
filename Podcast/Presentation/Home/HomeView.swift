@@ -71,12 +71,12 @@ struct HomeView: View {
 
                 forYouSection
 
-                BrowsePodcastsSection(
-                    viewModel: browse,
-                    interests: interests.genres,
-                    onOpenPodcast: onOpenPodcast,
-                    onShowAll: { interests.edit() }
-                )
+//                BrowsePodcastsSection(
+//                    viewModel: browse,
+//                    interests: interests.genres,
+//                    onOpenPodcast: onOpenPodcast,
+//                    onShowAll: { interests.edit() }
+//                )
             }
             .padding(.top, 12)
             .padding(.bottom, 24) // the bottom bar's space comes from the safe area
@@ -88,6 +88,10 @@ struct HomeView: View {
         // Reload when you follow or unfollow a podcast.
         .task(id: following.map(\.trackId)) {
             followingFeed.load(following: following)
+        }
+        // "Updating" in the status pill while the feeds are read.
+        .onChange(of: followingFeed.isLoading, initial: true) { _, loading in
+            StatusCenter.shared.isUpdating = loading
         }
         // "For you" depends on the interests (and skips what you follow).
         .task(id: interests.genreIDs) {

@@ -17,11 +17,14 @@ struct EpisodeResultRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
             VStack(alignment: .leading, spacing: 6) {
-                Text(meta)
-                    .font(AppFont.captionStrong)
-                    .textCase(.uppercase)
-                    .foregroundStyle(AppColor.Accent.strong)
-                    .lineLimit(1)
+                HStack(spacing: 5) {
+                    Text(meta)
+                        .font(AppFont.captionStrong)
+                        .textCase(.uppercase)
+                        .foregroundStyle(AppColor.Accent.strong)
+                        .lineLimit(1)
+                    DownloadedBadge(episode: episode)
+                }
 
                 Text(episode.title)
                     .font(AppFont.itemTitle)

@@ -26,6 +26,13 @@ final class FollowingFeedViewModel {
     /// saved copy and get refreshed).
     @ObservationIgnored private var refreshed: Set<Int> = []
     @ObservationIgnored private let cache: FollowingFeedCache?
+    /// The load in flight: only it may turn `isLoading` off (an older,
+    /// cancelled one finishing late must not hide a newer one).
+    @ObservationIgnored private var currentLoad = UUID()
+
+    /// A feed that takes longer than this is skipped this time.
+    static let feedTimeout: TimeInterval = 12
+
     /// Internal read access so tests can await it.
     @ObservationIgnored private(set) var loadTask: Task<Void, Never>?
 
@@ -54,13 +61,24 @@ final class FollowingFeedViewModel {
 
         isLoading = true
         let repository = self.repository
+        let timeout = Self.feedTimeout
+        let load = UUID()
+        currentLoad = load
         loadTask = Task {
-            // All feeds at once; a failed one just adds nothing.
+            // Whatever happens (done, every feed failing), "Updating"
+            // doesn't stay on; a cancelled load leaves it to the newer one.
+            defer { if currentLoad == load { isLoading = false } }
+
+            // All feeds at once; a failed or slow one (past `feedTimeout`)
+            // just adds nothing, so one stuck server can't keep the whole
+            // refresh (and the "Updating" pill) going.
             let fetched = await withTaskGroup(of: (Int, [Episode]?).self) { group in
                 for podcast in missing {
                     guard let feedURL = podcast.feedUrl else { continue }
                     group.addTask {
-                        let feed = try? await repository.fetchFeed(feedURL: feedURL)
+                        let feed = try? await withTimeout(seconds: timeout) {
+                            try await repository.fetchFeed(feedURL: feedURL)
+                        }
                         return (podcast.trackId, feed?.episodes.sorted { $0.pubDate > $1.pubDate })
                     }
                 }
@@ -74,7 +92,6 @@ final class FollowingFeedViewModel {
             episodesByPodcast.merge(fetched) { _, new in new }
             // Failed ones stay as saved and are tried again next time.
             refreshed.formUnion(fetched.keys)
-            isLoading = false
             cache?.save(episodesByPodcast)
         }
     }
