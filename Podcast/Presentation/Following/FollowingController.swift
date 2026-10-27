@@ -13,6 +13,7 @@ final class FollowingController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = String(localized: "Following")
+        hideNavigationTitle()
         view.backgroundColor = ColorName.screenBackground.uiColor
         setupHosting()
     }

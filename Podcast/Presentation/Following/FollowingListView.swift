@@ -67,7 +67,8 @@ struct FollowingListView: View {
     }
 }
 
-/// Cover, name, "artist · genre".
+/// Category in serif capitals, the name in bold, who makes it; the cover
+/// on the right (like every list row).
 private struct FollowingRow: View {
 
     let podcast: Podcast
@@ -75,39 +76,23 @@ private struct FollowingRow: View {
 
     @Environment(\.displayScale) private var displayScale
 
-    private var subtitle: String {
-        [podcast.artistName, podcast.primaryGenreName]
-            .compactMap { $0 }
-            .joined(separator: " · ")
-    }
-
     var body: some View {
-        HStack(spacing: 12) {
-            Color.clear
-                .frame(width: 52, height: 52)
-                .overlay { ZoomSourceImage(podcast: podcast, cornerRadius: 12) }
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(podcast.trackName ?? "")
-                    .font(AppFont.itemTitle)
-                    .foregroundStyle(AppColor.Text.primary)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-                if !subtitle.isEmpty {
-                    Text(subtitle)
-                        .font(AppFont.caption)
+        HStack(alignment: .top, spacing: 14) {
+            VStack(alignment: .leading, spacing: 5) {
+                RowOverline(text: podcast.primaryGenreName ?? "")
+                RowTitle(text: podcast.trackName ?? "")
+                if let artist = podcast.artistName, !artist.isEmpty {
+                    Text(artist)
+                        .font(.system(.callout, weight: .medium))
                         .foregroundStyle(AppColor.Text.secondary)
                         .lineLimit(1)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
-            Spacer(minLength: 0)
-
-            Image(systemName: "chevron.right")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(AppColor.Text.tertiary)
-                .accessibilityHidden(true)
+            RowArtwork(side: 72) {
+                ZoomSourceImage(podcast: podcast, cornerRadius: 6)
+            }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 10)
@@ -116,7 +101,7 @@ private struct FollowingRow: View {
                 Rectangle()
                     .fill(AppColor.Text.tertiary.opacity(0.5))
                     .frame(height: 1 / displayScale)
-                    .padding(.leading, 84)
+                    .padding(.horizontal, 20)
             }
         }
         .contentShape(Rectangle())
