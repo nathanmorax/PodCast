@@ -68,3 +68,12 @@ extension UIViewController {
         child.didMove(toParent: self)
     }
 }
+
+extension UIViewController {
+    /// No title in the navigation bar, just the back arrow: the screen's
+    /// content says what it is, and the bar stays slim. `title` stays set
+    /// (VoiceOver, and the back button's long-press menu).
+    func hideNavigationTitle() {
+        navigationItem.titleView = UIView()
+    }
+}

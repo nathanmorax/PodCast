@@ -393,6 +393,9 @@ extension MainContainerController: UINavigationControllerDelegate {
                               animated: Bool) {
         // No large titles: every screen uses the standard bar, title centered.
         viewController.navigationItem.largeTitleDisplayMode = .never
+        // Back buttons are just the arrow (no "Library", "Search"…): set on
+        // every screen, so it holds on whatever screen comes after it.
+        viewController.navigationItem.backButtonDisplayMode = .minimal
 
         if navigationController === current {
             updateBottomBarVisibility(showing: viewController, in: navigationController)

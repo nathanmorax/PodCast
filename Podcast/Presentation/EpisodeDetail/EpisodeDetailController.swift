@@ -127,6 +127,6 @@ final class EpisodeDetailController: UIViewController, ZoomDismissible {
         navigationItem.standardAppearance = appearance
         navigationItem.scrollEdgeAppearance = appearance
         navigationItem.compactAppearance = appearance
-        navigationItem.title = collapsed ? episode.title : nil
+        // No title, even once the artwork scrolls away: just the back arrow.
     }
 }

@@ -7,77 +7,49 @@
 
 import SwiftUI
 
-/// One episode in a podcast's list: how long ago it came out ("2 days ago")
-/// in violet, the title in serif, two lines of description (cut with "…"),
-/// play + length; the artwork on the right with the ••• menu under it.
+/// One episode in a list (a podcast's page, Favorites, Downloads, the
+/// Inbox), like a magazine's audio list: the show in serif capitals in the
+/// accent, the title in bold, the date (· length, ↓ when downloaded);
+/// the artwork on the right with ▶ on its corner.
 struct EpisodeCell: View {
     let viewModel: EpisodeActionViewModel
-    /// Opens the episode's details ("Details" in the ••• menu).
-    var onInfo: (() -> Void)? = nil
 
     private var episode: Episode { viewModel.episode }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 14) {
+        HStack(alignment: .top, spacing: 16) {
             VStack(alignment: .leading, spacing: 6) {
-                // "2 days ago", "2 months ago".
-                Text(episode.pubDate, format: .relative(presentation: .named, unitsStyle: .wide))
-                    .font(AppFont.captionStrong)
-                    .foregroundStyle(AppColor.Accent.strong)
+                RowOverline(text: episode.author)
+                RowTitle(text: episode.title)
 
-                Text(episode.title)
-                    .font(AppFont.itemTitle)
-                    .foregroundStyle(AppColor.Text.primary)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-
-                // Cut with "…" when it doesn't fit.
-                Text(episode.description)
-                    .font(AppFont.body)
-                    .foregroundStyle(AppColor.Text.secondary)
-                    .lineLimit(2)
-                    .truncationMode(.tail)
-                    .multilineTextAlignment(.leading)
-
-                Spacer(minLength: 0)
-
-                HStack(spacing: 10) {
-                    Button {
-                        viewModel.playOrPause()
-                    } label: {
-                        Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-                            .font(.system(size: 11, weight: .bold))
-                            .contentTransition(.symbolEffect(.replace))
-                            .foregroundStyle(AppColor.Accent.strong)
-                            .frame(width: 30, height: 30)
-                            .background(Circle().fill(AppColor.Accent.wash))
-                            .contentShape(Circle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(viewModel.isPlaying ? Text("Pause") : Text("Play"))
-
+                // "October 25, 2026 · 41 min ↓". No •••: save, download
+                // and share are in the details (tap the row).
+                HStack(spacing: 6) {
+                    Text(episode.pubDate, format: .dateTime.day().month(.wide).year())
+                    Text(verbatim: "·")
                     Text(episode.durationDisplayText)
-                        .font(AppFont.footnote)
-                        .foregroundStyle(AppColor.Text.secondary)
-
                     DownloadedBadge(episode: episode)
                 }
+                .font(.system(.callout, weight: .medium))
+                .foregroundStyle(AppColor.Text.secondary)
+                .lineLimit(1)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .frame(maxWidth: .infinity, alignment: .topLeading)
 
-            // The episode's artwork, with the ••• menu under it (as before).
-            VStack(alignment: .trailing, spacing: 0) {
+            RowArtwork {
                 PodcastImage(source: episode.imageUrl)
-                    .frame(width: 100, height: 100)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .accessibilityHidden(true)
-
-                EpisodeContextMenuButton(viewModel: viewModel, onInfo: onInfo)
-                    .frame(width: 36, height: 36)
             }
+            .overlay(alignment: .bottomTrailing) {
+                RowPlayButton(isPlaying: viewModel.isPlaying) {
+                    viewModel.playOrPause()
+                }
+                .offset(x: 8, y: 8)
+            }
+            .padding(.trailing, 8)
+            .padding(.bottom, 8)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
         .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.vertical, 10)
     }
 }
