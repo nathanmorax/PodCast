@@ -29,13 +29,26 @@ final class ForYouViewModel {
     private(set) var isLoading = false
 
     @ObservationIgnored private let repository: any SearchPodcastRepository
-    /// What the current items were made for (interests + followed).
+    /// The interests fetched for in this launch (nil: nothing yet).
     @ObservationIgnored private var loadedKey: String?
+    /// The interests the shown items were made for (the saved row's, at
+    /// launch).
+    @ObservationIgnored private var itemsKey: String?
+    @ObservationIgnored private let cache: ForYouCache?
     /// Internal read access so tests can await it.
     @ObservationIgnored private(set) var loadTask: Task<Void, Never>?
 
-    init(repository: any SearchPodcastRepository = PodcastRepositoryImpl(remoteDataSource: PodcastRemoteDataService())) {
+    /// - Parameter cache: where the last row is saved between launches.
+    ///   Nil (tests): memory only.
+    init(repository: any SearchPodcastRepository = PodcastRepositoryImpl(remoteDataSource: PodcastRemoteDataService()),
+         cache: ForYouCache? = nil) {
         self.repository = repository
+        self.cache = cache
+        // What was shown last time is there from the first frame.
+        if let saved = cache?.load() {
+            items = saved.items
+            itemsKey = saved.key
+        }
     }
 
     /// What's shown: following one of them takes it out right away (it's in
@@ -50,10 +63,18 @@ final class ForYouViewModel {
             : interests).prefix(Self.maxGenres))
         let followed = Set(following.map(\.trackId))
         let key = genres.map(\.id).joined(separator: ",")
-        // Same interests: keep what's there (a new follow is filtered out
-        // by visibleItems, no new download).
+        // Already fetched for these interests in this launch: keep it (a
+        // new follow is filtered out by visibleItems, no new download).
         guard key != loadedKey || (items.isEmpty && !isLoading) else { return }
         loadedKey = key
+        // Saved for other interests: don't show it while the new one loads.
+        if itemsKey != key {
+            items = []
+            itemsKey = nil
+        }
+        // Items on screen (the saved row): they stay while the fresh one
+        // loads and are replaced in place. Only an empty row shows the
+        // spinner.
 
         loadTask?.cancel()
         isLoading = true
@@ -90,10 +111,15 @@ final class ForYouViewModel {
             }
             guard !Task.isCancelled else { return }
             // In the picked order: categories take turns.
-            items = picked.compactMap { podcast in
+            let fresh = picked.compactMap { podcast in
                 newest[podcast.trackId].map { PodcastEpisode(podcast: podcast, episode: $0) }
             }
             isLoading = false
+            // Nothing came (no network): what's on screen stays.
+            guard !fresh.isEmpty else { return }
+            items = fresh
+            itemsKey = key
+            cache?.save(fresh, key: key)
         }
     }
 
