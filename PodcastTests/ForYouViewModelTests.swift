@@ -69,4 +69,41 @@ struct ForYouViewModelTests {
         sut.load(interests: [Genre(id: "1489", name: "News")], following: [Fixtures.podcast(id: 2)])
         #expect(await repository.searchedQueries.count == 1)
     }
+
+    @Test("After closing the app, the last row is there at once and refreshes in place")
+    func savedRowShowsAtOnce() async {
+        let cache = ForYouCache(userDefaults: .isolated())
+        let news = [Genre(id: "1489", name: "News")]
+
+        let first = ForYouViewModel(
+            repository: MockSearchPodcastRepository(podcasts: [Fixtures.podcast(id: 2)], episodes: [episode("old", at: 1)]),
+            cache: cache
+        )
+        first.load(interests: news, following: [])
+        await first.loadTask?.value
+
+        // Next launch: the saved row before anything is fetched…
+        let second = ForYouViewModel(
+            repository: MockSearchPodcastRepository(podcasts: [Fixtures.podcast(id: 2)], episodes: [episode("new", at: 2)]),
+            cache: cache
+        )
+        #expect(second.items.map(\.episode.title) == ["old"])
+
+        // …kept while the fresh one loads, then replaced in place.
+        second.load(interests: news, following: [])
+        #expect(second.items.map(\.episode.title) == ["old"])
+        await second.loadTask?.value
+        #expect(second.items.map(\.episode.title) == ["new"])
+    }
+
+    @Test("A row saved for other interests isn't shown")
+    func savedRowForOtherInterests() async {
+        let cache = ForYouCache(userDefaults: .isolated())
+        cache.save([PodcastEpisode(podcast: Fixtures.podcast(id: 2), episode: episode("old", at: 1))], key: "1303")
+
+        let sut = ForYouViewModel(repository: MockSearchPodcastRepository(), cache: cache)
+        sut.load(interests: [Genre(id: "1489", name: "News")], following: [])
+
+        #expect(sut.items.isEmpty)
+    }
 }

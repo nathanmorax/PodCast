@@ -63,7 +63,7 @@ struct SearchResultsView: View {
                     Button {
                         onOpenPodcast(podcast)
                     } label: {
-                        PodcastCellUI(podcast: podcast, coverSide: 48)
+                        PodcastCellUI(podcast: podcast, coverSide: 64)
                     }
                     .buttonStyle(.plain)
 
@@ -91,13 +91,8 @@ struct SearchResultsView: View {
             SearchSectionHeader(title: "Episodes")
 
             ForEach(viewModel.episodes) { result in
-                Button {
-                    onOpenEpisode(result)
-                } label: {
-                    EpisodeResultRow(result: result)
-                }
-                .buttonStyle(.plain)
-                .overlay(alignment: .bottom) { Divider() }
+                EpisodeResultRow(result: result) { onOpenEpisode(result) }
+                    .overlay(alignment: .bottom) { Divider() }
             }
         }
     }
