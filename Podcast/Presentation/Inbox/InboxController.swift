@@ -19,6 +19,7 @@ final class InboxController: UIViewController {
         self.newSince = seen.lastSeen
         super.init(nibName: nil, bundle: nil)
         title = String(localized: "Inbox")
+        hideNavigationTitle()
         seen.markSeen()
     }
 
@@ -30,11 +31,8 @@ final class InboxController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = ColorName.screenBackground.uiColor
         let inbox = InboxView(items: items, newSince: newSince) { [weak self] item in
-            // Outside a podcast page, an episode opens full screen.
-            self?.navigationController?.pushViewController(
-                EpisodeDetailController(episode: item.episode, podcastName: item.podcast.trackName),
-                animated: true
-            )
+            // Tapping a row: its details in a sheet (its ▶ plays it instead).
+            self?.presentEpisodeSheet(item.episode)
         }
         embedFullScreen(UIHostingController(rootView: inbox))
     }
