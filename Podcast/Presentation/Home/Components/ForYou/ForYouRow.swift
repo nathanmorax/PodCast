@@ -5,12 +5,12 @@
 
 import SwiftUI
 
-/// "For you": the latest episodes of the podcasts you follow, as wide cards
-/// that snap one by one, the next one peeking at the right edge.
+/// "For you": cards (ForYouCard) that snap one by one, the next one peeking
+/// at the right edge.
 ///
-/// Tapping a card opens the episode, zooming out of the card and back into
-/// it (ZoomSourceHost + pushZooming in HomeController). The ••• (and holding
-/// the card) offers Play and Go to podcast.
+/// Tapping a card opens the episode, zooming out of it and back into it
+/// (ZoomSourceHost + pushZooming in HomeController). ▶ on the artwork plays
+/// it right away; holding the card offers Play and Go to podcast.
 struct ForYouRow: View {
 
     let items: [PodcastEpisode]
@@ -20,7 +20,7 @@ struct ForYouRow: View {
 
     var body: some View {
         ScrollView(.horizontal) {
-            LazyHStack(spacing: 12) {
+            LazyHStack(alignment: .top, spacing: 18) {
                 ForEach(items) { item in
                     ZoomSourceHost(
                         id: .episode(item.episode.streamUrl, section: .forYou),
@@ -35,9 +35,8 @@ struct ForYouRow: View {
                     }
                     // Most of the screen's width: the next card peeks.
                     .containerRelativeFrame(.horizontal) { width, _ in
-                        min(width - 26, 460)
+                        min(width * 0.68, 300)
                     }
-                    .frame(height: ForYouCard.height)
                 }
             }
             .scrollTargetLayout()
@@ -48,9 +47,9 @@ struct ForYouRow: View {
     }
 }
 
-/// The card as a Button, with the ••• over it (not inside the Button's
-/// label: a Menu inside a label fights the Button for the tap). Reads the
-/// artwork's color, which both the card and the ••• use.
+/// The artwork and the texts open the episode; ▶ sits over the artwork's
+/// corner as its own button (a button inside another button's label
+/// wouldn't get its tap).
 private struct ForYouRowCard: View {
 
     let item: PodcastEpisode
@@ -58,46 +57,49 @@ private struct ForYouRowCard: View {
     let onPlay: () -> Void
     let onOpenPodcast: () -> Void
 
-    /// Read once the artwork loads; already known: no fade.
-    @State private var loadedTint: ArtworkTint?
+    @Environment(\.playerManager) private var playerManager
 
-    private var artworkSource: String? { ForYouCard.artworkSource(for: item) }
-
-    private var tint: ArtworkTint? {
-        loadedTint ?? ArtworkTintLoader.cachedTint(for: artworkSource)
+    private var isPlaying: Bool {
+        playerManager.currentEpisode?.streamUrl == item.episode.streamUrl && playerManager.viewModel.isPlaying
     }
 
     var body: some View {
-        Button(action: onOpen) {
-            ForYouCard(item: item, tint: tint)
-        }
-        .buttonStyle(.plain)
-        .accessibilityHint("Opens the episode")
-        .contextMenu { actions }
-        .overlay(alignment: .bottomTrailing) {
-            Menu {
-                actions
-            } label: {
-                Image(systemName: "ellipsis")
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(tint?.text ?? AppColor.Text.primary)
-                    .frame(width: 44, height: 44)
+        VStack(alignment: .leading, spacing: 18) {
+            Button(action: onOpen) {
+                ForYouCard.Artwork(item: item)
+            }
+            .buttonStyle(.plain)
+            .overlay(alignment: .bottomTrailing) {
+                playButton
+                    .padding(10)
+            }
+
+            Button(action: onOpen) {
+                ForYouCard.Texts(item: item)
                     .contentShape(Rectangle())
             }
-            .accessibilityLabel("More")
-            // At the panel's bottom-right corner, left of the artwork.
-            .padding(.trailing, ForYouCard.artworkWidth + 4)
-            .padding(.bottom, 4)
+            .buttonStyle(.plain)
         }
-        .task(id: artworkSource) {
-            let tint = await ArtworkTintLoader.tint(for: artworkSource)
-            withAnimation(.easeInOut(duration: 0.3)) { loadedTint = tint }
+        .accessibilityHint("Opens the episode")
+        .contextMenu {
+            Button("Play", systemImage: "play.fill", action: onPlay)
+            Button("Go to podcast", systemImage: "square.stack", action: onOpenPodcast)
         }
     }
 
-    @ViewBuilder
-    private var actions: some View {
-        Button("Play", systemImage: "play.fill", action: onPlay)
-        Button("Go to podcast", systemImage: "square.stack", action: onOpenPodcast)
+    /// ▶ black, with a white ring.
+    private var playButton: some View {
+        Button(action: onPlay) {
+            Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                .font(.system(size: 15, weight: .bold))
+                .contentTransition(.symbolEffect(.replace))
+                .foregroundStyle(.white)
+                .frame(width: 44, height: 44)
+                .background(Circle().fill(.black))
+                .overlay { Circle().strokeBorder(.white, lineWidth: 2) }
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(isPlaying ? Text("Pause") : Text("Play"))
     }
 }

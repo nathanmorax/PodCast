@@ -61,7 +61,7 @@ struct GenreRankingView: View {
                 Button {
                     onOpenPodcast(podcast)
                 } label: {
-                    PodcastCellUI(podcast: podcast, rank: offset + 2, coverSide: 52)
+                    PodcastCellUI(podcast: podcast, rank: offset + 2, coverSide: 64)
                 }
                 .buttonStyle(.plain)
                 .overlay(alignment: .bottom) { Divider() }

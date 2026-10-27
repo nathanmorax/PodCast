@@ -147,7 +147,7 @@ final class EpisodesController: UIViewController, ZoomDismissible {
         navigationItem.standardAppearance = appearance
         navigationItem.scrollEdgeAppearance = appearance
         navigationItem.compactAppearance = appearance
-        navigationItem.title = collapsed ? podcast?.trackName : nil
+        // No title, even once the cover scrolls away: just the back arrow.
     }
 
     // MARK: - Header events
@@ -192,10 +192,7 @@ final class EpisodesController: UIViewController, ZoomDismissible {
     /// An episode, full screen (tapping its row, or "Details" in its •••
     /// menu): pushed, with its artwork edge to edge.
     private func showInfo(for episode: Episode) {
-        presentSheet(EpisodeInfoSheet(episode: episode) { [weak self] in
-            PlayerManager.shared.play(episode)
-            self?.dismiss(animated: true)
-        })
+        presentEpisodeSheet(episode)
     }
 
     /// Half screen, can grow to full.

@@ -19,7 +19,7 @@ struct EpisodeRow: View {
     @Environment(\.displayScale) private var displayScale
 
     var body: some View {
-        EpisodeCell(viewModel: EpisodeActionViewModel(episode: episode), onInfo: onShowInfo)
+        EpisodeCell(viewModel: EpisodeActionViewModel(episode: episode))
             .padding(.horizontal, 8)
             .padding(.vertical, 6)
             .overlay(alignment: .bottom) {

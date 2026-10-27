@@ -5,24 +5,20 @@
 
 import SwiftUI
 
-/// One "For you" episode, like Apple Podcasts' "Recommended For You": a
-/// panel painted with the artwork's color (the podcast's small cover, its
-/// name, the episode's title in serif, when and how long) next to the
-/// episode's artwork, cut at the card's right edge.
+/// One "For you" episode, like a magazine's audio stories: the artwork,
+/// square, with ▶ (black, outlined in white) on its bottom-right corner;
+/// under it the category in serif capitals, the title in bold, "By author"
+/// and the length.
 ///
-/// Only draws: the color, tapping, the ••• menu and the zoom live in
-/// ForYouRow.
-struct ForYouCard: View {
+/// Only draws, in two pieces (ForYouCard.Artwork, ForYouCard.Texts), so
+/// ForYouRow can make each one its own button with ▶ over the artwork.
+/// Tapping, ▶, the menu and the zoom live in ForYouRow. (A namespace, not a
+/// View: it has no body of its own.)
+enum ForYouCard {
 
-    let item: PodcastEpisode
-    /// The artwork's color; nil while it's being read (a neutral gray).
-    let tint: ArtworkTint?
-
-    static let height: CGFloat = 220
-    static let cornerRadius: CGFloat = 8
-    /// The artwork's width, as a fraction of the card's height.
-    static let artworkRatio: CGFloat = 0.72
-    static var artworkWidth: CGFloat { height * artworkRatio }
+    static let cornerRadius: CGFloat = 6
+    /// While the row loads (the card's real height comes from its width).
+    static let placeholderHeight: CGFloat = 380
 
     /// The episode's own artwork; the podcast's when the feed has none.
     static func artworkSource(for item: PodcastEpisode) -> String? {
@@ -30,81 +26,67 @@ struct ForYouCard: View {
         return item.podcast.artworkUrl600
     }
 
-    var body: some View {
-        HStack(spacing: 0) {
-            infoPanel
-            PodcastImage(source: Self.artworkSource(for: item), contentMode: .fill)
-                .frame(width: Self.artworkWidth)
-                .frame(maxHeight: .infinity)
-                .clipped()
+    /// The square artwork, with a hairline edge (light artwork doesn't
+    /// melt into the page).
+    struct Artwork: View {
+        let item: PodcastEpisode
+
+        var body: some View {
+            Color.clear
+                .aspectRatio(1, contentMode: .fit)
+                .overlay {
+                    PodcastImage(source: ForYouCard.artworkSource(for: item), contentMode: .fill)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: ForYouCard.cornerRadius, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: ForYouCard.cornerRadius, style: .continuous)
+                        .strokeBorder(AppColor.Text.primary.opacity(0.12), lineWidth: 1)
+                }
                 .accessibilityHidden(true)
         }
-        .frame(height: Self.height)
-        .background { panelBackground }
-        .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
-        .contentShape(RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
     }
 
-    // MARK: - Panel
+    /// Category, title, "By author", length. Each line keeps its space, so
+    /// the cards side by side end at the same height.
+    struct Texts: View {
+        let item: PodcastEpisode
 
-    private var textColor: Color { tint?.text ?? AppColor.Text.primary }
-    private var secondaryTextColor: Color { tint?.secondaryText ?? AppColor.Text.secondary }
+        var body: some View {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(item.podcast.primaryGenreName ?? " ")
+                    .font(.system(.subheadline, design: .serif))
+                    .textCase(.uppercase)
+                    .tracking(0.6)
+                    .foregroundStyle(AppColor.Status.critical)
+                    .lineLimit(1)
 
-    /// The artwork's color, a little lighter at the top-left, like light
-    /// falling on it.
-    private var panelBackground: some View {
-        let base = tint?.color ?? AppColor.Surface.muted
-        return base
-            .overlay {
-                RadialGradient(
-                    colors: [.white.opacity(0.14), .clear],
-                    center: .topLeading,
-                    startRadius: 0,
-                    endRadius: 260
-                )
+                Text(item.episode.title)
+                    .font(.system(.headline, weight: .bold))
+                    .foregroundStyle(AppColor.Text.primary)
+                    .lineLimit(2, reservesSpace: true)
+                    .multilineTextAlignment(.leading)
+                    .padding(.top, 2)
+
+                Text(byline)
+                    .font(.system(.subheadline, weight: .semibold))
+                    .foregroundStyle(AppColor.Text.secondary)
+                    .lineLimit(1)
+
+                HStack(spacing: 6) {
+                    Text(item.episode.durationDisplayText)
+                    DownloadedBadge(episode: item.episode)
+                }
+                .font(.subheadline)
+                .foregroundStyle(AppColor.Text.secondary)
+                .lineLimit(1)
             }
-            .overlay(alignment: .bottom) {
-                LinearGradient(colors: [.clear, (tint?.deeper ?? base).opacity(0.9)],
-                               startPoint: .center, endPoint: .bottom)
-            }
-    }
-
-    private var infoPanel: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 12) {
-                PodcastImage(source: item.podcast.artworkUrl600)
-                    .frame(width: 40, height: 40)
-                    .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
-                    .accessibilityHidden(true)
-                Text(item.podcast.trackName ?? "")
-                    .overlineStyle(color: textColor)
-                    .lineLimit(2)
-            }
-
-            Text(item.episode.title)
-                .font(AppFont.cardHeadline)
-                .foregroundStyle(textColor)
-                .lineLimit(3)
-                .minimumScaleFactor(0.85)
-                .padding(.top, 14)
-
-            Spacer(minLength: 8)
-
-            // "7 hours ago · 25 min"; the ••• goes to its right (ForYouRow).
-            HStack(spacing: 0) {
-                Text(item.episode.pubDate, format: .relative(presentation: .numeric, unitsStyle: .abbreviated))
-                Text(verbatim: " · \(item.episode.durationDisplayText)")
-                DownloadedBadge(episode: item.episode)
-                    .padding(.leading, 5)
-            }
-            .font(AppFont.caption)
-            .foregroundStyle(secondaryTextColor)
-            .lineLimit(1)
-            .padding(.trailing, 36)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .combine)
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .accessibilityElement(children: .combine)
-    }
 
+        private var byline: String {
+            let author = item.podcast.artistName ?? item.episode.author
+            return author.isEmpty ? " " : String(localized: "By \(author)")
+        }
+    }
 }

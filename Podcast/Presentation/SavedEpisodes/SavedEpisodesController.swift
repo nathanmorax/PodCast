@@ -18,6 +18,7 @@ final class SavedEpisodesController: UIViewController {
         case .favorites: title = String(localized: "Favorites")
         case .downloads: title = String(localized: "Downloads")
         }
+        hideNavigationTitle()
     }
 
     required init?(coder: NSCoder) {
@@ -28,11 +29,8 @@ final class SavedEpisodesController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = ColorName.screenBackground.uiColor
         let list = SavedEpisodesView(collection: collection) { [weak self] episode in
-            // Outside a podcast page, an episode opens full screen.
-            self?.navigationController?.pushViewController(
-                EpisodeDetailController(episode: episode, podcastName: nil),
-                animated: true
-            )
+            // Tapping a row: its details in a sheet (its ▶ plays it instead).
+            self?.presentEpisodeSheet(episode)
         }
         embedFullScreen(UIHostingController(rootView: list))
     }

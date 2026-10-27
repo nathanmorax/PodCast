@@ -62,7 +62,7 @@ struct InboxView: View {
     }
 }
 
-/// The podcast's name over the usual episode row.
+/// The usual episode row.
 private struct InboxRow: View {
 
     let item: PodcastEpisode
@@ -70,13 +70,7 @@ private struct InboxRow: View {
     let onOpen: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(item.podcast.trackName ?? "")
-                .overlineStyle()
-                .lineLimit(1)
-                .padding(.horizontal, 24)
-                .padding(.top, 10)
-            EpisodeRow(episode: item.episode, showsSeparator: showsSeparator, onShowInfo: onOpen)
-        }
+        // The show is the row's own overline (EpisodeCell).
+        EpisodeRow(episode: item.episode, showsSeparator: showsSeparator, onShowInfo: onOpen)
     }
 }

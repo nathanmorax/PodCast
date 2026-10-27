@@ -273,6 +273,16 @@
         }
       }
     },
+    "Close" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cerrar"
+          }
+        }
+      }
+    },
     "Close search" : {
       "localizations" : {
         "es" : {
@@ -891,9 +901,7 @@
         }
       }
     },
-    "Number 1" : {
-
-    },
+    "Number 1" : {},
     "Offline" : {
       "localizations" : {
         "es" : {
@@ -1405,6 +1413,16 @@
         }
       }
     },
+    "TV & Film" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cine y TV"
+          }
+        }
+      }
+    },
     "Tap + on a podcast to follow it. It'll show up here." : {
       "localizations" : {
         "es" : {
@@ -1556,16 +1574,6 @@
         }
       }
     },
-    "TV & Film" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cine y TV"
-          }
-        }
-      }
-    },
     "Unfollow" : {
       "localizations" : {
         "es" : {
@@ -1603,6 +1611,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lo que escuches aparecerá aquí."
+          }
+        }
+      }
+    },
+    "With %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Con %@"
           }
         }
       }

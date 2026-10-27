@@ -27,7 +27,7 @@ struct HomeView: View {
     /// the same episodes. Loaded here, as follows change.
     let followingFeed: FollowingFeedViewModel
     /// Owned by the view: "For you" stays while Library lives.
-    @State private var forYou = ForYouViewModel()
+    @State private var forYou = ForYouViewModel(cache: .standard)
     /// Owned by the view: each category's shows stay while Library lives.
     @State private var browse = BrowseViewModel()
 
@@ -155,13 +155,14 @@ struct HomeView: View {
 
             if items.isEmpty && forYou.isLoading {
                 ProgressView()
-                    .frame(maxWidth: .infinity, minHeight: ForYouCard.height)
+                    .frame(maxWidth: .infinity, minHeight: ForYouCard.placeholderHeight)
                     .padding(.horizontal, 20)
             } else {
                 ForYouRow(
                     items: items,
                     onOpen: { onOpenEpisode($0.episode, $0.podcast) },
-                    onPlay: { playerManager.play($0) },
+                    // ▶ plays (or pauses) in the mini player, opening nothing.
+                    onPlay: { playerManager.playOrToggle($0, presentation: .mini) },
                     onOpenPodcast: onOpenPodcast
                 )
             }
