@@ -14,17 +14,12 @@ import SwiftUI
 enum ColorName: String, CaseIterable {
 
     // MARK: Palette (genre tiles, buttons, status)
-    case limeGreen
-    case dustyRose
     case coralRed
     case slateGray
-    case warmOrange
-    case paleYellow
     case dustyBlue
     case oliveGreen
     case burntOrange
     case charcoalBrown
-    case background
 
     // MARK: Surfaces and ink
     case screenBackground

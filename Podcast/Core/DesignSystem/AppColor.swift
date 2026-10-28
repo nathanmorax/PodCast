@@ -11,17 +11,12 @@ enum AppColor {
 
     // MARK: - Raw palette
 
-    static let limeGreen     = Color(asset: .limeGreen)
-    static let dustyRose     = Color(asset: .dustyRose)
     static let coralRed      = Color(asset: .coralRed)
     static let slateGray     = Color(asset: .slateGray)
-    static let warmOrange    = Color(asset: .warmOrange)
-    static let paleYellow    = Color(asset: .paleYellow)
     static let dustyBlue     = Color(asset: .dustyBlue)
     static let oliveGreen    = Color(asset: .oliveGreen)
     static let burntOrange   = Color(asset: .burntOrange)
     static let charcoalBrown = Color(asset: .charcoalBrown)
-    static let background    = Color(asset: .background)
 
     // MARK: - Surfaces and ink
 
@@ -50,11 +45,6 @@ enum AppColor {
 
     // MARK: - Semantic roles
 
-    enum Brand {
-        static let primary   = AppColor.background
-        static let secondary = AppColor.paleYellow
-    }
-
     enum Status {
         static let success  = AppColor.oliveGreen
         static let warning  = AppColor.burntOrange
@@ -63,10 +53,6 @@ enum AppColor {
     }
 
     enum Surface {
-        static let primary   = AppColor.paleYellow
-        static let secondary = AppColor.dustyRose
-        /// Cards on the screen background: white / dark grey.
-        static let elevated  = Color(uiColor: .secondarySystemGroupedBackground)
         /// The selected pill of a segmented control, a focused field:
         /// white / a lighter grey than the cards.
         static let raised    = Color(asset: .surfaceRaised)
@@ -90,8 +76,6 @@ enum AppColor {
         /// On pastel or light-violet fills (genre cards, play buttons):
         /// stays dark in dark mode, where `primary` turns light.
         static let onPastel  = Color(asset: .inkOnPastel)
-        /// Links and text buttons ("Edit", "Clear", "Try again").
-        static let link      = AppColor.accentInk
     }
 
     /// The app's accent: field green for text and icons, mustard for fills.
