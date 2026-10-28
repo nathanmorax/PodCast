@@ -67,7 +67,10 @@ struct RootView: View {
 
             // First launch (and "Edit" in Home): what do you like to listen to?
             if interests.needsOnboarding {
-                OnboardingView(selectedIDs: interests.genreIDs)
+                OnboardingView(
+                    selectedIDs: interests.genreIDs,
+                    playsIntro: !interests.isEditing
+                )
                     .transition(.onboarding)
                     .zIndex(2)
             }
