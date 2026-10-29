@@ -83,4 +83,18 @@ enum AppColor {
         /// A mustard tint behind accent icons/text.
         static let wash   = AppColor.accent.opacity(0.22)
     }
+
+    /// Search's category cards: soft pastels with ink on them (the same in
+    /// dark mode, like printed cards on a dark page). Each category keeps
+    /// its own (Genre+Style).
+    enum Category {
+        static let palette: [Color] = [
+            Color(asset: .genreSky),
+            Color(asset: .genrePeach),
+            Color(asset: .genreLinen),
+            Color(asset: .genreMint),
+            Color(asset: .genreRose),
+            Color(asset: .genreLavender)
+        ]
+    }
 }

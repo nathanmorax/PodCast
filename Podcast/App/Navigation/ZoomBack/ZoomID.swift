@@ -14,12 +14,12 @@ enum ZoomID: Hashable {
     /// Following). The same podcast in two places zooms to the bigger one.
     case podcast(Int)
 
-    /// An episode's cover. The section keeps the same episode in the feed
-    /// and in Continue listening apart: each closes back into its own card.
+    /// An episode's cover. The section keeps the same episode in "For you"
+    /// and in "Recently played" apart: each closes back into its own card.
     case episode(String, section: Section)
 
     /// A row or button that opens a list (Following, Favorites, Downloads,
-    /// the Inbox).
+    /// the Library).
     case collection(Collection)
 
     enum Section: Hashable {
@@ -33,6 +33,7 @@ enum ZoomID: Hashable {
         case following
         case favorites
         case downloads
-        case inbox
+        /// The Library (it took the Inbox's place).
+        case library
     }
 }

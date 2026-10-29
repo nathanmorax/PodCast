@@ -36,23 +36,3 @@ struct EpisodeNotes: Equatable {
         rest = text[end...].trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
-
-/// A big accent “ next to the line in italic serif.
-struct QuoteView: View {
-    let text: String
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            Text(verbatim: "“")
-                .font(.system(size: 48, weight: .regular, design: .serif))
-                .foregroundStyle(AppColor.Accent.soft)
-                .frame(height: 34, alignment: .top)
-                .accessibilityHidden(true)
-            Text(text)
-                .font(AppFont.quote)
-                .foregroundStyle(AppColor.Text.primary.opacity(0.88))
-                .lineSpacing(3)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-}

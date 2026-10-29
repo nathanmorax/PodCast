@@ -5,65 +5,99 @@
 
 import SwiftUI
 
-/// An episode, full screen, read like a magazine story:
-/// - its artwork edge to edge, under the status bar (pinned when pulled);
-/// - the podcast's name as an overline and the title in serif over the fade;
-/// - a byline (author, how long ago, length);
-/// - Listen (save, download and share are in the ••• at the top:
-///   EpisodeDetailController);
-/// - the first sentence of the notes as a quote, then the rest.
+/// An episode, full screen, laid out like a film's page in a magazine app
+/// (after MUBI's):
+/// - EpisodeHero: the artwork edge to edge with the show, the title in tall
+///   capitals and the date · length;
+/// - EpisodeActionsBar: Listen, save, download, share;
+/// - WhyListenBox: the notes' first sentence in an ink-bordered box;
+/// - Show notes: the rest of them;
+/// - ChaptersSection, when the notes list chapters;
+/// - FromTheShowRow and MoreFromShowSection (dark), when the show is known.
+/// Sections with nothing to show aren't drawn.
 struct EpisodeDetailView: View {
 
-    let episode: Episode
-    /// Shown as the overline over the title (nil: the episode's author).
-    let podcastName: String?
+    let viewModel: EpisodeDetailViewModel
     let pull: HeaderPull
-    let onPlay: () -> Void
+    let onOpenPodcast: (Podcast) -> Void
+    let onOpenEpisode: (Episode) -> Void
     /// Vertical scroll position (negative while pulled past the top).
     let onScroll: (CGFloat) -> Void
 
-    static let heroHeight: CGFloat = 460
+    @Environment(\.playerManager) private var playerManager
+    @Environment(\.favoritesManager) private var favoritesManager
 
-    init(episode: Episode, podcastName: String?, pull: HeaderPull,
-         onPlay: @escaping () -> Void, onScroll: @escaping (CGFloat) -> Void) {
-        self.episode = episode
-        self.podcastName = podcastName
-        self.pull = pull
-        self.onPlay = onPlay
-        self.onScroll = onScroll
-    }
-
-    private var notes: EpisodeNotes {
-        let full = episode.showNotes ?? ""
-        return EpisodeNotes(full.isEmpty ? episode.description : full)
-    }
+    private var episode: Episode { viewModel.episode }
 
     var body: some View {
+        let notes = viewModel.notes
+        let actions = EpisodeActionViewModel(episode: episode)
+
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                hero
+                EpisodeHero(
+                    episode: episode,
+                    showName: viewModel.podcast?.trackName,
+                    genre: viewModel.podcast?.primaryGenreName,
+                    pull: pull
+                )
 
-                VStack(alignment: .leading, spacing: 22) {
-                    byline
-                    actionsRow
+                VStack(alignment: .leading, spacing: 24) {
+                    EpisodeActionsBar(actions: actions) {
+                        playerManager.playOrToggle(episode, presentation: .mini)
+                    }
 
                     if let quote = notes.quote {
-                        QuoteView(text: quote)
+                        WhyListenBox(text: quote)
                     }
 
                     if !notes.rest.isEmpty {
-                        Text(notes.rest)
-                            .font(AppFont.body)
-                            .foregroundStyle(AppColor.Text.primary.opacity(0.78))
-                            .lineSpacing(4)
-                            .textSelection(.enabled)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                        VStack(alignment: .leading, spacing: 8) {
+                            EpisodeSectionTitle(title: "Show notes")
+                            Text(notes.rest)
+                                .font(.subheadline)
+                                .foregroundStyle(AppColor.Text.secondary)
+                                .lineSpacing(4)
+                                .textSelection(.enabled)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+
+                    if !viewModel.chapters.isEmpty {
+                        ChaptersSection(
+                            chapters: viewModel.chapters,
+                            current: currentChapter,
+                            onSelect: play
+                        )
+                    }
+
+                    if let podcast = viewModel.podcast {
+                        FromTheShowRow(
+                            podcast: podcast,
+                            isFollowing: favoritesManager.isFavorite(podcast),
+                            onOpen: { onOpenPodcast(podcast) },
+                            onToggleFollow: {
+                                withAnimation(AppAnimation.selection) { favoritesManager.toggleFavorite(podcast) }
+                            }
+                        )
                     }
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 18)
-                .padding(.bottom, 40)
+                .foregroundStyle(AppColor.Text.primary)
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+                .padding(.bottom, 32)
+
+                if !viewModel.moreEpisodes.isEmpty {
+                    MoreFromShowSection(
+                        showName: viewModel.podcast?.trackName ?? episode.author,
+                        episodes: viewModel.moreEpisodes,
+                        onOpen: onOpenEpisode,
+                        onPlay: { playerManager.playOrToggle($0, presentation: .mini) }
+                    )
+                    .transition(.opacity)
+                }
             }
+            .animation(AppAnimation.listChange, value: viewModel.moreEpisodes.map(\.streamUrl))
         }
         .scrollIndicators(.hidden)
         // The artwork starts under the status bar and the (clear) navigation bar.
@@ -74,83 +108,30 @@ struct EpisodeDetailView: View {
         } action: { _, offset in
             onScroll(offset)
         }
+        .task { await viewModel.loadMoreEpisodes() }
     }
 
-    // MARK: - Hero
+    // MARK: - Chapters
 
-    private var hero: some View {
-        Color.clear
-            .frame(maxWidth: .infinity)
-            .frame(height: Self.heroHeight)
-            .background(alignment: .top) {
-                PinnedCover(source: episode.imageUrl, height: Self.heroHeight, pull: pull)
-            }
-            .overlay(alignment: .bottom) {
-                LinearGradient(
-                    colors: [.clear, AppColor.screenBackground],
-                    startPoint: .top, endPoint: .bottom
-                )
-                .frame(height: 220)
-            }
-            .overlay(alignment: .bottomLeading) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(podcastName ?? episode.author)
-                        .overlineStyle()
-                        .lineLimit(1)
-                    Text(episode.title)
-                        .font(AppFont.title)
-                        .foregroundStyle(AppColor.Text.primary)
-                        .lineLimit(4)
-                        .minimumScaleFactor(0.8)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .padding(.horizontal, 24)
-                .accessibilityElement(children: .combine)
-                .accessibilityAddTraits(.isHeader)
-            }
+    private var isCurrentEpisode: Bool {
+        playerManager.currentEpisode?.streamUrl == episode.streamUrl
     }
 
-    // MARK: - Byline
+    /// The last chapter already started, while this episode is in the player.
+    private var currentChapter: EpisodeChapter? {
+        guard isCurrentEpisode else { return nil }
+        let now = playerManager.viewModel.currentPlaybackSeconds
+        return viewModel.chapters.last { $0.start <= now }
+    }
 
-    private var byline: some View {
-        HStack(spacing: 10) {
-            Color.clear
-                .frame(width: 30, height: 30)
-                .overlay { PodcastImage(source: episode.imageUrl) }
-                .clipShape(Circle())
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 1) {
-                Text("By \(episode.author)")
-                    .font(AppFont.captionStrong)
-                    .foregroundStyle(AppColor.Text.primary)
-                    .lineLimit(1)
-                HStack(spacing: 0) {
-                    Text(episode.pubDate, format: .relative(presentation: .named, unitsStyle: .wide))
-                    Text(verbatim: " · \(episode.durationDisplayText)")
-                    DownloadedBadge(episode: episode)
-                        .padding(.leading, 5)
-                }
-                .font(AppFont.caption)
-                .foregroundStyle(AppColor.Text.secondary)
-                .lineLimit(1)
-            }
+    /// In the player: jump there. Otherwise: start it there, in the mini
+    /// player (from the beginning when its length isn't known yet).
+    private func play(_ chapter: EpisodeChapter) {
+        if isCurrentEpisode {
+            playerManager.viewModel.seek(toSeconds: chapter.start)
+        } else {
+            let progress = episode.durationSeconds.map { $0 > 0 ? chapter.start / $0 : 0 }
+            playerManager.play(episode, presentation: .mini, from: progress)
         }
-        .accessibilityElement(children: .combine)
-    }
-
-    // MARK: - Actions
-
-    /// Listen, where it always was. Save, download and share moved to the
-    /// ••• in the navigation bar.
-    private var actionsRow: some View {
-        Button(action: onPlay) {
-            Label("Listen", systemImage: "play.fill")
-                .font(AppFont.button)
-                .foregroundStyle(AppColor.Text.onPastel)
-                .frame(maxWidth: .infinity)
-                .frame(height: 44)
-                .background(Capsule().fill(AppColor.Accent.soft))
-        }
-        .buttonStyle(.plain)
     }
 }

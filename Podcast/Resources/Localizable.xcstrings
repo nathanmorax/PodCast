@@ -86,6 +86,7 @@
       }
     },
     "%lld new" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -94,6 +95,9 @@
           }
         }
       }
+    },
+    "%lld new episodes" : {
+
     },
     "%lld of %lld" : {
       "extractionState" : "stale",
@@ -171,6 +175,7 @@
 
     },
     "Browse podcasts" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -332,7 +337,6 @@
       }
     },
     "Continue listening" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -483,6 +487,7 @@
       }
     },
     "Earlier" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -514,6 +519,7 @@
       }
     },
     "Episode details" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -536,6 +542,9 @@
         }
       }
     },
+    "Episodes you play show up here." : {
+
+    },
     "Explore" : {
       "localizations" : {
         "es" : {
@@ -547,6 +556,7 @@
       }
     },
     "Favorites" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -617,6 +627,9 @@
         }
       }
     },
+    "From the show" : {
+
+    },
     "Full screen" : {
       "localizations" : {
         "es" : {
@@ -669,7 +682,6 @@
       }
     },
     "Home" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -680,6 +692,7 @@
       }
     },
     "Inbox" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -821,6 +834,9 @@
         }
       }
     },
+    "More from %@" : {
+
+    },
     "Music" : {
       "localizations" : {
         "es" : {
@@ -872,6 +888,7 @@
       }
     },
     "No favorites yet" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -891,6 +908,9 @@
         }
       }
     },
+    "No saved episodes" : {
+
+    },
     "Nothing followed yet" : {
       "localizations" : {
         "es" : {
@@ -900,6 +920,9 @@
           }
         }
       }
+    },
+    "Nothing played yet" : {
+
     },
     "Number %lld" : {
       "localizations" : {
@@ -990,6 +1013,7 @@
       }
     },
     "Picked for you" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1031,6 +1055,7 @@
       }
     },
     "Playing" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1103,6 +1128,7 @@
       }
     },
     "Recently played" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1111,6 +1137,9 @@
           }
         }
       }
+    },
+    "Remove" : {
+
     },
     "Remove bookmark" : {
       "extractionState" : "stale",
@@ -1144,6 +1173,7 @@
       }
     },
     "Remove from recently played" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1185,6 +1215,7 @@
       }
     },
     "Resumes the episode" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1361,6 +1392,9 @@
         }
       }
     },
+    "Show notes" : {
+
+    },
     "Show to follow" : {
 
     },
@@ -1374,6 +1408,9 @@
           }
         }
       }
+    },
+    "Shows the episode's details" : {
+
     },
     "Skip" : {
       "localizations" : {
@@ -1446,6 +1483,7 @@
       }
     },
     "Tap to remove" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1639,6 +1677,9 @@
           }
         }
       }
+    },
+    "Why listen" : {
+
     },
     "With %@" : {
       "localizations" : {

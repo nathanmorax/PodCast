@@ -5,19 +5,15 @@
 
 import SwiftUI
 
-<<<<<<< Updated upstream
 /// The podcasts you follow, as square covers (corners rounded 8) with their
 /// name under them. Each cover is what its podcast's page zooms out of and
-/// back into.
-=======
-/// The podcasts you follow, as small square covers with their name under
-/// them in tall capitals. Each cover is what its podcast's page zooms out of and
 /// back into. A show with new episodes has them peeking out from behind
 /// its cover (PeekingCover).
->>>>>>> Stashed changes
 struct LibraryCovers: View {
 
     let podcasts: [Podcast]
+    /// trackId → its new episodes, newest first (NewEpisodeMarks).
+    var newEpisodes: [Int: [Episode]] = [:]
     let onOpen: (Podcast) -> Void
     /// The last tile, "See All": only when the covers don't all fit.
     let onSeeAll: () -> Void
@@ -46,14 +42,6 @@ struct LibraryCovers: View {
                     Button {
                         onOpen(podcast)
                     } label: {
-<<<<<<< Updated upstream
-                        VStack(alignment: .leading, spacing: 8) {
-                            Color.clear
-                                .frame(width: Self.side, height: Self.side)
-                                .overlay { ZoomSourceImage(podcast: podcast, cornerRadius: Self.cornerRadius) }
-                                .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
-                                .accessibilityHidden(true)
-=======
                         VStack(alignment: .leading, spacing: 6) {
                             // The cards peeking out say it's new; no text needed.
                             PeekingCover(
@@ -67,18 +55,21 @@ struct LibraryCovers: View {
                                 .textCase(.uppercase)
                                 .foregroundStyle(AppColor.Text.primary)
                                 .lineLimit(1)
->>>>>>> Stashed changes
                         }
                         .frame(width: Self.side, alignment: .leading)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel(Text(podcast.trackName ?? ""))
+                    .accessibilityValue(newValue(for: podcast))
                 }
 
                 if overflows {
                     seeAllTile
                 }
             }
+            // Room above the covers for the cards that peek out.
+            .padding(.top, 16)
         }
         .contentMargins(.horizontal, Self.margin, for: .scrollContent)
         .scrollIndicators(.hidden)
@@ -87,6 +78,11 @@ struct LibraryCovers: View {
         } action: { _, width in
             visibleWidth = width
         }
+    }
+
+    private func newValue(for podcast: Podcast) -> Text {
+        let count = newEpisodes[podcast.trackId]?.count ?? 0
+        return count > 0 ? Text("\(count) new episodes") : Text(verbatim: "")
     }
 
     /// At the end of the row, the size of a cover: → and "See All".
