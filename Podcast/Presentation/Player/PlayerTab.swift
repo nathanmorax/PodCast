@@ -5,25 +5,26 @@
 
 import Foundation
 
-/// The tabs under the player's cover.
+/// The player's two pages, side by side under the cover (swipe or the
+/// dots to move between them).
 enum PlayerTab: Hashable, CaseIterable {
-    /// Title, progress bar and play controls.
+    /// Progress bar, play controls and actions.
     case player
     /// The transcript; tap a line to jump there.
     case text
-    /// Only when the show notes list chapters.
-    case chapters
 
     var title: LocalizedStringResource {
         switch self {
         case .player: return "Player"
         case .text: return "Text"
-        case .chapters: return "Chapters"
         }
     }
 
-    /// The tabs to show: Chapters only if the episode has them.
-    static func available(hasChapters: Bool) -> [PlayerTab] {
-        hasChapters ? [.player, .text, .chapters] : [.player, .text]
+    /// The page a sideways swipe lands on (nil past either end).
+    func next(forward: Bool) -> PlayerTab? {
+        let all = Self.allCases
+        guard let index = all.firstIndex(of: self) else { return nil }
+        let next = forward ? index + 1 : index - 1
+        return all.indices.contains(next) ? all[next] : nil
     }
 }

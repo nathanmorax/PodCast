@@ -43,10 +43,12 @@ struct EpisodeChapterTests {
 
 @Suite("PlayerTab")
 struct PlayerTabTests {
-    @Test("Chapters only appear when the episode has them")
-    func available() {
-        #expect(PlayerTab.available(hasChapters: false) == [.player, .text])
-        #expect(PlayerTab.available(hasChapters: true) == [.player, .text, .chapters])
+    @Test("Swiping moves one page and stops at the ends")
+    func next() {
+        #expect(PlayerTab.player.next(forward: true) == .text)
+        #expect(PlayerTab.text.next(forward: false) == .player)
+        #expect(PlayerTab.text.next(forward: true) == nil)
+        #expect(PlayerTab.player.next(forward: false) == nil)
     }
 }
 
