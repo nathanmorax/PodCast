@@ -19,18 +19,21 @@ enum ZoomID: Hashable {
     case episode(String, section: Section)
 
     /// A row or button that opens a list (Following, Favorites, Downloads,
-    /// the Inbox).
+    /// the Library).
     case collection(Collection)
 
     enum Section: Hashable {
         case forYou
         case recentlyPlayed
+        /// Home's "New episodes" carousel.
+        case newEpisodes
     }
 
     enum Collection: Hashable {
         case following
         case favorites
         case downloads
-        case inbox
+        /// The Library (it took the Inbox's place).
+        case library
     }
 }
