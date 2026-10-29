@@ -15,9 +15,9 @@ extension Date {
         let yearOfDate = calendar.component(.year, from: self)
         
         if yearOfDate == currentYear {
-            formatter.dateFormat = "MMM d"
+            formatter.setLocalizedDateFormatFromTemplate("MMMd")  // "14 oct" in Spanish
         } else {
-            formatter.dateFormat = "MMM d, yyyy"
+            formatter.setLocalizedDateFormatFromTemplate("MMMdyyyy")
         }
         
         return formatter.string(from: self)

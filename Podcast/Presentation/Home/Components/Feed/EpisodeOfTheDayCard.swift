@@ -38,7 +38,7 @@ struct EpisodeOfTheDayCard: View {
 
                     FeedMetaLine(
                         show: item.showName,
-                        details: [item.podcast.primaryGenreName ?? "", item.episode.durationDisplayText]
+                        details: [item.podcast.genreName ?? "", item.episode.durationDisplayText]
                     )
 
                     if !item.episode.description.isEmpty {

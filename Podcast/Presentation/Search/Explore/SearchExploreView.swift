@@ -23,19 +23,20 @@ struct SearchExploreView: View {
 
     /// The show "Shows like …" is about: the last one followed that has a
     /// category.
-    private var showsLikePick: (podcast: Podcast, genre: String)? {
-        guard let podcast = favoritesManager.favorites.last(where: { !($0.primaryGenreName ?? "").isEmpty }),
-              let genre = podcast.primaryGenreName else { return nil }
-        return (podcast, genre)
+    private var showsLikePick: (podcast: Podcast, genre: Genre)? {
+        guard let podcast = favoritesManager.favorites.last(where: { $0.genreName != nil }),
+              let name = podcast.genreName else { return nil }
+        // A catalog category when it is one; otherwise the API's (the
+        // ranking searches by name, so it works as is).
+        return (podcast, podcast.catalogGenre ?? Genre(id: name, name: name))
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 if let pick = showsLikePick {
-                    ShowsLikeBanner(podcast: pick.podcast, genreName: pick.genre) {
-                        // The ranking searches by name, so the API's genre works as is.
-                        onSelectGenre(Genre(id: pick.genre, name: pick.genre))
+                    ShowsLikeBanner(podcast: pick.podcast, genreName: pick.genre.name) {
+                        onSelectGenre(pick.genre)
                     }
                     .padding(.top, 12)
                 }

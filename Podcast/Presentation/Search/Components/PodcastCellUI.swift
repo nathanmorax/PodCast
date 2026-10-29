@@ -29,7 +29,7 @@ struct PodcastCellUI: View {
             }
 
             VStack(alignment: .leading, spacing: 5) {
-                RowOverline(text: podcast.primaryGenreName ?? "")
+                RowOverline(text: podcast.genreName ?? "")
                 RowTitle(text: podcast.trackName ?? "")
                 if let artist = podcast.artistName, !artist.isEmpty {
                     Text(artist)

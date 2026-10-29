@@ -33,7 +33,7 @@ struct FeedEpisodeCard: View {
                     .multilineTextAlignment(.leading)
                 FeedMetaLine(
                     show: item.showName,
-                    details: [item.podcast.primaryGenreName ?? "", item.episode.durationDisplayText]
+                    details: [item.podcast.genreName ?? "", item.episode.durationDisplayText]
                 )
             }
             .foregroundStyle(.white)

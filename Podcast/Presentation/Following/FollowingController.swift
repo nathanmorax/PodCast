@@ -10,6 +10,18 @@ import SwiftUI
 /// standard one (button or edge swipe).
 final class FollowingController: UIViewController {
 
+    /// The followed shows' episodes, shared with Home (no second download).
+    private let followingFeed: FollowingFeedViewModel
+
+    init(followingFeed: FollowingFeedViewModel) {
+        self.followingFeed = followingFeed
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         title = String(localized: "Following")
@@ -20,6 +32,7 @@ final class FollowingController: UIViewController {
 
     private func setupHosting() {
         let list = FollowingListView(
+            followingFeed: followingFeed,
             onOpenPodcast: { [weak self] podcast in self?.open(podcast) }
         )
         let hosting = UIHostingController(rootView: list)

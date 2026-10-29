@@ -38,7 +38,7 @@ struct EpisodeDetailView: View {
                 EpisodeHero(
                     episode: episode,
                     showName: viewModel.podcast?.trackName,
-                    genre: viewModel.podcast?.primaryGenreName,
+                    genre: viewModel.podcast?.genreName,
                     pull: pull
                 )
 

@@ -48,7 +48,7 @@ struct PodcastHero: View {
 
     private var texts: some View {
         VStack(alignment: .leading, spacing: 6) {
-            if let genre = podcast.primaryGenreName, !genre.isEmpty {
+            if let genre = podcast.genreName, !genre.isEmpty {
                 Text(genre)
                     .font(.caption.weight(.bold))
                     .textCase(.uppercase)

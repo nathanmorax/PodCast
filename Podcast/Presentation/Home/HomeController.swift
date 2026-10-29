@@ -51,7 +51,8 @@ final class HomeController: UIViewController {
             onOpenLibrary: { [weak self] tab in self?.openLibrary(tab: tab) },
             onSearch: { AppNavigator.shared.showSearch() },
             onOpenFollowing: { [weak self] in
-                self?.pushZooming(FollowingController(), from: .collection(.following))
+                guard let self else { return }
+                pushZooming(FollowingController(followingFeed: followingFeed), from: .collection(.following))
             }
         )
         let hosting = UIHostingController(rootView: home)

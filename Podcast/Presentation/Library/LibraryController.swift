@@ -24,7 +24,7 @@ final class LibraryController: UIViewController {
         title = String(localized: "Library")
         navigationItem.largeTitleDisplayMode = .never
         // `title` still names it in the back button's menu.
-        navigationItem.titleView = UIView()
+        hideNavigationTitle()
         seen.markSeen()
     }
 

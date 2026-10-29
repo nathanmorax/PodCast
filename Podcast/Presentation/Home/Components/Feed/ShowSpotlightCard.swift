@@ -34,7 +34,7 @@ struct ShowSpotlightCard: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Show to follow")
                             .font(.caption.weight(.bold))
-                        if let genre = item.podcast.primaryGenreName {
+                        if let genre = item.podcast.genreName {
                             Text(genre)
                                 .font(.caption2.weight(.bold))
                                 .textCase(.uppercase)
@@ -63,7 +63,7 @@ struct ShowSpotlightCard: View {
             .accessibilityHint("Opens the podcast")
 
             HStack(spacing: 4) {
-                if let genre = item.podcast.primaryGenreName {
+                if let genre = item.podcast.genreName {
                     Text("Because you like \(genre)")
                         .font(.caption)
                         .foregroundStyle(AppColor.Text.secondary)

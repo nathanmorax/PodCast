@@ -83,3 +83,16 @@ extension Genre {
     )
 }
 #endif
+
+extension Podcast {
+    /// Its category in the app's language ("Ciencia" for "Science"); the
+    /// API's own name when it isn't one of the catalog's. For display.
+    var genreName: String? {
+        catalogGenre?.name ?? primaryGenreName.flatMap { $0.isEmpty ? nil : $0 }
+    }
+
+    /// Its category as one of the catalog's, when it is one.
+    var catalogGenre: Genre? {
+        Genre.catalogID(forITunesGenre: primaryGenreName).flatMap(Genre.catalog(id:))
+    }
+}

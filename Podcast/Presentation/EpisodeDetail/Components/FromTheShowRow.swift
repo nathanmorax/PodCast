@@ -63,7 +63,7 @@ struct FromTheShowRow: View {
 
     /// "Host · Science".
     private var caption: String {
-        [podcast.artistName, podcast.primaryGenreName]
+        [podcast.artistName, podcast.genreName]
             .compactMap { $0 }
             .filter { !$0.isEmpty }
             .joined(separator: " · ")

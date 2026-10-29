@@ -54,7 +54,7 @@ struct RecentPodcastRow: View {
 
     /// "Podcast · Science".
     private var kind: String {
-        [String(localized: "Podcast"), podcast.primaryGenreName]
+        [String(localized: "Podcast"), podcast.genreName]
             .compactMap { $0 }
             .filter { !$0.isEmpty }
             .joined(separator: " · ")
