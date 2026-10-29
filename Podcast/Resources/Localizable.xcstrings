@@ -133,6 +133,9 @@
         }
       }
     },
+    "All" : {
+
+    },
     "Arts" : {
       "localizations" : {
         "es" : {
@@ -164,6 +167,7 @@
       }
     },
     "Browse podcasts" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -537,6 +541,7 @@
       }
     },
     "Favorites" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -587,6 +592,9 @@
         }
       }
     },
+    "Follow, save or download episodes and they'll be here." : {
+
+    },
     "Following" : {
       "localizations" : {
         "es" : {
@@ -598,6 +606,7 @@
       }
     },
     "For you" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -606,6 +615,9 @@
           }
         }
       }
+    },
+    "From the shows you follow" : {
+
     },
     "Full screen" : {
       "localizations" : {
@@ -659,7 +671,6 @@
       }
     },
     "Home" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -831,6 +842,9 @@
         }
       }
     },
+    "New episodes" : {
+
+    },
     "New episodes from the podcasts you follow show up here." : {
       "localizations" : {
         "es" : {
@@ -862,6 +876,7 @@
       }
     },
     "No favorites yet" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -881,6 +896,9 @@
         }
       }
     },
+    "No saved episodes" : {
+
+    },
     "Nothing followed yet" : {
       "localizations" : {
         "es" : {
@@ -890,6 +908,9 @@
           }
         }
       }
+    },
+    "Nothing here yet" : {
+
     },
     "Number %lld" : {
       "localizations" : {
@@ -976,6 +997,7 @@
       }
     },
     "Picked for you" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1311,6 +1333,9 @@
           }
         }
       }
+    },
+    "Selected for you" : {
+
     },
     "Share" : {
       "localizations" : {
