@@ -37,6 +37,11 @@ struct LibraryItem: Identifiable, Equatable {
     let showName: String
     /// The episode's artwork, or its show's.
     let artwork: String?
+    /// The show's cover (its header in the Library), or the episode's.
+    let showArtwork: String?
+    /// The show itself, when known (New's episodes): the episode screen
+    /// shows "From the show" with it.
+    let podcast: Podcast?
 
     var id: String { episode.streamUrl }
 
@@ -44,12 +49,14 @@ struct LibraryItem: Identifiable, Equatable {
 
     init(episode: Episode, podcast: Podcast? = nil) {
         self.episode = episode
+        self.podcast = podcast
         self.showName = podcast?.trackName ?? episode.author
         if let image = episode.imageUrl, !image.isEmpty {
             self.artwork = image
         } else {
             self.artwork = podcast?.artworkUrl600
         }
+        self.showArtwork = podcast?.artworkUrl600 ?? self.artwork
     }
 }
 

@@ -25,6 +25,9 @@
         }
       }
     },
+    "%lld" : {
+
+    },
     "%lld episodes" : {
       "localizations" : {
         "en" : {
@@ -86,7 +89,6 @@
       }
     },
     "%lld new" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -760,6 +762,9 @@
     "Latest" : {
 
     },
+    "Layout" : {
+
+    },
     "Library" : {
       "localizations" : {
         "es" : {
@@ -779,6 +784,9 @@
           }
         }
       }
+    },
+    "List" : {
+
     },
     "Listen" : {
       "localizations" : {
@@ -847,6 +855,7 @@
 
     },
     "More" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1319,6 +1328,7 @@
       }
     },
     "Save an episode from its ••• menu and it'll be here." : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1571,6 +1581,9 @@
         }
       }
     },
+    "Three columns" : {
+
+    },
     "Time left" : {
       "localizations" : {
         "es" : {
@@ -1590,6 +1603,9 @@
           }
         }
       }
+    },
+    "Touch and hold an episode to save it, and it'll be here." : {
+
     },
     "Transcribe" : {
       "localizations" : {
@@ -1681,6 +1697,9 @@
           }
         }
       }
+    },
+    "Two columns" : {
+
     },
     "Unfollow" : {
       "localizations" : {

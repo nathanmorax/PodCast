@@ -124,10 +124,13 @@ final class PodcastSearchContainerController: UIViewController {
         navigationController?.pushViewController(GenrePodcastsController(genre: genre), animated: true)
     }
 
-    /// Outside a podcast page, an episode opens full screen.
-    /// Tapping an episode row: its details in a sheet (its ▶ plays it
-    /// instead).
+    /// Tapping an episode row: its screen, like everywhere else (its ▶
+    /// plays it instead). Search only knows the show's name, so the screen
+    /// goes without "From the show".
     private func open(_ result: EpisodeSearchResult) {
-        presentEpisodeSheet(result.episode)
+        navigationController?.pushViewController(
+            EpisodeDetailController(episode: result.episode, podcast: nil),
+            animated: true
+        )
     }
 }

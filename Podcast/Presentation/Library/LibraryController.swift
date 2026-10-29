@@ -7,7 +7,8 @@ import SwiftUI
 
 /// The Library (New · Saved · Downloads · History), pushed from the books
 /// button in Home's navigation bar (or "Show all" on New episodes). Its
-/// title is set in serif capitals, like a magazine's section name.
+/// title is the page's own (LIBRARY in tall capitals, next to the layout
+/// picker), so the bar shows only the back button.
 ///
 /// It replaces the Inbox: opening it marks the new episodes as seen, so the
 /// button's badge goes away.
@@ -22,7 +23,8 @@ final class LibraryController: UIViewController {
         super.init(nibName: nil, bundle: nil)
         title = String(localized: "Library")
         navigationItem.largeTitleDisplayMode = .never
-        navigationItem.titleView = Self.serifTitle(String(localized: "Library"))
+        // `title` still names it in the back button's menu.
+        navigationItem.titleView = UIView()
         seen.markSeen()
     }
 
@@ -33,26 +35,14 @@ final class LibraryController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = ColorName.screenBackground.uiColor
-        let library = LibraryView(followingFeed: followingFeed, tab: initialTab) { [weak self] episode in
-            // Tapping a card: its details in a sheet (▶ plays it instead).
-            self?.presentEpisodeSheet(episode)
+        let library = LibraryView(followingFeed: followingFeed, tab: initialTab) { [weak self] item in
+            // Tapping an episode: its screen, like everywhere else (▶ plays
+            // it instead).
+            self?.navigationController?.pushViewController(
+                EpisodeDetailController(episode: item.episode, podcast: item.podcast),
+                animated: true
+            )
         }
         embedFullScreen(UIHostingController(rootView: library))
-    }
-
-    /// "LIBRARY" in New York, growing with the text size.
-    private static func serifTitle(_ text: String) -> UILabel {
-        let label = UILabel()
-        let base = UIFont.preferredFont(forTextStyle: .title3)
-        let descriptor = base.fontDescriptor.withDesign(.serif) ?? base.fontDescriptor
-        let font = UIFont(descriptor: descriptor, size: 0)
-        label.attributedText = NSAttributedString(
-            string: text.uppercased(),
-            attributes: [.kern: 1.2, .font: font]
-        )
-        label.adjustsFontForContentSizeCategory = true
-        label.textColor = ColorName.ink.uiColor
-        label.accessibilityTraits = .header
-        return label
     }
 }
