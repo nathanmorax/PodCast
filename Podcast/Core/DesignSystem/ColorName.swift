@@ -15,11 +15,7 @@ enum ColorName: String, CaseIterable {
 
     // MARK: Palette (genre tiles, buttons, status)
     case coralRed
-    case slateGray
     case dustyBlue
-    case oliveGreen
-    case burntOrange
-    case charcoalBrown
 
     // MARK: Surfaces and ink
     case screenBackground

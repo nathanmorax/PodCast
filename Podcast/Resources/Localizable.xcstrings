@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "“%@”" : {
+
+    },
     "%@ left" : {
       "localizations" : {
         "es" : {
@@ -154,6 +157,7 @@
       }
     },
     "Based on your interests" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -162,6 +166,9 @@
           }
         }
       }
+    },
+    "Because you like %@" : {
+
     },
     "Browse podcasts" : {
       "localizations" : {
@@ -515,6 +522,9 @@
           }
         }
       }
+    },
+    "Episode of the day" : {
+
     },
     "Episodes" : {
       "localizations" : {
@@ -934,6 +944,9 @@
         }
       }
     },
+    "Opens the podcast" : {
+
+    },
     "Opens the transcript" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -946,6 +959,7 @@
       }
     },
     "Page %lld of %lld" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1322,7 +1336,11 @@
         }
       }
     },
+    "Short listen" : {
+
+    },
     "Show all" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1342,6 +1360,9 @@
           }
         }
       }
+    },
+    "Show to follow" : {
+
     },
     "Shows all tabs" : {
       "extractionState" : "stale",
@@ -1443,6 +1464,9 @@
           }
         }
       }
+    },
+    "Tell me more" : {
+
     },
     "Text" : {
       "localizations" : {

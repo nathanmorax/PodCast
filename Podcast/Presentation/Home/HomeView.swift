@@ -5,6 +5,7 @@
 
 import SwiftUI
 
+<<<<<<< Updated upstream
 /// "Library", the main screen (no title on top: the first section's name,
 /// "Library", is the title):
 /// 1. Library: the podcasts you follow, as square covers with their names.
@@ -14,6 +15,16 @@ import SwiftUI
 /// 4. For you: the latest episodes of the podcasts you follow.
 /// 5. Browse podcasts: category chips and a row of shows; "Show all" opens
 ///    the interests picker.
+=======
+/// Home, laid out like a film magazine's app (after MUBI's):
+/// 1. Your shows (always on top): the podcasts you follow, as small square
+///    covers with their names; new episodes peek out from behind them.
+/// 2. The feed (HomeFeed): one column of cards edge to edge, the
+///    Episode of the day first, then the followed shows' new episodes,
+///    Continue listening in mustard, a show to follow and the picks from
+///    your interests, mixed so nothing shows twice.
+/// Following nothing yet: an invitation to search above the feed.
+>>>>>>> Stashed changes
 struct HomeView: View {
 
     @Environment(\.favoritesManager) private var favoritesManager
@@ -26,7 +37,11 @@ struct HomeView: View {
     /// Owned by HomeController: the Inbox button in the navigation bar reads
     /// the same episodes. Loaded here, as follows change.
     let followingFeed: FollowingFeedViewModel
+<<<<<<< Updated upstream
     /// Owned by the view: "For you" stays while Library lives.
+=======
+    /// Owned by the view: the picks stay while Home lives.
+>>>>>>> Stashed changes
     @State private var forYou = ForYouViewModel(cache: .standard)
     /// Owned by the view: each category's shows stay while Library lives.
     @State private var browse = BrowseViewModel()
@@ -42,14 +57,27 @@ struct HomeView: View {
 
     private var following: [Podcast] { favoritesManager.favorites }
 
+<<<<<<< Updated upstream
     /// Recently played, the one in the player included (its card shows it
     /// playing).
     private var played: [RecentlyPlayed] {
         recentlyPlayed.items
+=======
+    private var feed: [HomeFeedItem] {
+        HomeFeed.build(
+            newEpisodes: InboxFeed.items(following: following, episodes: followingFeed.episodesByPodcast),
+            newSince: InboxSeen.shared.lastSeen,
+            picks: forYou.visibleItems(excluding: Set(following.map(\.trackId))),
+            unfinished: HomeFeed.unfinished(recentlyPlayed.items)
+        )
+>>>>>>> Stashed changes
     }
 
     var body: some View {
+        let feed = self.feed
+
         ScrollView {
+<<<<<<< Updated upstream
             VStack(alignment: .leading, spacing: 32) {
                 if !following.isEmpty {
                     librarySection
@@ -73,14 +101,44 @@ struct HomeView: View {
 //                    onOpenPodcast: onOpenPodcast,
 //                    onShowAll: { interests.edit() }
 //                )
+=======
+            VStack(alignment: .leading, spacing: 0) {
+                if following.isEmpty {
+                    emptyState
+                        .padding(.bottom, 28)
+                } else {
+                    showsStrip
+                        .padding(.bottom, 18)
+                }
+
+                if feed.isEmpty, forYou.isLoading {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, minHeight: EpisodeOfTheDayCard.minHeight)
+                } else {
+                    HomeFeedList(
+                        items: feed,
+                        onOpenEpisode: { onOpenEpisode($0, $1, .feed) },
+                        // ▶ plays (or pauses) in the mini player, opening nothing.
+                        onPlay: { playerManager.playOrToggle($0, presentation: .mini) },
+                        onOpenPodcast: onOpenPodcast,
+                        onOpenPlayed: { onOpenPlayedEpisode($0.episode) },
+                        onResume: resume,
+                        onRemovePlayed: remove
+                    )
+                }
+>>>>>>> Stashed changes
             }
-            .padding(.top, 12)
+            .padding(.top, 4)
             .padding(.bottom, 24)
         }
         .scrollIndicators(.hidden)
         .background(AppColor.screenBackground.ignoresSafeArea())
         .animation(AppAnimation.listChange, value: following.map(\.trackId))
+<<<<<<< Updated upstream
         .animation(AppAnimation.listChange, value: played.map(\.id))
+=======
+        .animation(AppAnimation.listChange, value: feed.map(\.id))
+>>>>>>> Stashed changes
         // Reload when you follow or unfollow a podcast.
         .task(id: following.map(\.trackId)) {
             followingFeed.load(following: following)
@@ -89,12 +147,17 @@ struct HomeView: View {
         .onChange(of: followingFeed.isLoading, initial: true) { _, loading in
             StatusCenter.shared.isUpdating = loading
         }
+<<<<<<< Updated upstream
         // "For you" depends on the interests (and skips what you follow).
+=======
+        // The picks depend on the interests (and skip what you follow).
+>>>>>>> Stashed changes
         .task(id: interests.genreIDs) {
             forYou.load(interests: interests.genres, following: following)
         }
     }
 
+<<<<<<< Updated upstream
     // MARK: - Recently played
 
     /// Every episode played as a big card, one per page (newest first).
@@ -131,6 +194,24 @@ struct HomeView: View {
             LibrarySectionHeader(title: "Library")
             LibraryCovers(podcasts: following, onOpen: onOpenPodcast, onSeeAll: onOpenFollowing)
         }
+=======
+    // MARK: - Your shows
+
+    /// The podcasts you follow, as small square covers with their names;
+    /// the See All tile at the end (only when they overflow) opens Following.
+    private var showsStrip: some View {
+        LibraryCovers(
+            podcasts: following,
+            newEpisodes: NewEpisodeMarks.newEpisodes(
+                podcasts: following,
+                episodes: followingFeed.episodesByPodcast,
+                inboxSeen: InboxSeen.shared.lastSeen,
+                showSeen: ShowSeen.shared.lastSeen
+            ),
+            onOpen: onOpenPodcast,
+            onSeeAll: onOpenFollowing
+        )
+>>>>>>> Stashed changes
     }
 
     // MARK: - For you

@@ -5,9 +5,16 @@
 
 import SwiftUI
 
+<<<<<<< Updated upstream
 /// The podcasts you follow, as square covers (corners rounded 8) with their
 /// name under them. Each cover is what its podcast's page zooms out of and
 /// back into.
+=======
+/// The podcasts you follow, as small square covers with their name under
+/// them in tall capitals. Each cover is what its podcast's page zooms out of and
+/// back into. A show with new episodes has them peeking out from behind
+/// its cover (PeekingCover).
+>>>>>>> Stashed changes
 struct LibraryCovers: View {
 
     let podcasts: [Podcast]
@@ -29,8 +36,8 @@ struct LibraryCovers: View {
         return visibleWidth > 0 && coversWidth > visibleWidth
     }
 
-    static let side: CGFloat = 80
-    static let cornerRadius: CGFloat = 8
+    static let side: CGFloat = 68
+    static let cornerRadius: CGFloat = 4
 
     var body: some View {
         ScrollView(.horizontal) {
@@ -39,12 +46,28 @@ struct LibraryCovers: View {
                     Button {
                         onOpen(podcast)
                     } label: {
+<<<<<<< Updated upstream
                         VStack(alignment: .leading, spacing: 8) {
                             Color.clear
                                 .frame(width: Self.side, height: Self.side)
                                 .overlay { ZoomSourceImage(podcast: podcast, cornerRadius: Self.cornerRadius) }
                                 .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
                                 .accessibilityHidden(true)
+=======
+                        VStack(alignment: .leading, spacing: 6) {
+                            // The cards peeking out say it's new; no text needed.
+                            PeekingCover(
+                                podcast: podcast,
+                                newEpisodes: newEpisodes[podcast.trackId] ?? [],
+                                side: Self.side,
+                                cornerRadius: Self.cornerRadius
+                            )
+                            Text(podcast.trackName ?? "")
+                                .font(AppFont.feedSmall)
+                                .textCase(.uppercase)
+                                .foregroundStyle(AppColor.Text.primary)
+                                .lineLimit(1)
+>>>>>>> Stashed changes
                         }
                         .frame(width: Self.side, alignment: .leading)
                         .contentShape(Rectangle())

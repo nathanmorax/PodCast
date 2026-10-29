@@ -12,11 +12,7 @@ enum AppColor {
     // MARK: - Raw palette
 
     static let coralRed      = Color(asset: .coralRed)
-    static let slateGray     = Color(asset: .slateGray)
     static let dustyBlue     = Color(asset: .dustyBlue)
-    static let oliveGreen    = Color(asset: .oliveGreen)
-    static let burntOrange   = Color(asset: .burntOrange)
-    static let charcoalBrown = Color(asset: .charcoalBrown)
 
     // MARK: - Surfaces and ink
 
@@ -46,8 +42,6 @@ enum AppColor {
     // MARK: - Semantic roles
 
     enum Status {
-        static let success  = AppColor.oliveGreen
-        static let warning  = AppColor.burntOrange
         static let critical = AppColor.coralRed
         static let info     = AppColor.dustyBlue
     }
