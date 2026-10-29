@@ -83,6 +83,7 @@
       }
     },
     "%lld new" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -91,6 +92,9 @@
           }
         }
       }
+    },
+    "%lld new episodes" : {
+
     },
     "%lld of %lld" : {
       "extractionState" : "stale",
@@ -113,6 +117,9 @@
         }
       }
     },
+    "%lld percent played" : {
+
+    },
     "%lld selected" : {
       "localizations" : {
         "es" : {
@@ -132,9 +139,6 @@
           }
         }
       }
-    },
-    "All" : {
-
     },
     "Arts" : {
       "localizations" : {
@@ -329,7 +333,6 @@
       }
     },
     "Continue listening" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -480,6 +483,7 @@
       }
     },
     "Earlier" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -511,6 +515,7 @@
       }
     },
     "Episode details" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -529,6 +534,9 @@
           }
         }
       }
+    },
+    "Episodes you play show up here." : {
+
     },
     "Explore" : {
       "localizations" : {
@@ -591,9 +599,6 @@
           }
         }
       }
-    },
-    "Follow, save or download episodes and they'll be here." : {
-
     },
     "Following" : {
       "localizations" : {
@@ -681,6 +686,7 @@
       }
     },
     "Inbox" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -909,7 +915,7 @@
         }
       }
     },
-    "Nothing here yet" : {
+    "Nothing played yet" : {
 
     },
     "Number %lld" : {
@@ -1039,6 +1045,7 @@
       }
     },
     "Playing" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1111,6 +1118,7 @@
       }
     },
     "Recently played" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1119,6 +1127,9 @@
           }
         }
       }
+    },
+    "Remove" : {
+
     },
     "Remove bookmark" : {
       "extractionState" : "stale",
@@ -1152,6 +1163,7 @@
       }
     },
     "Remove from recently played" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1193,6 +1205,7 @@
       }
     },
     "Resumes the episode" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1378,6 +1391,9 @@
           }
         }
       }
+    },
+    "Shows the episode's details" : {
+
     },
     "Skip" : {
       "localizations" : {
