@@ -16,7 +16,7 @@ final class GenreCovers {
     static let shared = GenreCovers()
 
     /// How many covers a tile shows.
-    static let perGenre = 2
+    nonisolated static let perGenre = 2
 
     /// Category id → its covers' URLs.
     private(set) var covers: [String: [String]] = [:]

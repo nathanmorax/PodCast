@@ -5,7 +5,7 @@
 
 import SwiftUI
 
-/// A podcast opened from Search: cover, name in serif, "Podcast · Genre",
+/// A podcast opened from Search: square cover, name in tall capitals, "Podcast · Genre",
 /// and an × to take it off the list.
 struct RecentPodcastRow: View {
 
@@ -17,14 +17,15 @@ struct RecentPodcastRow: View {
         HStack(spacing: 12) {
             Button(action: onOpen) {
                 HStack(spacing: 12) {
-                    ZoomSourceImage(podcast: podcast, cornerRadius: 6)
+                    ZoomSourceImage(podcast: podcast, cornerRadius: 0)
                         .frame(width: 44, height: 44)
-                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                        .clipped()
                         .accessibilityHidden(true)
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(podcast.trackName ?? "")
-                            .font(AppFont.itemTitle)
+                            .font(.system(.headline, weight: .bold).width(.compressed))
+                            .textCase(.uppercase)
                             .foregroundStyle(AppColor.Text.primary)
                             .lineLimit(1)
                         Text(kind)

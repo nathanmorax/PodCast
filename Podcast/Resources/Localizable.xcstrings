@@ -182,6 +182,9 @@
     "Because you like %@" : {
 
     },
+    "Browse" : {
+
+    },
     "Browse podcasts" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -294,6 +297,7 @@
       }
     },
     "Close" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -563,6 +567,7 @@
 
     },
     "Explore" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -643,6 +648,9 @@
           }
         }
       }
+    },
+    "For you · %@" : {
+
     },
     "From the show" : {
 
@@ -993,6 +1001,9 @@
     "Oldest first" : {
 
     },
+    "Opens the category" : {
+
+    },
     "Opens the episode" : {
       "localizations" : {
         "es" : {
@@ -1277,6 +1288,7 @@
       }
     },
     "Retry" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1460,6 +1472,9 @@
           }
         }
       }
+    },
+    "Shows like %@" : {
+
     },
     "Shows the episode's details" : {
 
@@ -1752,6 +1767,7 @@
 
     },
     "With %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
