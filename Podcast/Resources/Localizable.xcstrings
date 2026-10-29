@@ -130,6 +130,9 @@
         }
       }
     },
+    "About the show" : {
+
+    },
     "About this podcast" : {
       "localizations" : {
         "es" : {
@@ -139,6 +142,9 @@
           }
         }
       }
+    },
+    "All" : {
+
     },
     "Arts" : {
       "localizations" : {
@@ -336,6 +342,9 @@
         }
       }
     },
+    "Continue · %@ left" : {
+
+    },
     "Continue listening" : {
       "localizations" : {
         "es" : {
@@ -395,6 +404,9 @@
           }
         }
       }
+    },
+    "Daily" : {
+
     },
     "Dark reading mode" : {
       "localizations" : {
@@ -543,6 +555,9 @@
       }
     },
     "Episodes you play show up here." : {
+
+    },
+    "Every two weeks" : {
 
     },
     "Explore" : {
@@ -742,6 +757,9 @@
         }
       }
     },
+    "Latest" : {
+
+    },
     "Library" : {
       "localizations" : {
         "es" : {
@@ -773,6 +791,7 @@
       }
     },
     "Listen to podcast" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -824,6 +843,9 @@
         }
       }
     },
+    "Monthly" : {
+
+    },
     "More" : {
       "localizations" : {
         "es" : {
@@ -867,6 +889,12 @@
         }
       }
     },
+    "Newest" : {
+
+    },
+    "Newest first" : {
+
+    },
     "News" : {
       "localizations" : {
         "es" : {
@@ -886,6 +914,9 @@
           }
         }
       }
+    },
+    "No episodes here" : {
+
     },
     "No favorites yet" : {
       "extractionState" : "stale",
@@ -947,6 +978,12 @@
         }
       }
     },
+    "Oldest" : {
+
+    },
+    "Oldest first" : {
+
+    },
     "Opens the episode" : {
       "localizations" : {
         "es" : {
@@ -980,6 +1017,9 @@
           }
         }
       }
+    },
+    "Order" : {
+
     },
     "Page %lld of %lld" : {
       "extractionState" : "stale",
@@ -1044,6 +1084,9 @@
         }
       }
     },
+    "Play the latest episode" : {
+
+    },
     "Player" : {
       "localizations" : {
         "es" : {
@@ -1107,7 +1150,6 @@
       }
     },
     "Read more" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1412,6 +1454,9 @@
     "Shows the episode's details" : {
 
     },
+    "Shows the full description" : {
+
+    },
     "Skip" : {
       "localizations" : {
         "es" : {
@@ -1647,6 +1692,9 @@
         }
       }
     },
+    "Unplayed" : {
+
+    },
     "Updating" : {
       "localizations" : {
         "es" : {
@@ -1656,6 +1704,9 @@
           }
         }
       }
+    },
+    "Weekly" : {
+
     },
     "What do you like to listen to?" : {
       "localizations" : {
