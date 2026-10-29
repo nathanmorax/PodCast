@@ -55,10 +55,6 @@ struct HomeView: View {
                     librarySection
                 }
 
-//                VStack(alignment: .leading, spacing: 14) {
-//                    dateHeader
-//                    collectionsSection
-//                }
 
                 if !played.isEmpty {
                     recentlyPlayedSection
@@ -79,7 +75,7 @@ struct HomeView: View {
 //                )
             }
             .padding(.top, 12)
-            .padding(.bottom, 24) // the bottom bar's space comes from the safe area
+            .padding(.bottom, 24)
         }
         .scrollIndicators(.hidden)
         .background(AppColor.screenBackground.ignoresSafeArea())

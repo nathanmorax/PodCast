@@ -901,7 +901,9 @@
         }
       }
     },
-    "Number 1" : {},
+    "Number 1" : {
+
+    },
     "Offline" : {
       "localizations" : {
         "es" : {
@@ -1353,7 +1355,6 @@
       }
     },
     "Skip" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1409,16 +1410,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Seguimos trabajando, vale la pena esperar."
-          }
-        }
-      }
-    },
-    "TV & Film" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cine y TV"
           }
         }
       }
@@ -1570,6 +1561,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Convirtiendo las voces en texto…"
+          }
+        }
+      }
+    },
+    "TV & Film" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cine y TV"
           }
         }
       }

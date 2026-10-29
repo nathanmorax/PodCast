@@ -8,13 +8,22 @@ import SwiftUI
 /// "What do you like to listen to?" — one screen, all in the accent color (the app's
 /// brand color). Genres are white pills; picked ones turn deep green with
 /// a check. Shown on first launch and from Home's "Edit".
+///
+/// On first launch it opens with the "Tell me more" splash (OnboardingSplash):
+/// the phrase forms over the launch color, then settles in the top-left corner.
 struct OnboardingView: View {
 
     @Environment(\.interestsManager) private var interests
     @State private var model: OnboardingViewModel
+    @State private var intro: OnboardingIntro
+    /// The small phrase in the corner: first launch only, not from "Edit".
+    private let showsMark: Bool
 
-    init(selectedIDs: [String] = []) {
+    init(selectedIDs: [String] = [], playsIntro: Bool = false) {
         _model = State(initialValue: OnboardingViewModel(selectedIDs: selectedIDs))
+        let plays = playsIntro && !UIAccessibility.isReduceMotionEnabled
+        _intro = State(initialValue: OnboardingIntro(plays: plays))
+        showsMark = playsIntro
     }
 
     var body: some View {
@@ -24,29 +33,40 @@ struct OnboardingView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("What do you like to listen to?")
-                        .font(AppFont.display)
-                        .tracking(-0.7)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityAddTraits(.isHeader)
-                    Text("Pick at least one.")
-                        .font(AppFont.body)
-                        .opacity(0.85)
-
-                    FlowLayout(spacing: 10, lineSpacing: 10) {
-                        ForEach(model.genres, id: \.id) { genre in
-                            pill(genre)
-                        }
+                    if showsMark {
+                        // Swapped in when the big phrase lands here.
+                        TellMeMoreMark(size: OnboardingIntro.smallSize, ink: AppColor.Text.onPastel)
+                            .opacity(intro.step == .settled ? 1 : 0)
+                            .padding(.bottom, 20)
                     }
-                    .padding(.top, 28)
 
-                    chooseForMeButton
-                        .padding(.top, 18)
+                    Group {
+                        Text("What do you like to listen to?")
+                            .font(AppFont.display)
+                            .tracking(-0.7)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityAddTraits(.isHeader)
+                        Text("Pick at least one.")
+                            .font(AppFont.body)
+                            .opacity(0.85)
+
+                        FlowLayout(spacing: 10, lineSpacing: 10) {
+                            ForEach(model.genres, id: \.id) { genre in
+                                pill(genre)
+                            }
+                        }
+                        .padding(.top, 28)
+
+                        chooseForMeButton
+                            .padding(.top, 18)
+                    }
+                    .opacity(intro.showsContent ? 1 : 0)
+                    .offset(y: intro.showsContent ? 0 : 16)
                 }
                 // Ink on the mustard background (white on it was 2:1).
                 .foregroundStyle(AppColor.Text.onPastel)
                 .padding(.horizontal, 20)
-                .padding(.top, 56)
+                .padding(.top, showsMark ? OnboardingIntro.cornerInset.top : 56)
                 .padding(.bottom, 120) // room for the button
             }
             .scrollIndicators(.hidden)
@@ -54,7 +74,14 @@ struct OnboardingView: View {
             continueButton
                 .padding(.horizontal, 24)
                 .padding(.bottom, 12)
+                .opacity(intro.showsContent ? 1 : 0)
+
+            // First launch: the phrase forms here, then moves to the corner.
+            if intro.step < .settled {
+                OnboardingSplashLayer(intro: $intro)
+            }
         }
+        .task { await OnboardingIntroPlayer.play($intro) }
         // Only when reopened from Home: a way out without changes.
         .overlay(alignment: .topTrailing) {
             if interests.isEditing { cancelButton }

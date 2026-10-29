@@ -40,6 +40,11 @@
 	<array>
 		<string>audio</string>
 	</array>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>screenBackground</string>
+	</dict>
 	<key>UIObservationTrackingEnabled</key>
 	<true/>
 </dict>

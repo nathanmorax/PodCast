@@ -45,10 +45,6 @@ struct LibraryCovers: View {
                                 .overlay { ZoomSourceImage(podcast: podcast, cornerRadius: Self.cornerRadius) }
                                 .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
                                 .accessibilityHidden(true)
-//                            Text(podcast.trackName ?? "")
-//                                .font(AppFont.label)
-//                                .foregroundStyle(AppColor.Text.primary)
-//                                .lineLimit(2, reservesSpace: true)
                         }
                         .frame(width: Self.side, alignment: .leading)
                         .contentShape(Rectangle())
