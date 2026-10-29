@@ -5,74 +5,83 @@
 
 import SwiftUI
 
-/// "Library", the main screen (no title on top: the first section's name,
-/// "Library", is the title):
-/// 1. Library: the podcasts you follow, as square covers with their names.
-/// 2. Today's date, and Following · Favorites · Downloads as three rows.
-/// 3. Recently played: big cards, one per page, the one playing now first
-///    (its artwork moves while it plays).
-/// 4. For you: the latest episodes of the podcasts you follow.
-/// 5. Browse podcasts: category chips and a row of shows; "Show all" opens
-///    the interests picker.
+/// Home, laid out like a magazine's audio front page. Each section has one
+/// job, so nothing shows twice:
+/// 1. Your shows (always on top): the podcasts you follow, as square
+///    covers; new episodes peek out from behind their show's cover.
+/// 2. Continue listening: what you started and didn't finish, as compact
+///    rows with a progress ring (finished ones: Library › History).
+/// 3. New episodes: the followed shows' newest, as big cards to play right
+///    away ("Show all": Library › New).
+/// 4. Selected for you: discovery from your interests.
+/// Following nothing yet: an invitation to search instead of 1 and 3.
 struct HomeView: View {
 
     @Environment(\.favoritesManager) private var favoritesManager
     @Environment(\.playerManager) private var playerManager
     @Environment(\.recentlyPlayed) private var recentlyPlayed
-    @Environment(\.bookmarks) private var bookmarks
-    @Environment(\.downloadManager) private var downloadManager
     @Environment(\.interestsManager) private var interests
 
-    /// Owned by HomeController: the Inbox button in the navigation bar reads
-    /// the same episodes. Loaded here, as follows change.
+    /// Owned by HomeController: the Library button in the navigation bar
+    /// reads the same episodes. Loaded here, as follows change.
     let followingFeed: FollowingFeedViewModel
-    /// Owned by the view: "For you" stays while Library lives.
+    /// Owned by the view: "Selected for you" stays while Library lives.
     @State private var forYou = ForYouViewModel(cache: .standard)
-    /// Owned by the view: each category's shows stay while Library lives.
-    @State private var browse = BrowseViewModel()
 
     let onOpenPodcast: (Podcast) -> Void
-    let onOpenEpisode: (Episode, Podcast) -> Void
-    /// An episode with no podcast at hand (Recently played).
+    /// The section says which card the episode zooms out of and back into.
+    let onOpenEpisode: (Episode, Podcast, ZoomID.Section) -> Void
+    /// An episode with no podcast at hand (Continue listening).
     let onOpenPlayedEpisode: (Episode) -> Void
+    let onOpenLibrary: (LibraryTab) -> Void
     let onSearch: () -> Void
     let onOpenFollowing: () -> Void
-    let onOpenFavorites: () -> Void
-    let onOpenDownloads: () -> Void
 
     private var following: [Podcast] { favoritesManager.favorites }
 
-    /// Recently played, the one in the player included (its card shows it
-    /// playing).
-    private var played: [RecentlyPlayed] {
-        recentlyPlayed.items
+    /// Started and not finished, last played first.
+    private var unfinished: [RecentlyPlayed] {
+        ContinueListeningSection.unfinished(recentlyPlayed.items)
+    }
+
+    /// The followed shows' recent episodes, newest first.
+    private var newEpisodes: [PodcastEpisode] {
+        InboxFeed.items(following: following, episodes: followingFeed.episodesByPodcast)
     }
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 32) {
-                if !following.isEmpty {
+            VStack(alignment: .leading, spacing: 36) {
+                if following.isEmpty {
+                    emptyState
+                } else {
                     librarySection
                 }
 
-
-                if !played.isEmpty {
-                    recentlyPlayedSection
-                        .transition(.opacity)
+                if !unfinished.isEmpty {
+                    ContinueListeningSection(
+                        items: unfinished,
+                        onResume: resume,
+                        onOpen: { onOpenPlayedEpisode($0.episode) },
+                        onRemove: remove,
+                        onShowAll: { onOpenLibrary(.history) }
+                    )
+                    .transition(.opacity)
                 }
 
-                if following.isEmpty {
-                    emptyState
+                if !following.isEmpty, !newEpisodes.isEmpty {
+                    NewEpisodesCarousel(
+                        items: newEpisodes,
+                        onOpen: { onOpenEpisode($0.episode, $0.podcast, .newEpisodes) },
+                        // ▶ plays (or pauses) in the mini player, opening nothing.
+                        onPlay: play,
+                        onOpenPodcast: onOpenPodcast,
+                        onShowAll: { onOpenLibrary(.new) }
+                    )
+                    .transition(.opacity)
                 }
 
-                forYouSection
-
-//                BrowsePodcastsSection(
-//                    viewModel: browse,
-//                    interests: interests.genres,
-//                    onOpenPodcast: onOpenPodcast,
-//                    onShowAll: { interests.edit() }
-//                )
+                selectedForYouSection
             }
             .padding(.top, 12)
             .padding(.bottom, 24)
@@ -80,7 +89,8 @@ struct HomeView: View {
         .scrollIndicators(.hidden)
         .background(AppColor.screenBackground.ignoresSafeArea())
         .animation(AppAnimation.listChange, value: following.map(\.trackId))
-        .animation(AppAnimation.listChange, value: played.map(\.id))
+        .animation(AppAnimation.listChange, value: unfinished.map(\.id))
+        .animation(AppAnimation.listChange, value: newEpisodes.isEmpty)
         // Reload when you follow or unfollow a podcast.
         .task(id: following.map(\.trackId)) {
             followingFeed.load(following: following)
@@ -89,38 +99,39 @@ struct HomeView: View {
         .onChange(of: followingFeed.isLoading, initial: true) { _, loading in
             StatusCenter.shared.isUpdating = loading
         }
-        // "For you" depends on the interests (and skips what you follow).
+        // "Selected for you" depends on the interests (and skips what you follow).
         .task(id: interests.genreIDs) {
             forYou.load(interests: interests.genres, following: following)
         }
     }
 
-    // MARK: - Recently played
+    private func play(_ episode: Episode) {
+        playerManager.playOrToggle(episode, presentation: .mini)
+    }
 
-    /// Every episode played as a big card, one per page (newest first).
-    private var recentlyPlayedSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            LibrarySectionHeader(title: "Recently played")
+    // MARK: - Selected for you
 
-            RecentlyPlayedCarousel(
-                items: played,
-                onResume: resume,
-                onOpen: { onOpenPlayedEpisode($0.episode) },
-                onRemove: remove
+    /// Podcasts you don't follow yet, from your interests: discovery. What
+    /// you follow is in Your shows and New episodes; what you started, in
+    /// Continue listening.
+    @ViewBuilder
+    private var selectedForYouSection: some View {
+        let items = forYou.visibleItems(excluding: Set(following.map(\.trackId)))
+        if !items.isEmpty {
+            SelectedForYouList(
+                items: items,
+                onOpen: { onOpenEpisode($0.episode, $0.podcast, .forYou) },
+                onPlay: play,
+                onOpenPodcast: onOpenPodcast
             )
+            .animation(AppAnimation.listChange, value: items.map(\.id))
+        } else if forYou.isLoading {
+            ProgressView()
+                .frame(maxWidth: .infinity, minHeight: 200)
         }
     }
 
-    /// From where it was left (finished ones start over).
-    private func resume(_ item: RecentlyPlayed) {
-        playerManager.play(item.episode, from: item.resumeProgress)
-    }
-
-    private func remove(_ item: RecentlyPlayed) {
-        withAnimation(AppAnimation.listChange) { recentlyPlayed.remove(item) }
-    }
-
-    // MARK: - Library
+    // MARK: - Your shows
 
     /// The podcasts you follow, as square covers; the See All tile at the
     /// end (only when they overflow) opens Following.
@@ -128,65 +139,34 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 14) {
             // No "Show all" up here: the row ends with a See All tile when
             // the covers don't all fit.
-            LibrarySectionHeader(title: "Library")
-            LibraryCovers(podcasts: following, onOpen: onOpenPodcast, onSeeAll: onOpenFollowing)
+//            LibrarySectionHeader(title: "Library")
+            LibraryCovers(
+                podcasts: following,
+                newEpisodes: NewEpisodeMarks.newEpisodes(
+                    podcasts: following,
+                    episodes: followingFeed.episodesByPodcast,
+                    inboxSeen: InboxSeen.shared.lastSeen,
+                    showSeen: ShowSeen.shared.lastSeen
+                ),
+                onOpen: onOpenPodcast,
+                onSeeAll: onOpenFollowing
+            )
         }
     }
 
-    // MARK: - For you
+    // MARK: - Continue listening
 
-    /// Podcasts you don't follow yet, from your interests: discovery. What
-    /// you follow is in the Inbox; what you started, in Recently played.
-    @ViewBuilder
-    private var forYouSection: some View {
-        let items = forYou.visibleItems(excluding: Set(following.map(\.trackId)))
-        if !items.isEmpty || forYou.isLoading {
-            forYouContent(items)
+    /// From where it was left; the one in the player pauses or goes on.
+    private func resume(_ item: RecentlyPlayed) {
+        if playerManager.currentEpisode?.streamUrl == item.episode.streamUrl {
+            playerManager.togglePlayPause()
+        } else {
+            playerManager.play(item.episode, from: item.resumeProgress)
         }
     }
 
-    private func forYouContent(_ items: [PodcastEpisode]) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            LibrarySectionHeader(title: "For you", subtitle: "Based on your interests")
-
-            if items.isEmpty && forYou.isLoading {
-                ProgressView()
-                    .frame(maxWidth: .infinity, minHeight: ForYouCard.placeholderHeight)
-                    .padding(.horizontal, 20)
-            } else {
-                ForYouRow(
-                    items: items,
-                    onOpen: { onOpenEpisode($0.episode, $0.podcast) },
-                    // ▶ plays (or pauses) in the mini player, opening nothing.
-                    onPlay: { playerManager.playOrToggle($0, presentation: .mini) },
-                    onOpenPodcast: onOpenPodcast
-                )
-            }
-        }
-        .animation(AppAnimation.listChange, value: items.map(\.id))
-    }
-
-    // MARK: - Date and collections
-
-    /// Today's date under the title ("SATURDAY, OCTOBER 17").
-    private var dateHeader: some View {
-        Text(Date.now, format: .dateTime.weekday(.wide).day().month(.wide))
-            .overlineStyle()
-            .padding(.horizontal, 20)
-    }
-
-    /// Three rows, like a magazine's index: icon, name in serif, how many,
-    /// and ›. Each opens its list.
-    private var collectionsSection: some View {
-        CollectionRows(
-            following: following.count,
-            favorites: bookmarks.episodes.count,
-            downloads: downloadManager.downloadedEpisodes.count,
-            onOpenFollowing: onOpenFollowing,
-            onOpenFavorites: onOpenFavorites,
-            onOpenDownloads: onOpenDownloads
-        )
-        .padding(.horizontal, 20)
+    private func remove(_ item: RecentlyPlayed) {
+        withAnimation(AppAnimation.listChange) { recentlyPlayed.remove(item) }
     }
 
     // MARK: - Empty

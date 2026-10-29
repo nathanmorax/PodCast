@@ -689,17 +689,19 @@ struct PlayerView: View {
         Button {
             playerManager.togglePlayPause()
         } label: {
-            ZStack {
-                Circle()
-                    .fill(Self.accent)
-                    .frame(width: 76, height: 76)
-                
-                Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 30, weight: .black))
-                    .foregroundStyle(AppColor.Text.onPastel)
-                    .contentTransition(.symbolEffect(.replace))
-                    .offset(x: viewModel.isPlaying ? 0 : 3)
-            }
+            // The glyph sits in a fixed square centered in the circle, so
+            // play and pause share one center while they swap (before, each
+            // glyph's own width moved it, and ▶ was pushed 3 pt more).
+            // ▶ only gets a 1.5 pt nudge right: its weight is on the left.
+            Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
+                .font(.system(size: 28, weight: .bold))
+                .foregroundStyle(AppColor.Text.onPastel)
+                .contentTransition(.symbolEffect(.replace))
+                .frame(width: 34, height: 34)
+                .offset(x: viewModel.isPlaying ? 0 : 1.5)
+                .frame(width: 76, height: 76)
+                .background(Circle().fill(Self.accent))
+                .contentShape(Circle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(viewModel.isPlaying ? Text("Pause") : Text("Play"))

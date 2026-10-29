@@ -6,8 +6,8 @@
 import SwiftUI
 
 /// What Search shows before you type: the podcasts opened from Search
-/// recently, then "Explore": every category as a grey card with its three
-/// top covers, in two rows you slide sideways.
+/// recently, then "Explore": every category as a pastel card with its
+/// symbol, two per row (your interests first).
 struct SearchExploreView: View {
 
     let onOpenPodcast: (Podcast) -> Void
@@ -15,8 +15,6 @@ struct SearchExploreView: View {
 
     @Environment(\.recentSearches) private var recentSearches
     @Environment(\.interestsManager) private var interests
-    /// Owned by the view: the covers stay while Search lives.
-    @State private var genreCovers = GenreCoversViewModel()
 
     /// How many recent podcasts show (the rest are kept, not shown).
     static let recentLimit = 4
@@ -69,43 +67,36 @@ struct SearchExploreView: View {
 
             GenreGrid(
                 genres: Genre.explore(interests: interests.genres),
-                covers: genreCovers,
                 onSelect: onSelectGenre
             )
+            .padding(.horizontal, 20)
         }
     }
 }
 
 // MARK: - Grid
 
-/// Two rows of category cards that slide together.
+/// The category cards, two per row.
 private struct GenreGrid: View {
 
     let genres: [Genre]
-    let covers: GenreCoversViewModel
     let onSelect: (Genre) -> Void
 
-    private let rows = [
-        GridItem(.fixed(GenreCard.height), spacing: 18),
-        GridItem(.fixed(GenreCard.height))
+    private let columns = [
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible())
     ]
 
     var body: some View {
-        ScrollView(.horizontal) {
-            LazyHGrid(rows: rows, spacing: 12) {
-                ForEach(genres, id: \.id) { genre in
-                    Button {
-                        onSelect(genre)
-                    } label: {
-                        GenreCard(genre: genre, coverURLs: covers.coverURLs(for: genre))
-                    }
-                    .buttonStyle(.plain)
-                    // Only cards on screen ask for their covers.
-                    .task { await covers.load(genre) }
+        LazyVGrid(columns: columns, spacing: 12) {
+            ForEach(genres, id: \.id) { genre in
+                Button {
+                    onSelect(genre)
+                } label: {
+                    GenreCard(genre: genre)
                 }
+                .buttonStyle(.plain)
             }
         }
-        .contentMargins(.horizontal, 20, for: .scrollContent)
-        .scrollIndicators(.hidden)
     }
 }
