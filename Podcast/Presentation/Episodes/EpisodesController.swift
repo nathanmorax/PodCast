@@ -63,6 +63,9 @@ final class EpisodesController: UIViewController, ZoomDismissible {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         learnInterestIfListened()
+        // Its new episodes have been seen: they stop peeking out from
+        // behind its cover in Home (it settles as you come back).
+        if let podcast { ShowSeen.shared.markSeen(podcast.trackId) }
     }
 
     /// Played something from this podcast? Its genre joins the listener's

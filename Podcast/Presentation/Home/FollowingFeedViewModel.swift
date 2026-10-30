@@ -6,7 +6,7 @@
 import Foundation
 import Observation
 
-/// The episodes of the podcasts you follow: what the Inbox lists (and
+/// The episodes of the podcasts you follow: what Library › New lists (and
 /// counts for its badge).
 ///
 /// What was read last time is saved (FollowingFeedCache) and is there at

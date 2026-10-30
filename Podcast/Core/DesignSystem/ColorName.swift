@@ -32,6 +32,14 @@ enum ColorName: String, CaseIterable {
     case readingText
     case surfaceRaised
     case inkOnPastel
+
+    // MARK: Genre cards (pastels; the same in dark mode, with ink on them)
+    case genreSky
+    case genrePeach
+    case genreLinen
+    case genreMint
+    case genreRose
+    case genreLavender
 }
 
 extension Color {
