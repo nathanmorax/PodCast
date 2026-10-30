@@ -5,16 +5,17 @@
 
 import SwiftUI
 
-/// The podcast page's content: the header (cover, Listen, ⓘ, share) and the
-/// episodes, in one ScrollView. Hosted by EpisodesController.
+/// A podcast's page, laid out like a film's page in a magazine app (after
+/// MUBI's). Hosted by EpisodesController:
+/// - PodcastHero: the cover edge to edge, the genre, the name, the byline;
+/// - PodcastActionsBar: Follow, Latest, share;
+/// - AboutShowBox: the description (whole in the About sheet);
+/// - ContinueShowStrip: an episode of it left halfway, when there's one;
+/// - EpisodeListControls and the episodes (PodcastEpisodeRow).
 ///
 /// LazyVStack: each row is as tall as its content and placed right below the
-/// previous one, so rows can't overlap; only the rows on screen are built.
-///
-/// Dragging down from the top closes the page: the system's zoom transition
-/// does it (EpisodesController+Zoom), shrinking the page back into the cover
-/// it was opened from. Nothing custom here: a second pull-to-close fought
-/// the system's gesture and made the landing jump.
+/// previous one; only the rows on screen are built. Dragging down from the
+/// top closes the page: the system's zoom transition does it.
 struct PodcastEpisodesView: View {
 
     let podcast: Podcast
@@ -22,55 +23,81 @@ struct PodcastEpisodesView: View {
     let actions: EpisodeHeaderActions
     /// Vertical scroll position (0 at rest, negative while pulled down).
     let onScroll: (CGFloat) -> Void
-    let onShowInfo: (Episode) -> Void
-
-    /// The artwork's color, read once it loads. Already known (opened
-    /// before): the page starts painted, no fade.
-    @State private var loadedTint: ArtworkTint?
-
-    private var tint: ArtworkTint? {
-        loadedTint ?? ArtworkTintLoader.cachedTint(for: podcast.artworkUrl600)
-    }
+    let onOpenEpisode: (Episode) -> Void
+    let onResume: (RecentlyPlayed) -> Void
 
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 0) {
-                EpisodeHeaderView(
-                    podcast: podcast,
-                    isFavorite: viewModel.isFavorite(podcast),
-                    podcastDescription: viewModel.podcastDescription,
-                    isLoadingDescription: viewModel.isLoadingDescription,
-                    tint: tint,
-                    actions: actions
+            LazyVStack(alignment: .leading, spacing: 0) {
+                PodcastHero(podcast: podcast, cadence: viewModel.cadence)
+
+                VStack(alignment: .leading, spacing: 18) {
+                    PodcastActionsBar(
+                        podcast: podcast,
+                        isFollowing: viewModel.isFavorite(podcast),
+                        onFollow: { actions.send(.follow) },
+                        onLatest: { actions.send(.play) }
+                    )
+
+                    if let description = viewModel.podcastDescription, !description.isEmpty {
+                        AboutShowBox(description: description) { actions.send(.about) }
+                    } else if viewModel.isLoadingDescription {
+                        ProgressView()
+                            .frame(maxWidth: .infinity, minHeight: 60)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+                .padding(.bottom, 22)
+
+                if let inProgress = viewModel.inProgress {
+                    ContinueShowStrip(
+                        item: inProgress,
+                        onResume: { onResume(inProgress) },
+                        onOpen: { onOpenEpisode(inProgress.episode) }
+                    )
+                    .padding(.bottom, 22)
+                    .transition(.opacity)
+                }
+
+                EpisodeListControls(
+                    filter: viewModel.filter,
+                    order: viewModel.order,
+                    onFilter: viewModel.setFilter,
+                    onOrder: viewModel.setOrder
                 )
-                .padding(.bottom, 12)
+                .padding(.horizontal, 20)
 
                 if viewModel.isLoadingEpisodes && viewModel.episodes.isEmpty {
                     ProgressView()
                         .frame(maxWidth: .infinity, minHeight: 200)
+                } else if viewModel.episodes.isEmpty {
+                    Text("No episodes here")
+                        .font(.subheadline)
+                        .foregroundStyle(AppColor.Text.secondary)
+                        .frame(maxWidth: .infinity, minHeight: 120)
                 }
 
                 ForEach(viewModel.episodes, id: \.streamUrl) { episode in
-                    EpisodeRow(
-                        episode: episode,
-                        showsSeparator: episode.streamUrl != viewModel.episodes.last?.streamUrl
-                    ) { onShowInfo(episode) }
+                    VStack(spacing: 0) {
+                        Divider()
+                        PodcastEpisodeRow(episode: episode, showArtwork: podcast.artworkUrl600) { onOpenEpisode(episode) }
+                    }
+                    .padding(.horizontal, 20)
                     .onAppear { loadMoreIfLast(episode) }
                 }
             }
             .padding(.bottom, 8)
+            .animation(AppAnimation.listChange, value: viewModel.episodes.map(\.streamUrl))
         }
-        // The page starts below the navigation bar, so the cover never sits
-        // under the status bar or touches the top edge.
+        .scrollIndicators(.hidden)
+        // The cover starts at the very top, under the clear bar.
+        .ignoresSafeArea(edges: .top)
+        .background(AppColor.screenBackground.ignoresSafeArea())
         .onScrollGeometryChange(for: CGFloat.self) { geometry in
             geometry.contentOffset.y + geometry.contentInsets.top
         } action: { _, offset in
             onScroll(offset)
-        }
-        // The cells' 600 px artwork: usually in memory already.
-        .task(id: podcast.id) {
-            let tint = await ArtworkTintLoader.tint(for: podcast.artworkUrl600)
-            withAnimation(.easeInOut(duration: 0.35)) { loadedTint = tint }
         }
     }
 

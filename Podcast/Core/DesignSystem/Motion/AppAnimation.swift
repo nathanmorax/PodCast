@@ -53,8 +53,6 @@ enum AppAnimation {
     /// Switching between the player and its transcript.
     static var transcriptMode: Animation { motion(.spring(duration: 0.5, bounce: 0.15)) }
 
-    /// Switching tabs under the player's cover (Player · Text · Chapters).
-    static var playerTab: Animation { motion(.spring(duration: 0.3, bounce: 0.1)) }
 
     /// The subtitle moving on to the next sentence.
     static var subtitleLine: Animation { motion(.spring(duration: 0.45, bounce: 0)) }

@@ -32,8 +32,8 @@ struct LibraryCovers: View {
         return visibleWidth > 0 && coversWidth > visibleWidth
     }
 
-    static let side: CGFloat = 80
-    static let cornerRadius: CGFloat = 8
+    static let side: CGFloat = 68
+    static let cornerRadius: CGFloat = 4
 
     var body: some View {
         ScrollView(.horizontal) {
@@ -42,13 +42,20 @@ struct LibraryCovers: View {
                     Button {
                         onOpen(podcast)
                     } label: {
-                        // The cards peeking out say it's new; no text needed.
-                        PeekingCover(
-                            podcast: podcast,
-                            newEpisodes: newEpisodes[podcast.trackId] ?? [],
-                            side: Self.side,
-                            cornerRadius: Self.cornerRadius
-                        )
+                        VStack(alignment: .leading, spacing: 6) {
+                            // The cards peeking out say it's new; no text needed.
+                            PeekingCover(
+                                podcast: podcast,
+                                newEpisodes: newEpisodes[podcast.trackId] ?? [],
+                                side: Self.side,
+                                cornerRadius: Self.cornerRadius
+                            )
+                            Text(podcast.trackName ?? "")
+                                .font(AppFont.feedSmall)
+                                .textCase(.uppercase)
+                                .foregroundStyle(AppColor.Text.primary)
+                                .lineLimit(1)
+                        }
                         .frame(width: Self.side, alignment: .leading)
                         .contentShape(Rectangle())
                     }

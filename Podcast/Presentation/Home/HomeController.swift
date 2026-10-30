@@ -10,8 +10,8 @@ import SwiftUI
 ///
 /// The navigation bar stays (hiding it here and showing it on every push
 /// moved the next screen's content mid-transition, a jump plus the bar's
-/// hairline). It shows no title, the page's first section ("Your shows") is
-/// the title, and holds the Library button on the right.
+/// hairline). It shows the "TELL ME MORE" masthead on the left and the
+/// Library button on the right.
 final class HomeController: UIViewController {
 
     /// The followed podcasts' episodes: New episodes, the Library and its badge. The page
@@ -24,6 +24,7 @@ final class HomeController: UIViewController {
         title = String(localized: "Home")
         navigationItem.titleView = UIView()
         navigationItem.largeTitleDisplayMode = .never
+        setupWordmark()
         setupLibraryButton()
         // Same gray as the content, so the large title area doesn't show a
         // white band above it.
@@ -37,20 +38,21 @@ final class HomeController: UIViewController {
             onOpenPodcast: { [weak self] podcast in self?.open(podcast) },
             onOpenEpisode: { [weak self] episode, podcast, section in
                 self?.pushZooming(
-                    EpisodeDetailController(episode: episode, podcastName: podcast.trackName),
+                    EpisodeDetailController(episode: episode, podcast: podcast),
                     from: .episode(episode.streamUrl, section: section)
                 )
             },
             onOpenPlayedEpisode: { [weak self] episode in
                 self?.pushZooming(
-                    EpisodeDetailController(episode: episode, podcastName: nil),
+                    EpisodeDetailController(episode: episode, podcast: nil),
                     from: .episode(episode.streamUrl, section: .recentlyPlayed)
                 )
             },
             onOpenLibrary: { [weak self] tab in self?.openLibrary(tab: tab) },
             onSearch: { AppNavigator.shared.showSearch() },
             onOpenFollowing: { [weak self] in
-                self?.pushZooming(FollowingController(), from: .collection(.following))
+                guard let self else { return }
+                pushZooming(FollowingController(followingFeed: followingFeed), from: .collection(.following))
             }
         )
         let hosting = UIHostingController(rootView: home)
@@ -65,6 +67,23 @@ final class HomeController: UIViewController {
             hosting.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         hosting.didMove(toParent: self)
+    }
+
+    /// "TELL ME MORE" on the left of the bar, in tall capitals like the
+    /// feed's titles: the app's name as a masthead. No glass behind it
+    /// (it's a title, not a button); it grows with the text size.
+    private func setupWordmark() {
+        let label = UILabel()
+        let base = UIFont.systemFont(ofSize: 24, weight: .bold, width: .compressed)
+        label.font = UIFontMetrics(forTextStyle: .title2).scaledFont(for: base, maximumPointSize: 32)
+        label.adjustsFontForContentSizeCategory = true
+        label.text = String(localized: "Tell me more").uppercased()
+        label.textColor = ColorName.ink.uiColor
+        label.accessibilityTraits = .header
+
+        let item = UIBarButtonItem(customView: label)
+        item.hidesSharedBackground = true
+        navigationItem.leftBarButtonItem = item
     }
 
     /// Keeps the button's hosting controller alive (the bar only holds its view).

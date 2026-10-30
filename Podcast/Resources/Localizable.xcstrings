@@ -1,6 +1,26 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "“%@”" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”"
+          }
+        }
+      }
+    },
+    "%@ · %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · %@"
+          }
+        }
+      }
+    },
     "%@ left" : {
       "localizations" : {
         "es" : {
@@ -18,6 +38,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@, pestaña actual"
+          }
+        }
+      }
+    },
+    "%lld" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
           }
         }
       }
@@ -83,18 +113,66 @@
       }
     },
     "%lld new" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld nuevos"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld nuevo"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld nuevos"
+                }
+              }
+            }
           }
         }
       }
     },
     "%lld new episodes" : {
-
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld new episode"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld new episodes"
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld episodio nuevo"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld episodios nuevos"
+                }
+              }
+            }
+          }
+        }
+      }
     },
     "%lld of %lld" : {
       "extractionState" : "stale",
@@ -117,9 +195,6 @@
         }
       }
     },
-    "%lld percent played" : {
-
-    },
     "%lld selected" : {
       "localizations" : {
         "es" : {
@@ -130,12 +205,72 @@
         }
       }
     },
+    "%lld shows" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld show"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld shows"
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld programa"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld programas"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "About the show" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sobre el programa"
+          }
+        }
+      }
+    },
     "About this podcast" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Acerca de este podcast"
+          }
+        }
+      }
+    },
+    "All" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todos"
           }
         }
       }
@@ -161,11 +296,32 @@
       }
     },
     "Based on your interests" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Según tus intereses"
+          }
+        }
+      }
+    },
+    "Because you like %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Porque te gusta %@"
+          }
+        }
+      }
+    },
+    "Browse" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Explorar"
           }
         }
       }
@@ -282,6 +438,7 @@
       }
     },
     "Close" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -328,6 +485,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Continuar"
+          }
+        }
+      }
+    },
+    "Continue · %@ left" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuar · quedan %@"
           }
         }
       }
@@ -392,6 +559,16 @@
         }
       }
     },
+    "Daily" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diario"
+          }
+        }
+      }
+    },
     "Dark reading mode" : {
       "localizations" : {
         "es" : {
@@ -408,6 +585,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Detalles"
+          }
+        }
+      }
+    },
+    "Done" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listo"
           }
         }
       }
@@ -514,6 +701,16 @@
         }
       }
     },
+    "End of episode" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al terminar el episodio"
+          }
+        }
+      }
+    },
     "Episode details" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -521,6 +718,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Detalles del episodio"
+          }
+        }
+      }
+    },
+    "Episode of the day" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episodio del día"
           }
         }
       }
@@ -536,9 +743,27 @@
       }
     },
     "Episodes you play show up here." : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los episodios que escuchas aparecen aquí."
+          }
+        }
+      }
+    },
+    "Every two weeks" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada dos semanas"
+          }
+        }
+      }
     },
     "Explore" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -611,7 +836,6 @@
       }
     },
     "For you" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -621,8 +845,25 @@
         }
       }
     },
-    "From the shows you follow" : {
-
+    "For you · %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para ti · %@"
+          }
+        }
+      }
+    },
+    "From the show" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Del programa"
+          }
+        }
+      }
     },
     "Full screen" : {
       "localizations" : {
@@ -670,7 +911,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Historia"
+            "value" : "Historial"
           }
         }
       }
@@ -736,6 +977,36 @@
         }
       }
     },
+    "Latest" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lo último"
+          }
+        }
+      }
+    },
+    "Latest · %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Último · %@"
+          }
+        }
+      }
+    },
+    "Layout" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vista"
+          }
+        }
+      }
+    },
     "Library" : {
       "localizations" : {
         "es" : {
@@ -756,6 +1027,16 @@
         }
       }
     },
+    "List" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lista"
+          }
+        }
+      }
+    },
     "Listen" : {
       "localizations" : {
         "es" : {
@@ -767,6 +1048,7 @@
       }
     },
     "Listen to podcast" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -818,12 +1100,32 @@
         }
       }
     },
+    "Monthly" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mensual"
+          }
+        }
+      }
+    },
     "More" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Más"
+          }
+        }
+      }
+    },
+    "More from %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más de %@"
           }
         }
       }
@@ -848,15 +1150,33 @@
         }
       }
     },
-    "New episodes" : {
-
-    },
     "New episodes from the podcasts you follow show up here." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aquí llegan los episodios nuevos de los podcasts que sigues."
+          }
+        }
+      }
+    },
+    "Newest" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más recientes"
+          }
+        }
+      }
+    },
+    "Newest first" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más recientes primero"
           }
         }
       }
@@ -877,6 +1197,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aún no hay descargas"
+          }
+        }
+      }
+    },
+    "No episodes here" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay episodios aquí"
           }
         }
       }
@@ -903,7 +1233,14 @@
       }
     },
     "No saved episodes" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay episodios guardados"
+          }
+        }
+      }
     },
     "Nothing followed yet" : {
       "localizations" : {
@@ -916,7 +1253,14 @@
       }
     },
     "Nothing played yet" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aún no has escuchado nada"
+          }
+        }
+      }
     },
     "Number %lld" : {
       "localizations" : {
@@ -929,7 +1273,24 @@
       }
     },
     "Number 1" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Número 1"
+          }
+        }
+      }
+    },
+    "Off" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apagado"
+          }
+        }
+      }
     },
     "Offline" : {
       "localizations" : {
@@ -937,6 +1298,37 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sin conexión"
+          }
+        }
+      }
+    },
+    "Oldest" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más antiguos"
+          }
+        }
+      }
+    },
+    "Oldest first" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más antiguos primero"
+          }
+        }
+      }
+    },
+    "Opens the category" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre la categoría"
           }
         }
       }
@@ -961,6 +1353,26 @@
         }
       }
     },
+    "Opens the podcast" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre el podcast"
+          }
+        }
+      }
+    },
+    "Opens the show" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre el programa"
+          }
+        }
+      }
+    },
     "Opens the transcript" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -972,7 +1384,18 @@
         }
       }
     },
+    "Order" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orden"
+          }
+        }
+      }
+    },
     "Page %lld of %lld" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -988,6 +1411,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pausar"
+          }
+        }
+      }
+    },
+    "Pauses at %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se pausa a las %@"
           }
         }
       }
@@ -1023,6 +1456,16 @@
         }
       }
     },
+    "Play latest episode" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reproducir el último episodio"
+          }
+        }
+      }
+    },
     "Play Podcast" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1034,7 +1477,18 @@
         }
       }
     },
+    "Play the latest episode" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reproducir el último episodio"
+          }
+        }
+      }
+    },
     "Player" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1097,7 +1551,6 @@
       }
     },
     "Read more" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1129,7 +1582,14 @@
       }
     },
     "Remove" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitar"
+          }
+        }
+      }
     },
     "Remove bookmark" : {
       "extractionState" : "stale",
@@ -1216,6 +1676,7 @@
       }
     },
     "Retry" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1267,6 +1728,7 @@
       }
     },
     "Save an episode from its ••• menu and it'll be here." : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1347,9 +1809,6 @@
         }
       }
     },
-    "Selected for you" : {
-
-    },
     "Share" : {
       "localizations" : {
         "es" : {
@@ -1360,7 +1819,18 @@
         }
       }
     },
+    "Short listen" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Breve"
+          }
+        }
+      }
+    },
     "Show all" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1381,6 +1851,26 @@
         }
       }
     },
+    "Show notes" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notas del episodio"
+          }
+        }
+      }
+    },
+    "Show to follow" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Programa para seguir"
+          }
+        }
+      }
+    },
     "Shows all tabs" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1392,8 +1882,35 @@
         }
       }
     },
+    "Shows like %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Programas como %@"
+          }
+        }
+      }
+    },
     "Shows the episode's details" : {
-
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra los detalles del episodio"
+          }
+        }
+      }
+    },
+    "Shows the full description" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra la descripción completa"
+          }
+        }
+      }
     },
     "Skip" : {
       "localizations" : {
@@ -1415,6 +1932,26 @@
         }
       }
     },
+    "Skip forward 30 seconds" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adelantar 30 segundos"
+          }
+        }
+      }
+    },
+    "Sleep timer" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Temporizador"
+          }
+        }
+      }
+    },
     "Society & Culture" : {
       "localizations" : {
         "es" : {
@@ -1431,6 +1968,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Se necesita permiso de reconocimiento de voz"
+          }
+        }
+      }
+    },
+    "Speed" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Velocidad"
           }
         }
       }
@@ -1466,6 +2013,7 @@
       }
     },
     "Tap to remove" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1485,7 +2033,11 @@
         }
       }
     },
+    "Tell me more" : {
+      "shouldTranslate" : false
+    },
     "Text" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1505,6 +2057,16 @@
         }
       }
     },
+    "Three columns" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tres columnas"
+          }
+        }
+      }
+    },
     "Time left" : {
       "localizations" : {
         "es" : {
@@ -1516,11 +2078,32 @@
       }
     },
     "Time remaining %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tiempo restante %@"
+          }
+        }
+      }
+    },
+    "Today" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy"
+          }
+        }
+      }
+    },
+    "Touch and hold an episode to save it, and it'll be here." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantén presionado un episodio para guardarlo y aparecerá aquí."
           }
         }
       }
@@ -1556,7 +2139,6 @@
       }
     },
     "Transcript" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1596,6 +2178,16 @@
         }
       }
     },
+    "Turn off timer" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apagar temporizador"
+          }
+        }
+      }
+    },
     "Turning voices into text…" : {
       "localizations" : {
         "es" : {
@@ -1616,6 +2208,16 @@
         }
       }
     },
+    "Two columns" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dos columnas"
+          }
+        }
+      }
+    },
     "Unfollow" : {
       "localizations" : {
         "es" : {
@@ -1626,12 +2228,32 @@
         }
       }
     },
+    "Unplayed" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin escuchar"
+          }
+        }
+      }
+    },
     "Updating" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Actualizando"
+          }
+        }
+      }
+    },
+    "Weekly" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Semanal"
           }
         }
       }
@@ -1657,12 +2279,33 @@
         }
       }
     },
+    "Why listen" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por qué escucharlo"
+          }
+        }
+      }
+    },
     "With %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Con %@"
+          }
+        }
+      }
+    },
+    "Yesterday" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayer"
           }
         }
       }

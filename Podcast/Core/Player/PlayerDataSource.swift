@@ -25,4 +25,6 @@ protocol PlayerDataSource: AnyObject {
     func seek(by seconds: Int64)
     func seek(to percentage: Float)
     func setVolume(_ value: Float)
+    /// Playback speed (1 = normal). Kept for the next episodes too.
+    func setRate(_ rate: Float)
 }

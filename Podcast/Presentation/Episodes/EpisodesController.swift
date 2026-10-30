@@ -8,7 +8,8 @@
 import UIKit
 import SwiftUI
 
-/// A podcast's page: the cover, "Listen to podcast" and its episodes.
+/// A podcast's page (PodcastEpisodesView): the cover edge to edge, Follow,
+/// the description and its episodes.
 ///
 /// The page itself is SwiftUI (PodcastEpisodesView). It used to be a
 /// UICollectionView with SwiftUI cells: UIKit decided each row's size while
@@ -88,7 +89,8 @@ final class EpisodesController: UIViewController, ZoomDismissible {
             viewModel: viewModel,
             actions: headerActions,
             onScroll: { [weak self] offset in self?.didScroll(to: offset) },
-            onShowInfo: { [weak self] episode in self?.showInfo(for: episode) },
+            onOpenEpisode: { [weak self] episode in self?.open(episode) },
+            onResume: { item in Self.resume(item) }
         )
         let hosting = UIHostingController(rootView: page)
         hosting.view.translatesAutoresizingMaskIntoConstraints = false
@@ -140,17 +142,30 @@ final class EpisodesController: UIViewController, ZoomDismissible {
         return appearance
     }()
 
+    /// The show's name in the bar, once the cover (and its name) is gone.
+    private lazy var collapsedTitle: UILabel = {
+        let label = UILabel()
+        let base = UIFont.systemFont(ofSize: 20, weight: .bold, width: .compressed)
+        label.font = UIFontMetrics(forTextStyle: .headline).scaledFont(for: base, maximumPointSize: 26)
+        label.adjustsFontForContentSizeCategory = true
+        label.text = podcast?.trackName?.uppercased()
+        label.textColor = ColorName.ink.uiColor
+        label.lineBreakMode = .byTruncatingTail
+        return label
+    }()
+
     /// Transparent over the cover; solid with the podcast's name once the
     /// cover has scrolled away.
     private func updateNavigationBar() {
-        let collapsed = scrollOffset > EpisodeHeaderView.nameScrollsAwayAt
+        let threshold = PodcastHero.height - view.safeAreaInsets.top - 60
+        let collapsed = scrollOffset > threshold
         guard collapsed != isHeaderCollapsed || navigationItem.standardAppearance == nil else { return }
         isHeaderCollapsed = collapsed
         let appearance = collapsed ? solidBarAppearance : transparentBarAppearance
         navigationItem.standardAppearance = appearance
         navigationItem.scrollEdgeAppearance = appearance
         navigationItem.compactAppearance = appearance
-        // No title, even once the cover scrolls away: just the back arrow.
+        navigationItem.titleView = collapsed ? collapsedTitle : UIView()
     }
 
     // MARK: - Header events
@@ -192,10 +207,23 @@ final class EpisodesController: UIViewController, ZoomDismissible {
         ))
     }
 
-    /// An episode, full screen (tapping its row, or "Details" in its •••
-    /// menu): pushed, with its artwork edge to edge.
-    private func showInfo(for episode: Episode) {
-        presentEpisodeSheet(episode)
+    /// An episode, full screen: pushed, with its artwork edge to edge.
+    private func open(_ episode: Episode) {
+        navigationController?.pushViewController(
+            EpisodeDetailController(episode: episode, podcast: podcast),
+            animated: true
+        )
+    }
+
+    /// The Continue strip's ▶: the one in the player pauses or goes on;
+    /// another one starts where it was left, in the mini player.
+    private static func resume(_ item: RecentlyPlayed) {
+        let player = PlayerManager.shared
+        if player.currentEpisode?.streamUrl == item.episode.streamUrl {
+            player.togglePlayPause()
+        } else {
+            player.play(item.episode, presentation: .mini, from: item.resumeProgress)
+        }
     }
 
     /// Half screen, can grow to full.

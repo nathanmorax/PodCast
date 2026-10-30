@@ -5,16 +5,14 @@
 
 import SwiftUI
 
-/// Home, laid out like a magazine's audio front page. Each section has one
-/// job, so nothing shows twice:
-/// 1. Your shows (always on top): the podcasts you follow, as square
-///    covers; new episodes peek out from behind their show's cover.
-/// 2. Continue listening: what you started and didn't finish, as compact
-///    rows with a progress ring (finished ones: Library › History).
-/// 3. New episodes: the followed shows' newest, as big cards to play right
-///    away ("Show all": Library › New).
-/// 4. Selected for you: discovery from your interests.
-/// Following nothing yet: an invitation to search instead of 1 and 3.
+/// Home, laid out like a film magazine's app (after MUBI's):
+/// 1. Your shows (always on top): the podcasts you follow, as small square
+///    covers with their names; new episodes peek out from behind them.
+/// 2. The feed (HomeFeed): one column of cards edge to edge, the
+///    Episode of the day first, then the followed shows' new episodes,
+///    Continue listening in mustard, a show to follow and the picks from
+///    your interests, mixed so nothing shows twice.
+/// Following nothing yet: an invitation to search above the feed.
 struct HomeView: View {
 
     @Environment(\.favoritesManager) private var favoritesManager
@@ -25,7 +23,7 @@ struct HomeView: View {
     /// Owned by HomeController: the Library button in the navigation bar
     /// reads the same episodes. Loaded here, as follows change.
     let followingFeed: FollowingFeedViewModel
-    /// Owned by the view: "Selected for you" stays while Library lives.
+    /// Owned by the view: the picks stay while Home lives.
     @State private var forYou = ForYouViewModel(cache: .standard)
 
     let onOpenPodcast: (Podcast) -> Void
@@ -39,58 +37,51 @@ struct HomeView: View {
 
     private var following: [Podcast] { favoritesManager.favorites }
 
-    /// Started and not finished, last played first.
-    private var unfinished: [RecentlyPlayed] {
-        ContinueListeningSection.unfinished(recentlyPlayed.items)
-    }
-
-    /// The followed shows' recent episodes, newest first.
-    private var newEpisodes: [PodcastEpisode] {
-        InboxFeed.items(following: following, episodes: followingFeed.episodesByPodcast)
+    private var feedItems: [HomeFeedItem] {
+        HomeFeed.build(
+            newEpisodes: InboxFeed.items(following: following, episodes: followingFeed.episodesByPodcast),
+            newSince: InboxSeen.shared.lastSeen,
+            picks: forYou.visibleItems(excluding: Set(following.map(\.trackId))),
+            unfinished: HomeFeed.unfinished(recentlyPlayed.items)
+        )
     }
 
     var body: some View {
+        let items = feedItems
+
         ScrollView {
-            VStack(alignment: .leading, spacing: 36) {
+            VStack(alignment: .leading, spacing: 0) {
                 if following.isEmpty {
                     emptyState
+                        .padding(.bottom, 28)
                 } else {
-                    librarySection
+                    showsStrip
+                        .padding(.bottom, 18)
                 }
 
-                if !unfinished.isEmpty {
-                    ContinueListeningSection(
-                        items: unfinished,
-                        onResume: resume,
-                        onOpen: { onOpenPlayedEpisode($0.episode) },
-                        onRemove: remove,
-                        onShowAll: { onOpenLibrary(.history) }
-                    )
-                    .transition(.opacity)
-                }
-
-                if !following.isEmpty, !newEpisodes.isEmpty {
-                    NewEpisodesCarousel(
-                        items: newEpisodes,
-                        onOpen: { onOpenEpisode($0.episode, $0.podcast, .newEpisodes) },
+                if items.isEmpty, forYou.isLoading {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, minHeight: EpisodeOfTheDayCard.minHeight)
+                } else {
+                    HomeFeedList(
+                        items: items,
+                        onOpenEpisode: { episode, podcast in onOpenEpisode(episode, podcast, .feed) },
                         // ▶ plays (or pauses) in the mini player, opening nothing.
-                        onPlay: play,
+                        onPlay: { episode in playerManager.playOrToggle(episode, presentation: .mini) },
                         onOpenPodcast: onOpenPodcast,
-                        onShowAll: { onOpenLibrary(.new) }
+                        onOpenPlayed: { played in onOpenPlayedEpisode(played.episode) },
+                        onResume: { played in resume(played) },
+                        onRemovePlayed: { played in remove(played) }
                     )
-                    .transition(.opacity)
                 }
-
-                selectedForYouSection
             }
-            .padding(.top, 12)
+            .padding(.top, 4)
             .padding(.bottom, 24)
         }
         .scrollIndicators(.hidden)
         .background(AppColor.screenBackground.ignoresSafeArea())
         .animation(AppAnimation.listChange, value: following.map(\.trackId))
-        .animation(AppAnimation.listChange, value: unfinished.map(\.id))
-        .animation(AppAnimation.listChange, value: newEpisodes.isEmpty)
+        .animation(AppAnimation.listChange, value: items.map(\.id))
         // Reload when you follow or unfollow a podcast.
         .task(id: following.map(\.trackId)) {
             followingFeed.load(following: following)
@@ -99,59 +90,28 @@ struct HomeView: View {
         .onChange(of: followingFeed.isLoading, initial: true) { _, loading in
             StatusCenter.shared.isUpdating = loading
         }
-        // "Selected for you" depends on the interests (and skips what you follow).
+        // The picks depend on the interests (and skip what you follow).
         .task(id: interests.genreIDs) {
             forYou.load(interests: interests.genres, following: following)
         }
     }
 
-    private func play(_ episode: Episode) {
-        playerManager.playOrToggle(episode, presentation: .mini)
-    }
-
-    // MARK: - Selected for you
-
-    /// Podcasts you don't follow yet, from your interests: discovery. What
-    /// you follow is in Your shows and New episodes; what you started, in
-    /// Continue listening.
-    @ViewBuilder
-    private var selectedForYouSection: some View {
-        let items = forYou.visibleItems(excluding: Set(following.map(\.trackId)))
-        if !items.isEmpty {
-            SelectedForYouList(
-                items: items,
-                onOpen: { onOpenEpisode($0.episode, $0.podcast, .forYou) },
-                onPlay: play,
-                onOpenPodcast: onOpenPodcast
-            )
-            .animation(AppAnimation.listChange, value: items.map(\.id))
-        } else if forYou.isLoading {
-            ProgressView()
-                .frame(maxWidth: .infinity, minHeight: 200)
-        }
-    }
-
     // MARK: - Your shows
 
-    /// The podcasts you follow, as square covers; the See All tile at the
-    /// end (only when they overflow) opens Following.
-    private var librarySection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            // No "Show all" up here: the row ends with a See All tile when
-            // the covers don't all fit.
-//            LibrarySectionHeader(title: "Library")
-            LibraryCovers(
+    /// The podcasts you follow, as small square covers with their names;
+    /// the See All tile at the end (only when they overflow) opens Following.
+    private var showsStrip: some View {
+        LibraryCovers(
+            podcasts: following,
+            newEpisodes: NewEpisodeMarks.newEpisodes(
                 podcasts: following,
-                newEpisodes: NewEpisodeMarks.newEpisodes(
-                    podcasts: following,
-                    episodes: followingFeed.episodesByPodcast,
-                    inboxSeen: InboxSeen.shared.lastSeen,
-                    showSeen: ShowSeen.shared.lastSeen
-                ),
-                onOpen: onOpenPodcast,
-                onSeeAll: onOpenFollowing
-            )
-        }
+                episodes: followingFeed.episodesByPodcast,
+                inboxSeen: InboxSeen.shared.lastSeen,
+                showSeen: ShowSeen.shared.lastSeen
+            ),
+            onOpen: onOpenPodcast,
+            onSeeAll: onOpenFollowing
+        )
     }
 
     // MARK: - Continue listening

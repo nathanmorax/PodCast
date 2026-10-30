@@ -42,6 +42,8 @@ final class FakePlayerDataSource: PlayerDataSource {
     func seek(by seconds: Int64) {}
     func seek(to percentage: Float) {}
     func setVolume(_ value: Float) {}
+    private(set) var rates: [Float] = []
+    func setRate(_ rate: Float) { rates.append(rate) }
 
     /// Simulates the periodic time observer.
     func sendTime(current: Double, total: Double) {

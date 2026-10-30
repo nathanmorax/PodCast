@@ -12,11 +12,7 @@ enum AppColor {
     // MARK: - Raw palette
 
     static let coralRed      = Color(asset: .coralRed)
-    static let slateGray     = Color(asset: .slateGray)
     static let dustyBlue     = Color(asset: .dustyBlue)
-    static let oliveGreen    = Color(asset: .oliveGreen)
-    static let burntOrange   = Color(asset: .burntOrange)
-    static let charcoalBrown = Color(asset: .charcoalBrown)
 
     // MARK: - Surfaces and ink
 
@@ -46,8 +42,6 @@ enum AppColor {
     // MARK: - Semantic roles
 
     enum Status {
-        static let success  = AppColor.oliveGreen
-        static let warning  = AppColor.burntOrange
         static let critical = AppColor.coralRed
         static let info     = AppColor.dustyBlue
     }
@@ -56,7 +50,7 @@ enum AppColor {
         /// The selected pill of a segmented control, a focused field:
         /// white / a lighter grey than the cards.
         static let raised    = Color(asset: .surfaceRaised)
-        /// A quiet block (Search's category cards, unselected chips): a step
+        /// A quiet block (unselected chips, empty fields): a step
         /// darker than the cream (light) / lighter than the black (dark).
         static let muted     = Color(asset: .surfaceMuted)
     }
@@ -73,7 +67,7 @@ enum AppColor {
         /// On ink or green fills: cream in light mode, near-black in dark
         /// (always the opposite of the fill, so it stays readable).
         static let inverse   = AppColor.screenBackground
-        /// On pastel or light-violet fills (genre cards, play buttons):
+        /// On pastel or light-violet fills (mustard tags, play buttons):
         /// stays dark in dark mode, where `primary` turns light.
         static let onPastel  = Color(asset: .inkOnPastel)
     }
@@ -88,19 +82,5 @@ enum AppColor {
         static let soft   = AppColor.accent
         /// A mustard tint behind accent icons/text.
         static let wash   = AppColor.accent.opacity(0.22)
-    }
-
-    /// Search's category cards: soft pastels with ink on them (the same in
-    /// dark mode, like printed cards on a dark page). Each category keeps
-    /// its own (Genre+Style).
-    enum Category {
-        static let palette: [Color] = [
-            Color(asset: .genreSky),
-            Color(asset: .genrePeach),
-            Color(asset: .genreLinen),
-            Color(asset: .genreMint),
-            Color(asset: .genreRose),
-            Color(asset: .genreLavender)
-        ]
     }
 }

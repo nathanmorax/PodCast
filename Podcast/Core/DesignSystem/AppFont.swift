@@ -52,6 +52,13 @@ enum AppFont {
     static let quote        = Font.system(.title3, design: .serif).italic()
     static let quoteSmall   = Font.system(.footnote, design: .serif).italic()
 
+    // MARK: SF Pro Compressed — Home's feed headlines (a magazine cover's
+    // tall, tight capitals). Built on text styles: they grow with Dynamic Type.
+
+    static let feedHero   = Font.system(.largeTitle, weight: .bold).width(.compressed)
+    static let feedTitle  = Font.system(.title, weight: .bold).width(.compressed)
+    static let feedSmall  = Font.system(.subheadline, weight: .semibold).width(.compressed)
+
     // MARK: SF Pro — everything else
 
     static let button        = Font.system(.callout, weight: .semibold)

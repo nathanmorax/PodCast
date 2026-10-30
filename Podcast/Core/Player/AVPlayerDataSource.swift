@@ -81,6 +81,12 @@ class AVPlayerDataSource: PlayerDataSource {
         onStateChange?(true)
     }
 
+    func setRate(_ rate: Float) {
+        // `play()` starts at the default rate; a playing item changes now.
+        player.defaultRate = rate
+        if player.timeControlStatus != .paused { player.rate = rate }
+    }
+
     func pause() {
         playsAfterPendingSeek = false
         player.pause()

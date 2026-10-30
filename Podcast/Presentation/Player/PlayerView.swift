@@ -9,11 +9,9 @@ struct PlayerView: View {
     
     let episode: Episode
     @State private var mode: PlayerMode = .normal
-    /// Which tab is open under the cover.
-    @State private var tab: PlayerTab = .player
-    /// From the show notes; empty = no Chapters tab.
-    @State private var chapters: [EpisodeChapter]
-    @Namespace private var tabNamespace
+    /// The transcript, as a sheet over the player.
+    @State private var showsTranscript = false
+    @State private var sleepTimer = SleepTimer.shared
     /// How far the finger has pulled the player down (follows it 1:1).
     @State private var dismissOffset: CGFloat = 0
     /// Set on the first movement of a drag: only a vertical drag pulls the
@@ -38,10 +36,9 @@ struct PlayerView: View {
     init(episode: Episode) {
         self.episode = episode
         _actionViewModel = State(initialValue: EpisodeActionViewModel(episode: episode))
-        _chapters = State(initialValue: EpisodeChapter.parse(showNotes: episode.chapterSource))
     }
     
-    // MARK: - Style (cream paper, ink, mustard accent)
+    // MARK: - Style (paper, ink, mustard accent)
     
     private static let paper = AppColor.paper
     private static let ink = AppColor.ink
@@ -63,7 +60,6 @@ struct PlayerView: View {
         // like Apple Podcasts. The app behind shows through.
         .clipShape(RoundedRectangle(cornerRadius: min(dismissOffset / 3, 44), style: .continuous))
         .offset(y: dismissOffset)
-        .gesture(dismissGesture)
         .animation(AppAnimation.transcriptMode, value: mode)
         .onChange(of: viewModel.progress) { _, _ in
             transcript.updateCurrentSegment(playbackSeconds: viewModel.currentPlaybackSeconds)
@@ -79,48 +75,65 @@ struct PlayerView: View {
         .onChange(of: episode.streamUrl) { _, _ in
             // @State ignores new init values, so rebuild the VM when the episode changes.
             actionViewModel = EpisodeActionViewModel(episode: episode)
-            chapters = EpisodeChapter.parse(showNotes: episode.chapterSource)
-            tab = .player
+            showsTranscript = false
         }
+        .sheet(isPresented: $showsTranscript) { transcriptSheet }
     }
     
     // MARK: - Normal View
 
+    /// The cover edge to edge at the top (about half the screen, fading
+    /// into the paper, ⌄ floating on it), then like a newspaper's audio
+    /// player: the show and the day in small capitals, the title in serif,
+    /// a thin bar, the controls (speed · −15 · ▶ · +30 · sleep), and under a
+    /// rule the byline and the show notes to read while it plays. All of it
+    /// scrolls; pulling the cover down closes the player.
     private var normalView: some View {
-        VStack(spacing: 0) {
-            // The cover goes edge to edge, under the status bar; the top
-            // controls float on it.
-            heroArtwork
-                .overlay(alignment: .top) {
-                    topBar
-                        .padding(.horizontal, 20)
-                }
-
-            VStack(spacing: 0) {
-                tabPicker
-                    .padding(.top, 2)
-
-                Group {
-                    switch tab {
-                    case .player: playerTab
-                    case .text: textTab
-                    case .chapters: chaptersTab
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                // Only the cover pulls the player down: below it, a
+                // vertical drag scrolls the notes.
+                heroArtwork
+                    .overlay(alignment: .top) {
+                        topBar
+                            .padding(.horizontal, 20)
                     }
-                }
-                .frame(maxHeight: .infinity)
-                .transition(.opacity)
+                    .contentShape(Rectangle())
+                    .gesture(dismissGesture)
 
-                // Chapters: no buttons, just how far along it is.
-                // Text: nothing at all, the transcript gets the whole space.
-                if tab == .chapters {
-                    thinProgress
-                        .padding(.bottom, 24)
-                        .transition(.opacity)
+                VStack(alignment: .leading, spacing: 0) {
+                    showLine
+                        .padding(.top, 8)
+                    Text(episode.title)
+                        .font(AppFont.title)
+                        .foregroundStyle(Self.ink)
+                        .lineLimit(4)
+                        .minimumScaleFactor(0.8)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
+                        .padding(.top, 14)
+
+                    utilityRow
+                        .padding(.top, 8)
+
+                    progressSection
+                        .padding(.top, 14)
+
+                    controlsSection
+                        .padding(.top, 18)
+
+                    Divider()
+                        .padding(.top, 26)
+
+                    notes
+                        .padding(.top, 22)
                 }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 48)
             }
-            .padding(.horizontal, 28)
-            .animation(AppAnimation.playerTab, value: tab)
         }
+        .scrollIndicators(.hidden)
+        .scrollBounceBehavior(.basedOnSize)
         .ignoresSafeArea(.container, edges: .top)
     }
 
@@ -130,8 +143,8 @@ struct PlayerView: View {
         !(episode.imageUrl ?? "").isEmpty
     }
 
-    /// About half the screen, full width. It fades into the paper at the
-    /// bottom so the controls sit on a clean background.
+    /// About half the screen, full width, under the status bar. It fades
+    /// into the paper at the bottom so the text below sits on a clean page.
     private var heroArtwork: some View {
         Color.clear
             .frame(maxWidth: .infinity)
@@ -153,8 +166,7 @@ struct PlayerView: View {
             }
             // Fades the cover itself out (a mask, not a paper-colored overlay):
             // with an overlay, the cover's last row of pixels could peek out
-            // under it while the sheet slides in at fractional positions,
-            // showing up as a thin light line above the tabs.
+            // under it while the sheet slides in at fractional positions.
             .mask {
                 VStack(spacing: 0) {
                     Rectangle()
@@ -166,149 +178,96 @@ struct PlayerView: View {
             .accessibilityHidden(true)
     }
 
-    // MARK: - Tabs
+    // MARK: - Show, title, utility row
 
-    private var availableTabs: [PlayerTab] {
-        PlayerTab.available(hasChapters: !chapters.isEmpty)
-    }
-
-    /// Player · Text · Chapters as plain words; a thin line slides under the
-    /// chosen one (editorial, like a magazine's sections).
-    private var tabPicker: some View {
-        HStack(spacing: 26) {
-            ForEach(availableTabs, id: \.self) { item in
-                tabButton(item)
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .sensoryFeedback(.selection, trigger: tab)
-    }
-
-    private func tabButton(_ item: PlayerTab) -> some View {
-        let isOn = tab == item
-        let textColor: Color = isOn ? Self.ink : Self.ink.opacity(0.45)
-        return Button {
-            tab = item
-        } label: {
-            Text(item.title)
-                .font(AppFont.label)
-                .foregroundStyle(textColor)
-                .padding(.vertical, 8)
-                .overlay(alignment: .bottom) {
-                    if isOn {
-                        Capsule()
-                            .fill(Self.ink)
-                            .frame(height: 2)
-                            .matchedGeometryEffect(id: "tab", in: tabNamespace)
-                    }
-                }
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isOn ? .isSelected : [])
-    }
-
-    // MARK: - Player tab
-
-    private var playerTab: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Spacer(minLength: 12)
-            VStack(alignment: .leading, spacing: 12) {
-                Text(episode.title)
-                    .font(AppFont.title)
-                    .foregroundStyle(Self.ink)
-                    .lineLimit(3)
-                    .minimumScaleFactor(0.8)
-                byline
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            progressSection
-                .padding(.top, 20)
-
-            controlsSection
-                .padding(.top, 14)
-
-            actionsRow
-                .padding(.top, 14)
-            Spacer(minLength: 12)
-        }
-    }
-
-    /// Small round artwork, "By author" and "7 hours ago · 35 min".
-    private var byline: some View {
-        HStack(spacing: 10) {
+    /// [cover] THE SHOW · TODAY
+    private var showLine: some View {
+        HStack(spacing: 12) {
             Color.clear
-                .frame(width: 28, height: 28)
+                .frame(width: 32, height: 32)
                 .overlay { PodcastImage(source: episode.imageUrl) }
-                .clipShape(Circle())
+                .clipped()
                 .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 1) {
-                Text("By \(episode.author)")
-                    .font(AppFont.captionStrong)
-                    .foregroundStyle(Self.ink)
-                    .lineLimit(1)
-                HStack(spacing: 0) {
-                    Text(episode.pubDate, format: .relative(presentation: .numeric, unitsStyle: .wide))
-                    Text(verbatim: " · \(episode.durationDisplayText)")
-                }
-                .font(AppFont.caption)
-                .foregroundStyle(Self.ink.opacity(0.5))
+            Text(verbatim: "\(episode.author) · \(episode.pubDate.shortDayText())")
+                .font(.footnote.weight(.medium))
+                .textCase(.uppercase)
+                .tracking(1.2)
+                .foregroundStyle(Self.ink.opacity(0.75))
                 .lineLimit(1)
-            }
         }
         .accessibilityElement(children: .combine)
     }
 
-    /// Thin icons with their word, like an article's share bar.
-    private var actionsRow: some View {
-        HStack(spacing: 22) {
+    /// Transcript on the left; ••• (save, download, share) on the right.
+    private var utilityRow: some View {
+        HStack {
             Button {
-                actionViewModel.toggleBookmark()
+                showsTranscript = true
             } label: {
-                Label(actionViewModel.isBookmarked ? "Saved" : "Save",
-                      systemImage: actionViewModel.isBookmarked ? "bookmark.fill" : "bookmark")
+                Label("Transcript", systemImage: "quote.bubble")
+                    .font(AppFont.label)
+                    .foregroundStyle(Self.ink.opacity(0.7))
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
 
-            Button {
-                switch actionViewModel.downloadState {
-                case .idle, .failed: actionViewModel.download()
-                default: break
-                }
+            Spacer()
+
+            Menu {
+                EpisodeActionsMenuItems(actions: actionViewModel)
             } label: {
-                Label(downloadTitle, systemImage: downloadIcon)
+                Image(systemName: "ellipsis")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(Self.ink.opacity(0.7))
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
-
-            Spacer(minLength: 0)
-
-            if let url = URL(string: episode.streamUrl) {
-                ShareLink(item: url, subject: Text(episode.title)) {
-                    Image(systemName: "square.and.arrow.up")
-                        .frame(width: 44, height: 44)
-                }
-                .accessibilityLabel("Share")
-            }
-        }
-        .buttonStyle(.plain)
-        .font(AppFont.footnote)
-        .foregroundStyle(Self.ink.opacity(0.55))
-        .frame(height: 44)
-    }
-
-    private var downloadTitle: LocalizedStringKey {
-        switch actionViewModel.downloadState {
-        case .downloaded: "Downloaded"
-        case .downloading, .waiting: "Downloading"
-        default: "Download"
+            .accessibilityLabel("More")
         }
     }
 
-    private var downloadIcon: String {
-        switch actionViewModel.downloadState {
-        case .downloaded: "checkmark.circle"
-        case .downloading, .waiting: "arrow.down.circle.dotted"
-        default: "arrow.down"
+    // MARK: - Notes
+
+    /// "By author", then the show notes in serif, to read while listening.
+    private var notes: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            if !episode.author.isEmpty {
+                Text("By \(episode.author)")
+                    .font(AppFont.body.weight(.medium))
+                    .foregroundStyle(Self.ink)
+            }
+            let text = episode.chapterSource.plainTextFromHTML()
+            if !text.isEmpty {
+                Text(text)
+                    .font(.system(.title3, design: .serif))
+                    .foregroundStyle(Self.ink.opacity(0.9))
+                    .lineSpacing(5)
+                    .textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    // MARK: - Transcript sheet
+
+    private var transcriptSheet: some View {
+        NavigationStack {
+            textTab
+                .padding(.horizontal, 24)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Self.paper)
+                .navigationTitle("Transcript")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") { showsTranscript = false }
+                    }
+                }
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
     }
 
     // MARK: - Text tab
@@ -406,6 +365,8 @@ struct PlayerView: View {
     /// Opens the full-screen subtitles (TranscriptSubtitleView).
     private var fullScreenButton: some View {
         Button {
+            // Closes the sheet, then the subtitles take the whole player.
+            showsTranscript = false
             mode = .transcript
         } label: {
             Image(systemName: "arrow.up.left.and.arrow.down.right")
@@ -419,79 +380,7 @@ struct PlayerView: View {
         .accessibilityLabel("Full screen")
     }
 
-    // MARK: - Chapters tab
-
-    /// The chapter being played: the last one that already started.
-    private var currentChapter: EpisodeChapter? {
-        let now = viewModel.currentPlaybackSeconds
-        return chapters.last(where: { $0.start <= now })
-    }
-
-    private var chaptersTab: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(chapters) { chapter in
-                    chapterRow(chapter)
-                }
-            }
-            .padding(.vertical, 10)
-        }
-        .scrollIndicators(.hidden)
-    }
-
-    private func chapterRow(_ chapter: EpisodeChapter) -> some View {
-        let isCurrent = currentChapter?.id == chapter.id
-        let isPast = !isCurrent && chapter.start < viewModel.currentPlaybackSeconds
-        let dotColor: Color = isCurrent ? Self.accent : Color.clear
-        let titleColor: Color = isCurrent ? AppColor.accentInk : Self.ink.opacity(isPast ? 0.45 : 1)
-        let titleWeight: Font.Weight = isCurrent ? .bold : .medium
-        return Button {
-            viewModel.seek(toSeconds: chapter.start)
-        } label: {
-            HStack(spacing: 14) {
-                Text(AVPlayerViewModel.shortTime(chapter.start))
-                    .font(AppFont.footnote)
-                    .monospacedDigit()
-                    .foregroundStyle(isCurrent ? AppColor.accentInk : Self.ink.opacity(0.45))
-                    .frame(width: 52, alignment: .leading)
-                Text(chapter.title)
-                    .font(AppFont.itemTitle.weight(titleWeight))
-                    .foregroundStyle(titleColor)
-                    .lineLimit(2)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                if isCurrent {
-                    Circle()
-                        .fill(dotColor)
-                        .frame(width: 8, height: 8)
-                }
-            }
-            .padding(.vertical, 14)
-            .contentShape(Rectangle())
-            .overlay(alignment: .bottom) {
-                Rectangle().fill(Self.ink.opacity(0.06)).frame(height: 1)
-            }
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isCurrent ? .isSelected : [])
-    }
-
     // MARK: - Tab pieces
-
-    /// A thin, read-only progress line for Text and Chapters.
-    private var thinProgress: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .leading) {
-                Capsule().fill(Self.ink.opacity(0.08))
-                Capsule()
-                    .fill(Self.accent)
-                    .frame(width: geo.size.width * CGFloat(viewModel.progress))
-            }
-        }
-        .frame(height: 3)
-        .accessibilityElement()
-        .accessibilityLabel("Progress")
-        .accessibilityValue("\(Int(viewModel.progress * 100)) percent")
-    }
 
     private func tabMessage<Action: View>(
         icon: String?,
@@ -557,33 +446,23 @@ struct PlayerView: View {
     }
 
     // MARK: - Top Bar
-    
+
+    /// ⌄ on the cover, in a small frosted circle.
     private var topBar: some View {
-        HStack(alignment: .center) {
+        HStack {
             Button {
                 playerManager.collapse()
             } label: {
                 Image(systemName: "chevron.down")
                     .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(Self.ink)
                     .frame(width: 44, height: 44)
                     .background(.ultraThinMaterial, in: Circle())
             }
+            .buttonStyle(.plain)
             .accessibilityLabel("Minimize player")
-
             Spacer()
-
-            // Time left, floating on the cover.
-            Text(viewModel.remainingTimeText)
-                .font(.system(.title3, weight: .semibold))
-                .monospacedDigit()
-                .contentTransition(.numericText(countsDown: true))
-                .padding(.horizontal, 16)
-                .frame(height: 44)
-                .background(.ultraThinMaterial, in: Capsule())
-                .opacity(viewModel.remainingTimeText.isEmpty ? 0 : 1)
-                .accessibilityLabel("Time remaining \(viewModel.remainingTimeText)")
         }
-        .foregroundStyle(Self.ink)
         .padding(.top, 54)
     }
 
@@ -617,6 +496,14 @@ struct PlayerView: View {
             }
             // Grows while held, like the system scrubbers.
             .frame(height: scrubProgress == nil ? 4 : 10)
+            // The knob: where it is, in ink.
+            .overlay(alignment: .leading) {
+                Circle()
+                    .fill(Self.ink)
+                    .frame(width: scrubProgress == nil ? 14 : 20)
+                    .offset(x: geo.size.width * CGFloat(shownProgress) - (scrubProgress == nil ? 7 : 10))
+                    .allowsHitTesting(false)
+            }
             .frame(maxHeight: .infinity)
             .contentShape(Rectangle())
             .gesture(
@@ -662,63 +549,127 @@ struct PlayerView: View {
     }
     
     // MARK: - Controls
-    
-    /// −15 · accent play/pause · +15, nothing else in the main row.
+
+    /// 1× · −15 · ▶ · +30 · ☾, spread across the width.
     private var controlsSection: some View {
-        HStack(spacing: 40) {
+        HStack(spacing: 0) {
+            speedMenu
+            Spacer(minLength: 0)
             seekBackwardButton
+            Spacer(minLength: 0)
             playPauseButton
+            Spacer(minLength: 0)
             seekForwardButton
+            Spacer(minLength: 0)
+            sleepMenu
         }
-        .frame(maxWidth: .infinity)
     }
-    
+
+    private var speedMenu: some View {
+        Menu {
+            Picker("Speed", selection: Binding(
+                get: { viewModel.playbackRate },
+                set: { viewModel.setPlaybackRate($0) }
+            )) {
+                ForEach(AVPlayerViewModel.rates, id: \.self) { rate in
+                    Text(verbatim: AVPlayerViewModel.rateText(rate)).tag(rate)
+                }
+            }
+        } label: {
+            Text(verbatim: AVPlayerViewModel.rateText(viewModel.playbackRate))
+                .font(.system(.title3, weight: .bold))
+                .monospacedDigit()
+                .foregroundStyle(viewModel.playbackRate == 1 ? Self.ink : AppColor.Accent.strong)
+                .frame(width: 52, height: 52)
+                .contentShape(Rectangle())
+        }
+        .accessibilityLabel("Speed")
+        .accessibilityValue(Text(verbatim: AVPlayerViewModel.rateText(viewModel.playbackRate)))
+    }
+
+    private var sleepMenu: some View {
+        Menu {
+            if sleepTimer.isActive {
+                Button("Turn off timer", systemImage: "moon.zzz") { sleepTimer.cancel() }
+                Divider()
+            }
+            ForEach(SleepTimer.minuteOptions, id: \.self) { minutes in
+                Button("\(minutes) min") { startSleep(.minutes(minutes)) }
+            }
+            Button("End of episode") { startSleep(.endOfEpisode) }
+        } label: {
+            Image(systemName: sleepTimer.isActive ? "moon.fill" : "moon")
+                .font(.system(size: 24, weight: .regular))
+                .foregroundStyle(sleepTimer.isActive ? AppColor.Accent.strong : Self.ink)
+                .contentTransition(.symbolEffect(.replace))
+                .frame(width: 52, height: 52)
+                .contentShape(Rectangle())
+        } primaryAction: {
+            // A tap turns it off when it's on; the menu opens otherwise
+            // (touch and hold always opens it).
+            if sleepTimer.isActive { sleepTimer.cancel() }
+        }
+        .accessibilityLabel("Sleep timer")
+        .accessibilityValue(sleepValue)
+    }
+
+    private var sleepValue: Text {
+        guard let endsAt = sleepTimer.endsAt else { return Text("Off") }
+        return Text("Pauses at \(endsAt.formatted(date: .omitted, time: .shortened))")
+    }
+
+    private func startSleep(_ option: SleepTimer.Option) {
+        let remaining = max(viewModel.durationSeconds - viewModel.currentPlaybackSeconds, 0)
+        sleepTimer.start(option, remaining: remaining, rate: viewModel.playbackRate) {
+            let manager = PlayerManager.shared
+            if manager.viewModel.isPlaying { manager.togglePlayPause() }
+        }
+    }
+
     private var seekBackwardButton: some View {
         Button {
             viewModel.seekBackward()
         } label: {
             Image(systemName: "gobackward.15")
-                .font(.system(size: 34, weight: .light))
+                .font(.system(size: 30, weight: .regular))
                 .foregroundStyle(Self.ink)
                 .frame(width: 56, height: 56)
         }
+        .buttonStyle(.plain)
         .accessibilityLabel("Rewind 15 seconds")
     }
-    
+
+    /// A big ▶ / ❚❚ on its own, no circle behind it.
     private var playPauseButton: some View {
         Button {
             playerManager.togglePlayPause()
         } label: {
-            // The glyph sits in a fixed square centered in the circle, so
-            // play and pause share one center while they swap (before, each
-            // glyph's own width moved it, and ▶ was pushed 3 pt more).
-            // ▶ only gets a 1.5 pt nudge right: its weight is on the left.
             Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-                .font(.system(size: 28, weight: .bold))
-                .foregroundStyle(AppColor.Text.onPastel)
+                .font(.system(size: 52, weight: .regular))
+                .foregroundStyle(Self.ink)
                 .contentTransition(.symbolEffect(.replace))
-                .frame(width: 34, height: 34)
-                .offset(x: viewModel.isPlaying ? 0 : 1.5)
+                .frame(width: 64, height: 64)
+                .offset(x: viewModel.isPlaying ? 0 : 3)
                 .frame(width: 76, height: 76)
-                .background(Circle().fill(Self.accent))
-                .contentShape(Circle())
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(viewModel.isPlaying ? Text("Pause") : Text("Play"))
     }
-    
+
     private var seekForwardButton: some View {
         Button {
-            viewModel.seekForward()
+            viewModel.skipForward30()
         } label: {
-            Image(systemName: "goforward.15")
-                .font(.system(size: 34, weight: .light))
+            Image(systemName: "goforward.30")
+                .font(.system(size: 30, weight: .regular))
                 .foregroundStyle(Self.ink)
                 .frame(width: 56, height: 56)
         }
-        .accessibilityLabel("Skip forward 15 seconds")
+        .buttonStyle(.plain)
+        .accessibilityLabel("Skip forward 30 seconds")
     }
-    
+
     // MARK: - Helpers
     
     /// Interactive close: the player moves with the finger. Let go far enough

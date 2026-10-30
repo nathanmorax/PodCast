@@ -13,13 +13,9 @@ import SwiftUI
 /// ColorAssetTests fails if a case has no matching asset.
 enum ColorName: String, CaseIterable {
 
-    // MARK: Palette (genre tiles, buttons, status)
+    // MARK: Palette (status)
     case coralRed
-    case slateGray
     case dustyBlue
-    case oliveGreen
-    case burntOrange
-    case charcoalBrown
 
     // MARK: Surfaces and ink
     case screenBackground
@@ -32,14 +28,6 @@ enum ColorName: String, CaseIterable {
     case readingText
     case surfaceRaised
     case inkOnPastel
-
-    // MARK: Genre cards (pastels; the same in dark mode, with ink on them)
-    case genreSky
-    case genrePeach
-    case genreLinen
-    case genreMint
-    case genreRose
-    case genreLavender
 }
 
 extension Color {

@@ -41,15 +41,6 @@ struct EpisodeChapterTests {
     }
 }
 
-@Suite("PlayerTab")
-struct PlayerTabTests {
-    @Test("Chapters only appear when the episode has them")
-    func available() {
-        #expect(PlayerTab.available(hasChapters: false) == [.player, .text])
-        #expect(PlayerTab.available(hasChapters: true) == [.player, .text, .chapters])
-    }
-}
-
 @Suite("Show notes")
 struct ShowNotesTests {
     @Test("HTML show notes keep one line per paragraph, so chapters are found")

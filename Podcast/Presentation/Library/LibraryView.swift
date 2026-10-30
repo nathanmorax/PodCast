@@ -6,8 +6,10 @@
 import SwiftUI
 
 /// The Library: every episode you have, in tabs (New · Saved · Downloads ·
-/// History). A line slides under the chosen tab; a sideways swipe moves
-/// to the next or previous one. Hosted by LibraryController.
+/// History), grouped by show. Each show is a band in its own color with
+/// its episodes under it, as lines or as covers two or three across (the
+/// picker next to the title; remembered). A sideways swipe moves to the
+/// next or previous tab. Hosted by LibraryController.
 ///
 /// One plain ScrollView (not a paging TabView): a TabView clips its pages
 /// at the safe area, so nothing showed behind the mini player and the bar;
@@ -16,7 +18,8 @@ struct LibraryView: View {
 
     /// The followed podcasts' episodes (the Inbox's), shared with Home.
     let followingFeed: FollowingFeedViewModel
-    let onOpen: (Episode) -> Void
+    /// An episode was tapped (its screen opens; ▶ plays it instead).
+    let onOpen: (LibraryItem) -> Void
 
     @Environment(\.favoritesManager) private var favoritesManager
     @Environment(\.bookmarks) private var bookmarks
@@ -24,13 +27,13 @@ struct LibraryView: View {
     @Environment(\.recentlyPlayed) private var recentlyPlayed
 
     @State private var tab: LibraryTab
+    @AppStorage("library.layout") private var layout: LibraryLayout = .list
 
-    init(followingFeed: FollowingFeedViewModel, tab: LibraryTab = .new, onOpen: @escaping (Episode) -> Void) {
+    init(followingFeed: FollowingFeedViewModel, tab: LibraryTab = .new, onOpen: @escaping (LibraryItem) -> Void) {
         self.followingFeed = followingFeed
         self.onOpen = onOpen
         _tab = State(initialValue: tab)
     }
-    @Namespace private var tabLine
 
     private var newEpisodes: [PodcastEpisode] {
         InboxFeed.items(following: favoritesManager.favorites, episodes: followingFeed.episodesByPodcast)
@@ -46,75 +49,75 @@ struct LibraryView: View {
     }
 
     var body: some View {
+        let items = self.items
+        let groups = LibraryGroups.group(items)
+
         // The ScrollView is the screen itself, so it reaches the bottom edge
-        // and its rows pass behind the mini player and the bar; the tabs
-        // stay pinned on top (a safe-area inset, over the page's color).
+        // and its shows pass behind the mini player and the bar; the title,
+        // picker and tabs stay pinned on top (a safe-area inset).
         ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(items) { item in
-                    LibraryEpisodeCard(item: item) { onOpen(item.episode) }
-                    if item.id != items.last?.id {
-                        Divider()
-                            .padding(.horizontal, 20)
-                    }
+            LazyVStack(spacing: 6) {
+                ForEach(groups) { group in
+                    LibraryShowSection(
+                        group: group,
+                        layout: layout,
+                        badge: badge(count: group.items.count),
+                        onOpen: onOpen
+                    )
                 }
             }
+            .padding(.top, 6)
             .padding(.bottom, 24)
         }
         .scrollIndicators(.hidden)
         // Each tab starts at its top.
         .id(tab)
         .overlay {
-            if items.isEmpty { emptyState(tab) }
+            if items.isEmpty { LibraryEmptyState(tab: tab) }
         }
-        .safeAreaInset(edge: .top, spacing: 0) {
-            VStack(spacing: 0) {
-                tabBar
-                Divider()
-            }
-            .background(AppColor.screenBackground)
-        }
+        .safeAreaInset(edge: .top, spacing: 0) { header }
         .contentShape(Rectangle())
         .simultaneousGesture(swipe)
         .animation(AppAnimation.listChange, value: items.map(\.id))
+        .animation(AppAnimation.listChange, value: layout)
         .background(AppColor.screenBackground.ignoresSafeArea())
         .sensoryFeedback(.selection, trigger: tab)
+        .sensoryFeedback(.selection, trigger: layout)
     }
 
-    // MARK: - Tabs
+    // MARK: - Header
 
-    private var tabBar: some View {
-        HStack(spacing: 0) {
-            ForEach(LibraryTab.allCases) { item in
-                tabButton(item)
+    /// LIBRARY in tall capitals with the layout picker, then the tabs.
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 12) {
+                Text("Library")
+                    .font(AppFont.feedHero)
+                    .textCase(.uppercase)
+                    .foregroundStyle(AppColor.Text.primary)
+                    .lineLimit(1)
+                    .accessibilityAddTraits(.isHeader)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                LibraryLayoutPicker(layout: $layout)
             }
+            .padding(.leading, 20)
+            .padding(.trailing, 16)
+            .padding(.top, 4)
+
+            LibraryTabBar(tab: $tab)
         }
-        .padding(.horizontal, 12)
+        .background(AppColor.screenBackground)
+        .overlay(alignment: .bottom) { Divider() }
     }
 
-    private func tabButton(_ item: LibraryTab) -> some View {
-        let isOn = tab == item
-        return Button {
-            withAnimation(AppAnimation.selection) { tab = item }
-        } label: {
-            Text(item.title)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(isOn ? AppColor.Text.primary : AppColor.Text.secondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-                .frame(maxWidth: .infinity, minHeight: 48)
-                .overlay(alignment: .bottom) {
-                    if isOn {
-                        Rectangle()
-                            .fill(AppColor.Status.critical)
-                            .frame(height: 3)
-                            .matchedGeometryEffect(id: "line", in: tabLine)
-                    }
-                }
-                .contentShape(Rectangle())
+    /// "3 NEW" on New; elsewhere just how many.
+    private func badge(count: Int) -> Text {
+        if tab == .new {
+            Text("\(count) new")
+        } else {
+            Text("\(count)")
         }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isOn ? [.isSelected, .isHeader] : [])
     }
 
     /// Sideways (clearly more than up or down): the next or previous tab.
@@ -129,37 +132,5 @@ struct LibraryView: View {
                 guard tabs.indices.contains(next) else { return }
                 withAnimation(AppAnimation.selection) { tab = tabs[next] }
             }
-    }
-
-    // MARK: - Empty
-
-    @ViewBuilder
-    private func emptyState(_ tab: LibraryTab) -> some View {
-        switch tab {
-        case .new:
-            ContentUnavailableView(
-                "No new episodes",
-                systemImage: "tray",
-                description: Text("New episodes from the podcasts you follow show up here.")
-            )
-        case .saved:
-            ContentUnavailableView(
-                "No saved episodes",
-                systemImage: "bookmark",
-                description: Text("Save an episode from its ••• menu and it'll be here.")
-            )
-        case .downloads:
-            ContentUnavailableView(
-                "No downloads yet",
-                systemImage: "arrow.down.circle",
-                description: Text("Downloaded episodes play without internet.")
-            )
-        case .history:
-            ContentUnavailableView(
-                "Nothing played yet",
-                systemImage: "clock.arrow.circlepath",
-                description: Text("Episodes you play show up here.")
-            )
-        }
     }
 }

@@ -6,22 +6,21 @@
 import UIKit
 import SwiftUI
 
-/// An episode, full screen (pushed when you tap an episode in a podcast's
-/// list). Like the podcast page: the navigation bar is clear over the
-/// artwork and turns solid, with the episode's title, once it scrolls away;
-/// no bottom bar.
+/// An episode, full screen (EpisodeDetailView). The navigation bar is clear
+/// over the artwork and turns solid, with the title in tall capitals, once
+/// the artwork scrolls away. Save, download and share are on the page,
+/// under the artwork, so the bar only has the back button.
 final class EpisodeDetailController: UIViewController, ZoomDismissible {
 
-    private let episode: Episode
-    private let podcastName: String?
+    private let viewModel: EpisodeDetailViewModel
     private let headerPull = HeaderPull()
-    /// Save and download for this episode (the ••• menu reads and changes it).
-    private lazy var actions = EpisodeActionViewModel(episode: episode)
 
-    init(episode: Episode, podcastName: String?) {
-        self.episode = episode
-        self.podcastName = podcastName
+    /// - Parameter podcast: the show, when known: "From the show" and
+    ///   "More from…" need it.
+    init(episode: Episode, podcast: Podcast?) {
+        self.viewModel = EpisodeDetailViewModel(episode: episode, podcast: podcast)
         super.init(nibName: nil, bundle: nil)
+        title = episode.title
     }
 
     required init?(coder: NSCoder) {
@@ -32,57 +31,27 @@ final class EpisodeDetailController: UIViewController, ZoomDismissible {
         super.viewDidLoad()
         view.backgroundColor = ColorName.screenBackground.uiColor
         navigationItem.largeTitleDisplayMode = .never
-        setupMoreButton()
         setupHosting()
         updateNavigationBar(offset: 0)
     }
 
     private func setupHosting() {
         let page = EpisodeDetailView(
-            episode: episode,
-            podcastName: podcastName,
+            viewModel: viewModel,
             pull: headerPull,
-            onPlay: { [episode] in PlayerManager.shared.play(episode) },
+            onOpenPodcast: { [weak self] podcast in
+                self?.pushZooming(EpisodesController(podcast: podcast), from: .podcast(podcast.id))
+            },
+            onOpenEpisode: { [weak self] episode in
+                guard let self else { return }
+                navigationController?.pushViewController(
+                    EpisodeDetailController(episode: episode, podcast: viewModel.podcast),
+                    animated: true
+                )
+            },
             onScroll: { [weak self] offset in self?.didScroll(to: offset) }
         )
-        let hosting = UIHostingController(rootView: page)
-        hosting.view.translatesAutoresizingMaskIntoConstraints = false
-        hosting.view.backgroundColor = .clear
-        addChild(hosting)
-        view.addSubview(hosting.view)
-        NSLayoutConstraint.activate([
-            hosting.view.topAnchor.constraint(equalTo: view.topAnchor),
-            hosting.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            hosting.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            hosting.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-        hosting.didMove(toParent: self)
-    }
-
-    // MARK: - ••• (save, download, share)
-
-    /// Top right, a system bar button: on iOS 26 it gets its Liquid Glass
-    /// capsule, like the back button. Its menu is built each time it opens
-    /// (EpisodeMenu), so it shows "Saved", the download's progress, or
-    /// "Downloaded" as they are now.
-    private func setupMoreButton() {
-        let more = UIBarButtonItem(
-            title: String(localized: "More"),
-            image: UIImage(systemName: "ellipsis"),
-            menu: EpisodeMenu.make { [weak self] in
-                guard let self else { return [] }
-                return EpisodeMenu.items(for: self.actions, onShare: { [weak self] in self?.share() })
-            }
-        )
-        navigationItem.rightBarButtonItem = more
-    }
-
-    /// The share sheet with the episode's audio link, from the ••• button.
-    private func share() {
-        guard let url = URL(string: episode.streamUrl) else { return }
-        let sheet = UIActivityViewController(activityItems: [episode.title, url], applicationActivities: nil)
-        sheet.popoverPresentationController?.sourceItem = navigationItem.rightBarButtonItem
-        present(sheet, animated: true)
+        embedFullScreen(UIHostingController(rootView: page))
     }
 
     // MARK: - Scroll
@@ -118,8 +87,20 @@ final class EpisodeDetailController: UIViewController, ZoomDismissible {
         return appearance
     }()
 
+    /// The title in the bar, once the artwork (and its title) is gone.
+    private lazy var collapsedTitle: UILabel = {
+        let label = UILabel()
+        let base = UIFont.systemFont(ofSize: 18, weight: .bold, width: .compressed)
+        label.font = UIFontMetrics(forTextStyle: .headline).scaledFont(for: base, maximumPointSize: 24)
+        label.adjustsFontForContentSizeCategory = true
+        label.text = viewModel.episode.title.uppercased()
+        label.textColor = ColorName.ink.uiColor
+        label.lineBreakMode = .byTruncatingTail
+        return label
+    }()
+
     private func updateNavigationBar(offset: CGFloat) {
-        let threshold = EpisodeDetailView.heroHeight - view.safeAreaInsets.top - 60
+        let threshold = EpisodeHero.height - view.safeAreaInsets.top - 60
         let collapsed = offset > threshold
         guard collapsed != isCollapsed else { return }
         isCollapsed = collapsed
@@ -127,6 +108,6 @@ final class EpisodeDetailController: UIViewController, ZoomDismissible {
         navigationItem.standardAppearance = appearance
         navigationItem.scrollEdgeAppearance = appearance
         navigationItem.compactAppearance = appearance
-        // No title, even once the artwork scrolls away: just the back arrow.
+        navigationItem.titleView = collapsed ? collapsedTitle : UIView()
     }
 }

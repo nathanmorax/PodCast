@@ -5,8 +5,8 @@
 
 import SwiftUI
 
-/// Save and Download for one episode, the same everywhere (the episode's
-/// page and its sheet): just the glyph, small, no circle behind it (the
+/// Save and Download for one episode (the episode screen's bar): just the
+/// glyph, small, no circle behind it (the
 /// touch area stays 44 pt). Outlined and muted while off; filled in the
 /// accent once it's on (downloaded, saved).
 ///
@@ -18,7 +18,6 @@ import SwiftUI
 struct EpisodeDownloadButton: View {
 
     let actions: EpisodeActionViewModel
-    var style: EpisodeActionStyle = .round
 
     @State private var confirmsRemoval = false
 
@@ -26,12 +25,7 @@ struct EpisodeDownloadButton: View {
 
     var body: some View {
         Button(action: tap) {
-            switch style {
-            case .round:
-                EpisodeActionIcon(isOn: isDownloaded) { glyph }
-            case .labeled:
-                EpisodeActionLabel(title: title, isOn: isDownloaded) { glyph }
-            }
+            EpisodeActionIcon(isOn: isDownloaded) { glyph }
         }
         .buttonStyle(.plain)
         .sensoryFeedback(.success, trigger: isDownloaded) { _, done in done }
@@ -56,16 +50,6 @@ struct EpisodeDownloadButton: View {
             Image(systemName: "arrow.clockwise.circle")
         case .idle:
             Image(systemName: "arrow.down.circle")
-        }
-    }
-
-    /// The word under/next to the glyph (labeled style).
-    private var title: LocalizedStringKey {
-        switch state {
-        case .idle: "Download"
-        case .waiting, .downloading: "Downloading"
-        case .downloaded: "Downloaded"
-        case .failed: "Retry"
         }
     }
 
@@ -96,18 +80,12 @@ struct EpisodeDownloadButton: View {
 struct EpisodeSaveButton: View {
 
     let actions: EpisodeActionViewModel
-    var style: EpisodeActionStyle = .round
 
     var body: some View {
         Button {
             actions.toggleBookmark()
         } label: {
-            switch style {
-            case .round:
-                EpisodeActionIcon(isOn: actions.isBookmarked) { glyph }
-            case .labeled:
-                EpisodeActionLabel(title: actions.isBookmarked ? "Saved" : "Save", isOn: actions.isBookmarked) { glyph }
-            }
+            EpisodeActionIcon(isOn: actions.isBookmarked) { glyph }
         }
         .buttonStyle(.plain)
         .sensoryFeedback(.success, trigger: actions.isBookmarked) { _, saved in saved }
@@ -117,34 +95,6 @@ struct EpisodeSaveButton: View {
     private var glyph: some View {
         Image(systemName: actions.isBookmarked ? "bookmark.fill" : "bookmark")
             .contentTransition(.symbolEffect(.replace))
-    }
-}
-
-/// How the actions look: a glyph in a circle, or a small glyph with its
-/// word (the sheet's thin row).
-enum EpisodeActionStyle {
-    case round
-    case labeled
-}
-
-/// A small glyph and its word, muted, 44 pt tall.
-struct EpisodeActionLabel<Glyph: View>: View {
-
-    let title: LocalizedStringKey
-    var isOn = false
-    @ViewBuilder let glyph: () -> Glyph
-
-    var body: some View {
-        HStack(spacing: 6) {
-            glyph()
-                .font(.system(size: 13, weight: .regular))
-                .frame(width: 18, height: 18)
-            Text(title)
-                .font(AppFont.footnote)
-        }
-        .foregroundStyle(isOn ? AppColor.Accent.strong : AppColor.Text.secondary)
-        .frame(height: 44)
-        .contentShape(Rectangle())
     }
 }
 
