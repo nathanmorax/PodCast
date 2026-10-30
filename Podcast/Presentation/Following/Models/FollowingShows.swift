@@ -15,7 +15,7 @@ struct FollowingShow: Identifiable {
     var id: Int { podcast.trackId }
 }
 
-/// Following's order and its "Latest · Tue" labels. Pure, so it's tested.
+/// Following's order. Pure, so it's tested.
 enum FollowingShows {
 
     /// Shows with new episodes first, then by their newest episode (newest
@@ -44,22 +44,5 @@ enum FollowingShows {
             }
         }
         .map(\.element)
-    }
-
-    /// When an episode came out, short: "Today", "Yesterday", the weekday
-    /// within the last week ("Tue"), otherwise the date ("Oct 14").
-    static func whenLabel(_ date: Date, now: Date = .now, calendar: Calendar = .current) -> String {
-        if calendar.isDate(date, inSameDayAs: now) {
-            return String(localized: "Today")
-        }
-        if let yesterday = calendar.date(byAdding: .day, value: -1, to: now),
-           calendar.isDate(date, inSameDayAs: yesterday) {
-            return String(localized: "Yesterday")
-        }
-        if let weekAgo = calendar.date(byAdding: .day, value: -6, to: calendar.startOfDay(for: now)),
-           date >= weekAgo, date <= now {
-            return date.formatted(.dateTime.weekday(.abbreviated))
-        }
-        return date.formatted(.dateTime.day().month(.abbreviated))
     }
 }

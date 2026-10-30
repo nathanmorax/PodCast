@@ -23,6 +23,12 @@ class AVPlayerViewModel {
     /// Time left, shown big in the player's top-right corner ("43:20").
     var remainingTimeText: String = ""
     var progress: Float = 0
+    /// Playback speed (1 = normal), remembered between launches.
+    private(set) var playbackRate: Float = 1
+
+    /// The speeds offered under 1×.
+    static let rates: [Float] = [0.8, 1, 1.2, 1.5, 1.75, 2]
+    private static let rateKey = "player.playbackRate"
 
     // MARK: - Private
     @ObservationIgnored private let player: PlayerDataSource
@@ -55,6 +61,11 @@ class AVPlayerViewModel {
         self.player = player
         self.bind()
         self.configureAudioSession()
+        let saved = UserDefaults.standard.float(forKey: Self.rateKey)
+        if Self.rates.contains(saved), saved != 1 {
+            playbackRate = saved
+            player.setRate(saved)
+        }
     }
 
     // MARK: - Audio session
@@ -152,6 +163,20 @@ class AVPlayerViewModel {
 
     func seekForward()  { seek(bySeconds: 15) }
     func seekBackward() { seek(bySeconds: -15) }
+    /// The full player's ⟳ 30.
+    func skipForward30() { seek(bySeconds: 30) }
+
+    func setPlaybackRate(_ rate: Float) {
+        playbackRate = rate
+        player.setRate(rate)
+        UserDefaults.standard.set(rate, forKey: Self.rateKey)
+        onPlaybackChange?()
+    }
+
+    /// "1×", "1.5×", "0.8×".
+    static func rateText(_ rate: Float) -> String {
+        rate.formatted(.number.precision(.fractionLength(0...2))) + "×"
+    }
 
     /// Jumps from where it is now (the 15 s buttons, the lock screen's, the
     /// AirPods'). With the length known it goes through `seek(to:)`, so the

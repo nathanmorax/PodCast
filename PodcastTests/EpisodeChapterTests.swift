@@ -41,17 +41,6 @@ struct EpisodeChapterTests {
     }
 }
 
-@Suite("PlayerTab")
-struct PlayerTabTests {
-    @Test("Swiping moves one page and stops at the ends")
-    func next() {
-        #expect(PlayerTab.player.next(forward: true) == .text)
-        #expect(PlayerTab.text.next(forward: false) == .player)
-        #expect(PlayerTab.text.next(forward: true) == nil)
-        #expect(PlayerTab.player.next(forward: false) == nil)
-    }
-}
-
 @Suite("Show notes")
 struct ShowNotesTests {
     @Test("HTML show notes keep one line per paragraph, so chapters are found")

@@ -47,6 +47,7 @@ struct ContinueShowStrip: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Continue · \(item.minutesLeftText(at: progress)) left")
                         .font(.caption2.weight(.bold))
+                        .lineLimit(1)
                         .monospacedDigit()
                     Text(item.episode.title)
                         .font(.system(.headline, weight: .bold).width(.compressed))

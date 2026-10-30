@@ -43,6 +43,8 @@ struct LibraryShowHeader: View {
                 .padding(.horizontal, 6)
                 .padding(.vertical, 3)
                 .background(AppColor.Accent.soft)
+                .lineLimit(1)
+                .fixedSize()
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)

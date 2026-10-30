@@ -87,7 +87,7 @@ struct FollowingShowBand: View {
             }
 
             if let latest = show.latest {
-                Text("Latest · \(FollowingShows.whenLabel(latest.pubDate))")
+                Text("Latest · \(latest.pubDate.shortDayText())")
                     .font(.caption2.weight(.bold))
                     .textCase(.uppercase)
                     .tracking(0.6)

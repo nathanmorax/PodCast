@@ -5,20 +5,35 @@
 
 import SwiftUI
 
-/// One episode on its podcast's page, no cover (they'd all be the show's):
-/// date · length in small capitals (↓ when downloaded), the title in tall
-/// capitals, a line of what it's about, and ▶ in a thin ring. The row opens
+/// One episode on its podcast's page: its cover (the episode's own, or the
+/// show's), date · length in small capitals (↓ when downloaded), the title
+/// in tall capitals, a line of what it's about, and ▶ in a thin ring. The row opens
 /// the episode; ▶ plays it in the mini player.
 struct PodcastEpisodeRow: View {
 
     let episode: Episode
+    /// The show's cover, for episodes without their own.
+    var showArtwork: String? = nil
     let onOpen: () -> Void
+
+    private var artwork: String? {
+        if let image = episode.imageUrl, !image.isEmpty { return image }
+        return showArtwork
+    }
 
     var body: some View {
         let actions = EpisodeActionViewModel(episode: episode)
 
         HStack(alignment: .top, spacing: 14) {
             Button(action: onOpen) {
+                HStack(alignment: .top, spacing: 14) {
+                Color.clear
+                    .frame(width: 64, height: 64)
+                    .overlay { PodcastImage(source: artwork) }
+                    .clipped()
+                    .padding(.top, 2)
+                    .accessibilityHidden(true)
+
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 6) {
                         Text(episode.pubDate, format: .dateTime.day().month(.abbreviated).year())
@@ -48,6 +63,7 @@ struct PodcastEpisodeRow: View {
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                }
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)

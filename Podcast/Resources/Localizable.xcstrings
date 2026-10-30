@@ -11,6 +11,16 @@
         }
       }
     },
+    "%@ · %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · %@"
+          }
+        }
+      }
+    },
     "%@ left" : {
       "localizations" : {
         "es" : {
@@ -126,24 +136,6 @@
     },
     "%lld new episodes" : {
       "localizations" : {
-        "es" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld episodio nuevo"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld episodios nuevos"
-                }
-              }
-            }
-          }
-        },
         "en" : {
           "variations" : {
             "plural" : {
@@ -157,6 +149,24 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%lld new episodes"
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld episodio nuevo"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld episodios nuevos"
                 }
               }
             }
@@ -197,24 +207,6 @@
     },
     "%lld shows" : {
       "localizations" : {
-        "es" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld programa"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld programas"
-                }
-              }
-            }
-          }
-        },
         "en" : {
           "variations" : {
             "plural" : {
@@ -228,6 +220,24 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%lld shows"
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld programa"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld programas"
                 }
               }
             }
@@ -579,6 +589,16 @@
         }
       }
     },
+    "Done" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listo"
+          }
+        }
+      }
+    },
     "Download" : {
       "localizations" : {
         "es" : {
@@ -677,6 +697,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Educación"
+          }
+        }
+      }
+    },
+    "End of episode" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al terminar el episodio"
           }
         }
       }
@@ -1081,7 +1111,6 @@
       }
     },
     "More" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1132,6 +1161,7 @@
       }
     },
     "Newest" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1252,6 +1282,16 @@
         }
       }
     },
+    "Off" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apagado"
+          }
+        }
+      }
+    },
     "Offline" : {
       "localizations" : {
         "es" : {
@@ -1263,6 +1303,7 @@
       }
     },
     "Oldest" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1374,6 +1415,16 @@
         }
       }
     },
+    "Pauses at %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se pausa a las %@"
+          }
+        }
+      }
+    },
     "Pick at least one." : {
       "localizations" : {
         "es" : {
@@ -1437,6 +1488,7 @@
       }
     },
     "Player" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1880,6 +1932,26 @@
         }
       }
     },
+    "Skip forward 30 seconds" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adelantar 30 segundos"
+          }
+        }
+      }
+    },
+    "Sleep timer" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Temporizador"
+          }
+        }
+      }
+    },
     "Society & Culture" : {
       "localizations" : {
         "es" : {
@@ -1896,6 +1968,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Se necesita permiso de reconocimiento de voz"
+          }
+        }
+      }
+    },
+    "Speed" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Velocidad"
           }
         }
       }
@@ -1955,6 +2037,7 @@
       "shouldTranslate" : false
     },
     "Text" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1995,6 +2078,7 @@
       }
     },
     "Time remaining %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -2055,7 +2139,6 @@
       }
     },
     "Transcript" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -2091,6 +2174,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reintentar"
+          }
+        }
+      }
+    },
+    "Turn off timer" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apagar temporizador"
           }
         }
       }
@@ -2234,16 +2327,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tus podcasts"
-          }
-        }
-      }
-    },
-    "%@ · %@" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ · %@"
           }
         }
       }

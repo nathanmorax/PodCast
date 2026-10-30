@@ -81,7 +81,7 @@ struct PodcastEpisodesView: View {
                 ForEach(viewModel.episodes, id: \.streamUrl) { episode in
                     VStack(spacing: 0) {
                         Divider()
-                        PodcastEpisodeRow(episode: episode) { onOpenEpisode(episode) }
+                        PodcastEpisodeRow(episode: episode, showArtwork: podcast.artworkUrl600) { onOpenEpisode(episode) }
                     }
                     .padding(.horizontal, 20)
                     .onAppear { loadMoreIfLast(episode) }

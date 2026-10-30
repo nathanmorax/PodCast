@@ -25,10 +25,9 @@ struct MiniPlayerCapsule: View {
                         .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
 
                     VStack(alignment: .leading, spacing: 7) {
-                        Text(episode.title)
-                            .font(AppFont.label)
+                        // Slides to show the whole title, edges fading.
+                        MarqueeText(text: episode.title, font: AppFont.label)
                             .foregroundStyle(AppColor.Text.primary)
-                            .lineLimit(1)
                         // Its own view: only the bar redraws as playback moves.
                         MiniProgressBar()
                     }

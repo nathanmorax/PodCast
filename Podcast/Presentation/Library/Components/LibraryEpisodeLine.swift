@@ -5,7 +5,7 @@
 
 import SwiftUI
 
-/// One episode in the Library's list: date · length in small capitals,
+/// One episode in the Library's list: its cover, date · length in small capitals,
 /// the title in tall capitals (a hairline under it while it downloads)
 /// and ▶ in a thin ring. The line opens the episode; ▶ plays it; touch
 /// and hold for save, download and share.
@@ -19,6 +19,13 @@ struct LibraryEpisodeLine: View {
 
         HStack(spacing: 12) {
             Button(action: onOpen) {
+                HStack(spacing: 12) {
+                Color.clear
+                    .frame(width: 56, height: 56)
+                    .overlay { PodcastImage(source: item.artwork) }
+                    .clipped()
+                    .accessibilityHidden(true)
+
                 VStack(alignment: .leading, spacing: 3) {
                     LibraryEpisodeMeta(episode: item.episode, isPlaying: actions.isPlaying)
 
@@ -33,6 +40,7 @@ struct LibraryEpisodeLine: View {
                         .padding(.top, 4)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                }
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)

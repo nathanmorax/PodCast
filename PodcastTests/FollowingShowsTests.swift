@@ -50,7 +50,7 @@ struct FollowingShowsTests {
     @Test("Today and yesterday by name")
     func whenLabel() {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
-        #expect(FollowingShows.whenLabel(now, now: now) == String(localized: "Today"))
-        #expect(FollowingShows.whenLabel(now.addingTimeInterval(-86_400), now: now) == String(localized: "Yesterday"))
+        #expect(now.shortDayText(now: now) == String(localized: "Today"))
+        #expect(now.addingTimeInterval(-86_400).shortDayText(now: now) == String(localized: "Yesterday"))
     }
 }

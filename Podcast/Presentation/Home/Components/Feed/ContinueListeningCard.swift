@@ -55,6 +55,8 @@ struct ContinueListeningCard: View {
                         Text(verbatim: "·")
                         Text("\(item.minutesLeftText(at: progress)) left")
                             .monospacedDigit()
+                            .lineLimit(1)
+                            .fixedSize()
                             .contentTransition(.numericText())
                     }
                     .font(.footnote)

@@ -131,7 +131,7 @@ struct OnboardingSplashLayer: View {
             TellMeMoreMark(
                 size: OnboardingIntro.bigSize,
                 step: intro.step,
-                ink: intro.isSplash ? AppColor.Text.primary : AppColor.Text.onPastel
+                ink: AppColor.Text.primary
             )
             .scaleEffect(intro.isSplash ? 1 : scale, anchor: .topLeading)
             .padding(intro.isSplash ? EdgeInsets() : OnboardingIntro.cornerInset)

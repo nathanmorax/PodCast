@@ -6,7 +6,8 @@
 import SwiftUI
 
 /// "EPISODES", then All · Unplayed · Downloaded as chips (the chosen one
-/// filled in ink) and the order as a menu on the right.
+/// filled in ink) and the order as a ⇅ menu on the right. The chips scroll
+/// sideways when they don't fit (longer words in Spanish, large text).
 struct EpisodeListControls: View {
 
     let filter: EpisodeFilter
@@ -19,10 +20,15 @@ struct EpisodeListControls: View {
             EpisodeSectionTitle(title: "Episodes")
 
             HStack(spacing: 8) {
-                ForEach(EpisodeFilter.allCases, id: \.self) { item in
-                    chip(item)
+                ScrollView(.horizontal) {
+                    HStack(spacing: 8) {
+                        ForEach(EpisodeFilter.allCases, id: \.self) { item in
+                            chip(item)
+                        }
+                    }
                 }
-                Spacer(minLength: 0)
+                .scrollIndicators(.hidden)
+                .scrollBounceBehavior(.basedOnSize)
                 orderMenu
             }
         }
@@ -37,6 +43,8 @@ struct EpisodeListControls: View {
         } label: {
             Text(item.title)
                 .font(.footnote.weight(.bold))
+                .lineLimit(1)
+                .fixedSize()
                 .foregroundStyle(isOn ? AppColor.Text.inverse : AppColor.Text.primary)
                 .padding(.horizontal, 14)
                 .frame(minHeight: 34)
@@ -62,14 +70,10 @@ struct EpisodeListControls: View {
                 }
             }
         } label: {
-            HStack(spacing: 4) {
-                Text(order == .newest ? "Newest" : "Oldest")
-                Image(systemName: "chevron.down")
-                    .font(.caption2.weight(.bold))
-            }
-            .font(.footnote.weight(.semibold))
-            .foregroundStyle(AppColor.Text.secondary)
-            .frame(minHeight: 44)
+            Image(systemName: "arrow.up.arrow.down")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(AppColor.Text.secondary)
+                .frame(width: 44, height: 44)
             .contentShape(Rectangle())
         }
         .accessibilityLabel("Order")
