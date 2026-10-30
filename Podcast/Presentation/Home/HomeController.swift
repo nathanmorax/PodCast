@@ -48,7 +48,6 @@ final class HomeController: UIViewController {
                     from: .episode(episode.streamUrl, section: .recentlyPlayed)
                 )
             },
-            onOpenLibrary: { [weak self] tab in self?.openLibrary(tab: tab) },
             onSearch: { AppNavigator.shared.showSearch() },
             onOpenFollowing: { [weak self] in
                 guard let self else { return }

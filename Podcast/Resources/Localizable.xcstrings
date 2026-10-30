@@ -2,6 +2,7 @@
   "sourceLanguage" : "en",
   "strings" : {
     "“%@”" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -22,6 +23,7 @@
       }
     },
     "%@ left" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -307,6 +309,7 @@
       }
     },
     "Because you like %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -500,6 +503,7 @@
       }
     },
     "Continue listening" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -723,6 +727,7 @@
       }
     },
     "Episode of the day" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -836,6 +841,7 @@
       }
     },
     "For you" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -876,6 +882,7 @@
       }
     },
     "Go to podcast" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1435,17 +1442,6 @@
         }
       }
     },
-    "Picked for you" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elegidos para ti"
-          }
-        }
-      }
-    },
     "Play" : {
       "localizations" : {
         "es" : {
@@ -1582,6 +1578,7 @@
       }
     },
     "Remove" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1820,6 +1817,7 @@
       }
     },
     "Short listen" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1862,6 +1860,7 @@
       }
     },
     "Show to follow" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -2327,6 +2326,56 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tus podcasts"
+          }
+        }
+      }
+    },
+    "For You" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para ti"
+          }
+        }
+      }
+    },
+    "Nothing picked yet" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aún no hay recomendaciones"
+          }
+        }
+      }
+    },
+    "Choose what you like to listen to and picks will show up here." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige lo que te gusta escuchar y aquí aparecerán recomendaciones."
+          }
+        }
+      }
+    },
+    "Nothing to continue" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nada por continuar"
+          }
+        }
+      }
+    },
+    "Episodes you leave halfway show up here." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los episodios que dejas a medias aparecen aquí."
           }
         }
       }

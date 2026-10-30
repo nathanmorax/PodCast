@@ -5,8 +5,8 @@
 
 import SwiftUI
 
-/// The podcasts you follow, as square covers (corners rounded 8) with their
-/// name under them. Each cover is what its podcast's page zooms out of and
+/// The podcasts you follow, as rounded covers with their name under them
+/// and a green dot when there's something new. Each cover is what its podcast's page zooms out of and
 /// back into. A show with new episodes has them peeking out from behind
 /// its cover (PeekingCover).
 struct LibraryCovers: View {
@@ -32,8 +32,8 @@ struct LibraryCovers: View {
         return visibleWidth > 0 && coversWidth > visibleWidth
     }
 
-    static let side: CGFloat = 68
-    static let cornerRadius: CGFloat = 4
+    static let side: CGFloat = 76
+    static let cornerRadius: CGFloat = 18
 
     var body: some View {
         ScrollView(.horizontal) {
@@ -42,7 +42,7 @@ struct LibraryCovers: View {
                     Button {
                         onOpen(podcast)
                     } label: {
-                        VStack(alignment: .leading, spacing: 6) {
+                        VStack(spacing: 6) {
                             // The cards peeking out say it's new; no text needed.
                             PeekingCover(
                                 podcast: podcast,
@@ -50,13 +50,17 @@ struct LibraryCovers: View {
                                 side: Self.side,
                                 cornerRadius: Self.cornerRadius
                             )
+                            .overlay(alignment: .bottomTrailing) {
+                                if !(newEpisodes[podcast.trackId] ?? []).isEmpty {
+                                    newDot
+                                }
+                            }
                             Text(podcast.trackName ?? "")
-                                .font(AppFont.feedSmall)
-                                .textCase(.uppercase)
+                                .font(.caption.weight(.medium))
                                 .foregroundStyle(AppColor.Text.primary)
                                 .lineLimit(1)
                         }
-                        .frame(width: Self.side, alignment: .leading)
+                        .frame(width: Self.side)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -78,6 +82,17 @@ struct LibraryCovers: View {
         } action: { _, width in
             visibleWidth = width
         }
+    }
+
+    /// The green dot on a cover's corner: new episodes.
+    private var newDot: some View {
+        Circle()
+            .fill(AppColor.Accent.strong)
+            .frame(width: 18, height: 18)
+            .overlay { Circle().strokeBorder(AppColor.screenBackground, lineWidth: 3) }
+            .offset(x: 4, y: 4)
+            .transition(.scale.combined(with: .opacity))
+            .accessibilityHidden(true)
     }
 
     private func newValue(for podcast: Podcast) -> Text {

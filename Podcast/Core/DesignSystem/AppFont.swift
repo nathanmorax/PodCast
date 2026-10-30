@@ -57,7 +57,7 @@ enum AppFont {
 
     static let feedHero   = Font.system(.largeTitle, weight: .bold).width(.compressed)
     static let feedTitle  = Font.system(.title, weight: .bold).width(.compressed)
-    static let feedSmall  = Font.system(.subheadline, weight: .semibold).width(.compressed)
+
 
     // MARK: SF Pro — everything else
 
