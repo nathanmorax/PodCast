@@ -2369,6 +2369,66 @@
           }
         }
       }
+    },
+    "Removed from Saved" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitado de Guardados"
+          }
+        }
+      }
+    },
+    "Unfollowed" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dejaste de seguir"
+          }
+        }
+      }
+    },
+    "Download removed" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descarga eliminada"
+          }
+        }
+      }
+    },
+    "Download canceled" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descarga cancelada"
+          }
+        }
+      }
+    },
+    "Removed from history" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitado del historial"
+          }
+        }
+      }
+    },
+    "Episode saved" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episodio guardado"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

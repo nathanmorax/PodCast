@@ -47,4 +47,12 @@ struct AppStatusResolverTests {
                                        .downloaded(localURL: URL(fileURLWithPath: "/x")), .failed("e"), .idle]
         #expect(AppStatusResolver.downloadProgress(states) == [0, 0.5])
     }
+
+    @Test("What you just did shows right away, even over downloads; offline still wins")
+    func confirmations() {
+        for flash in [AppStatus.saved, .unsaved, .followed, .unfollowed, .downloadRemoved, .downloadCanceled, .removedFromHistory] {
+            #expect(AppStatusResolver.resolve(isOffline: false, downloads: [0.5], isUpdating: true, flash: flash) == flash)
+            #expect(AppStatusResolver.resolve(isOffline: true, downloads: [], isUpdating: false, flash: flash) == .offline)
+        }
+    }
 }

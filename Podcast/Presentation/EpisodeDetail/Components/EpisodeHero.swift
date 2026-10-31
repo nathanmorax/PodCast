@@ -17,10 +17,6 @@ struct EpisodeHero: View {
     /// Opens the show, when it's known.
     var onOpenShow: (() -> Void)? = nil
 
-    /// How far the page scrolls before the title passes under the bar (the
-    /// bar then shows it).
-    static let height: CGFloat = 400
-
     static let coverSide: CGFloat = 230
 
     @State private var loadedTint: ArtworkTint?

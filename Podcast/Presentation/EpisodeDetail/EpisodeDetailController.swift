@@ -6,10 +6,9 @@
 import UIKit
 import SwiftUI
 
-/// An episode, full screen (EpisodeDetailView). The navigation bar is clear
-/// over the artwork and turns solid, with the title in tall capitals, once
-/// the artwork scrolls away. Save, download and share are on the page,
-/// under the artwork, so the bar only has the back button.
+/// An episode, full screen (EpisodeDetailView). The navigation bar stays
+/// clear, with no title: only the back button. Save, download and share
+/// are on the page, under the artwork.
 final class EpisodeDetailController: UIViewController, ZoomDismissible {
 
     private let viewModel: EpisodeDetailViewModel
@@ -29,9 +28,8 @@ final class EpisodeDetailController: UIViewController, ZoomDismissible {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = ColorName.screenBackground.uiColor
-        navigationItem.largeTitleDisplayMode = .never
+        useClearNavigationBar()
         setupHosting()
-        updateNavigationBar(offset: 0)
     }
 
     private func setupHosting() {
@@ -61,45 +59,5 @@ final class EpisodeDetailController: UIViewController, ZoomDismissible {
 
     private func didScroll(to offset: CGFloat) {
         scrollOffset = offset
-        updateNavigationBar(offset: offset)
-    }
-
-    // MARK: - Navigation bar over the artwork
-
-    private var isCollapsed: Bool?
-
-    private lazy var transparentAppearance: UINavigationBarAppearance = {
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithTransparentBackground()
-        return appearance
-    }()
-
-    private lazy var solidAppearance: UINavigationBarAppearance = {
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithDefaultBackground()
-        return appearance
-    }()
-
-    /// The title in the bar, once the artwork (and its title) is gone.
-    private lazy var collapsedTitle: UILabel = {
-        let label = UILabel()
-        label.font = .preferredFont(forTextStyle: .headline)
-        label.adjustsFontForContentSizeCategory = true
-        label.text = viewModel.episode.title
-        label.textColor = ColorName.ink.uiColor
-        label.lineBreakMode = .byTruncatingTail
-        return label
-    }()
-
-    private func updateNavigationBar(offset: CGFloat) {
-        let threshold = EpisodeHero.height - view.safeAreaInsets.top - 60
-        let collapsed = offset > threshold
-        guard collapsed != isCollapsed else { return }
-        isCollapsed = collapsed
-        let appearance = collapsed ? solidAppearance : transparentAppearance
-        navigationItem.standardAppearance = appearance
-        navigationItem.scrollEdgeAppearance = appearance
-        navigationItem.compactAppearance = appearance
-        navigationItem.titleView = collapsed ? collapsedTitle : UIView()
     }
 }
