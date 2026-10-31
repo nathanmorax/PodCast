@@ -42,12 +42,7 @@ final class HomeController: UIViewController {
                     from: .episode(episode.streamUrl, section: section)
                 )
             },
-            onOpenPlayedEpisode: { [weak self] episode in
-                self?.pushZooming(
-                    EpisodeDetailController(episode: episode, podcast: nil),
-                    from: .episode(episode.streamUrl, section: .recentlyPlayed)
-                )
-            },
+            onOpenLibrary: { [weak self] tab in self?.openLibrary(tab: tab) },
             onSearch: { AppNavigator.shared.showSearch() },
             onOpenFollowing: { [weak self] in
                 guard let self else { return }

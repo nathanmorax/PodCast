@@ -5,13 +5,15 @@
 
 import SwiftUI
 
-/// Home, like a social app's feed:
-/// 1. Your shows (always on top): the podcasts you follow, as rounded
-///    covers with their names; new episodes peek out from behind them.
-/// 2. For You · Following · Continue, pinned under them while you scroll.
-/// 3. The chosen tab's posts: each episode with its show's avatar, name and
-///    category, a big rounded image with a bookmark, its title and ▶.
-/// Following nothing yet: an invitation to search above the tabs.
+/// Home, like a classic podcast app's:
+/// 1. "Welcome back".
+/// 2. Your Podcasts (always on top of the lists): the shows you follow as
+///    big rounded covers with their name and maker; a green dot means new
+///    episodes. See All opens Following.
+/// 3. Latest Episodes: the newest of those shows, each with a line of what
+///    it's about, ▶, how far along, save and ⋮. See All opens the Library.
+/// 4. For You: picks from your interests, in the same rows.
+/// Following nothing yet: an invitation to search, then For You.
 struct HomeView: View {
 
     @Environment(\.favoritesManager) private var favoritesManager
@@ -23,47 +25,67 @@ struct HomeView: View {
     let followingFeed: FollowingFeedViewModel
     /// Owned by the view: the picks stay while Home lives.
     @State private var forYou = ForYouViewModel(cache: .standard)
-    @State private var tab: HomeTab = .forYou
 
     let onOpenPodcast: (Podcast) -> Void
     /// The section says which card the episode zooms out of and back into.
     let onOpenEpisode: (Episode, Podcast, ZoomID.Section) -> Void
-    /// An episode with no podcast at hand (a half-listened one).
-    let onOpenPlayedEpisode: (Episode) -> Void
+    let onOpenLibrary: (LibraryTab) -> Void
     let onSearch: () -> Void
     let onOpenFollowing: () -> Void
 
     private var following: [Podcast] { favoritesManager.favorites }
 
-    private var posts: [HomePost] {
-        switch tab {
-        case .forYou:
-            HomePosts.posts(forYou.visibleItems(excluding: Set(following.map(\.trackId))))
-        case .following:
-            HomePosts.posts(InboxFeed.items(following: following, episodes: followingFeed.episodesByPodcast))
-        case .continueListening:
-            HomePosts.continuePosts(recentlyPlayed.items)
-        }
-    }
-
     var body: some View {
-        let posts = self.posts
+        let latest = HomeSections.latest(
+            InboxFeed.items(following: following, episodes: followingFeed.episodesByPodcast)
+        )
+        let picks = HomeSections.picks(
+            forYou.visibleItems(excluding: Set(following.map(\.trackId))),
+            excluding: latest
+        )
+        let played = Dictionary(recentlyPlayed.items.map { ($0.id, $0) }) { first, _ in first }
 
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Welcome back")
+                    .font(.largeTitle.weight(.bold))
+                    .foregroundStyle(AppColor.Text.primary)
+                    .accessibilityAddTraits(.isHeader)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 18)
+
                 if following.isEmpty {
                     emptyState
-                        .padding(.bottom, 24)
+                        .padding(.bottom, 28)
                 } else {
-                    showsStrip
-                        .padding(.bottom, 14)
+                    HomeSectionHeader(title: "Your Podcasts", onSeeAll: onOpenFollowing)
+                        .padding(.horizontal, 20)
+                    YourPodcastsRow(
+                        podcasts: following,
+                        newEpisodes: NewEpisodeMarks.newEpisodes(
+                            podcasts: following,
+                            episodes: followingFeed.episodesByPodcast,
+                            inboxSeen: InboxSeen.shared.lastSeen,
+                            showSeen: ShowSeen.shared.lastSeen
+                        ),
+                        onOpen: onOpenPodcast
+                    )
+                    .padding(.top, 8)
+                    .padding(.bottom, 28)
                 }
 
-                Section {
-                    feed(posts)
-                        .padding(.top, 18)
-                } header: {
-                    HomeTabBar(tab: $tab)
+                if !latest.isEmpty {
+                    episodeSection("Latest Episodes", items: latest, played: played) {
+                        onOpenLibrary(.new)
+                    }
+                    .padding(.bottom, 20)
+                }
+
+                if !picks.isEmpty {
+                    episodeSection("For You", items: picks, played: played, onSeeAll: nil)
+                } else if forYou.isLoading {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, minHeight: 120)
                 }
             }
             .padding(.top, 4)
@@ -72,7 +94,7 @@ struct HomeView: View {
         .scrollIndicators(.hidden)
         .background(AppColor.screenBackground.ignoresSafeArea())
         .animation(AppAnimation.listChange, value: following.map(\.trackId))
-        .animation(AppAnimation.listChange, value: posts.map(\.id))
+        .animation(AppAnimation.listChange, value: latest.map(\.id))
         // Reload when you follow or unfollow a podcast.
         .task(id: following.map(\.trackId)) {
             followingFeed.load(following: following)
@@ -87,79 +109,27 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Feed
+    // MARK: - Episodes
 
-    @ViewBuilder
-    private func feed(_ posts: [HomePost]) -> some View {
-        if posts.isEmpty {
-            if tab == .forYou, forYou.isLoading {
-                ProgressView()
-                    .frame(maxWidth: .infinity, minHeight: 200)
-            } else {
-                emptyTab
-                    .frame(maxWidth: .infinity, minHeight: 260)
-            }
-        } else {
-            LazyVStack(spacing: 34) {
-                ForEach(posts) { post in
-                    HomePostCard(
-                        post: post,
-                        onOpen: { open(post) },
-                        onOpenShow: post.podcast.map { podcast in { onOpenPodcast(podcast) } }
-                    )
+    /// A title (with See All), then the episodes with a hairline between.
+    private func episodeSection(
+        _ title: LocalizedStringKey,
+        items: [PodcastEpisode],
+        played: [String: RecentlyPlayed],
+        onSeeAll: (() -> Void)?
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HomeSectionHeader(title: title, onSeeAll: onSeeAll)
+            ForEach(items) { item in
+                HomeEpisodeRow(item: item, played: played[item.id]) {
+                    onOpenEpisode(item.episode, item.podcast, .feed)
+                }
+                if item.id != items.last?.id {
+                    Divider()
                 }
             }
         }
-    }
-
-    private func open(_ post: HomePost) {
-        if let podcast = post.podcast {
-            onOpenEpisode(post.episode, podcast, post.section)
-        } else {
-            onOpenPlayedEpisode(post.episode)
-        }
-    }
-
-    @ViewBuilder
-    private var emptyTab: some View {
-        switch tab {
-        case .forYou:
-            ContentUnavailableView(
-                "Nothing picked yet",
-                systemImage: "sparkles",
-                description: Text("Choose what you like to listen to and picks will show up here.")
-            )
-        case .following:
-            ContentUnavailableView(
-                "No new episodes",
-                systemImage: "tray",
-                description: Text("New episodes from the podcasts you follow show up here.")
-            )
-        case .continueListening:
-            ContentUnavailableView(
-                "Nothing to continue",
-                systemImage: "play.circle",
-                description: Text("Episodes you leave halfway show up here.")
-            )
-        }
-    }
-
-    // MARK: - Your shows
-
-    /// The podcasts you follow, as small square covers with their names;
-    /// the See All tile at the end (only when they overflow) opens Following.
-    private var showsStrip: some View {
-        LibraryCovers(
-            podcasts: following,
-            newEpisodes: NewEpisodeMarks.newEpisodes(
-                podcasts: following,
-                episodes: followingFeed.episodesByPodcast,
-                inboxSeen: InboxSeen.shared.lastSeen,
-                showSeen: ShowSeen.shared.lastSeen
-            ),
-            onOpen: onOpenPodcast,
-            onSeeAll: onOpenFollowing
-        )
+        .padding(.horizontal, 20)
     }
 
     // MARK: - Empty
@@ -190,6 +160,6 @@ struct HomeView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 32)
-        .padding(.top, 24)
+        .padding(.top, 8)
     }
 }

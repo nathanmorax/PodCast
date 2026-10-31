@@ -23,7 +23,6 @@
       }
     },
     "%@ left" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -851,6 +850,16 @@
         }
       }
     },
+    "For You" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para ti"
+          }
+        }
+      }
+    },
     "For you · %@" : {
       "localizations" : {
         "es" : {
@@ -1000,6 +1009,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Último · %@"
+          }
+        }
+      }
+    },
+    "Latest Episodes" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Últimos episodios"
           }
         }
       }
@@ -2257,6 +2276,16 @@
         }
       }
     },
+    "Welcome back" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bienvenido de nuevo"
+          }
+        }
+      }
+    },
     "What do you like to listen to?" : {
       "localizations" : {
         "es" : {
@@ -2330,52 +2359,12 @@
         }
       }
     },
-    "For You" : {
+    "Your Podcasts" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Para ti"
-          }
-        }
-      }
-    },
-    "Nothing picked yet" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aún no hay recomendaciones"
-          }
-        }
-      }
-    },
-    "Choose what you like to listen to and picks will show up here." : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elige lo que te gusta escuchar y aquí aparecerán recomendaciones."
-          }
-        }
-      }
-    },
-    "Nothing to continue" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nada por continuar"
-          }
-        }
-      }
-    },
-    "Episodes you leave halfway show up here." : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los episodios que dejas a medias aparecen aquí."
+            "value" : "Tus podcasts"
           }
         }
       }
