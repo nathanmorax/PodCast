@@ -23,4 +23,12 @@ enum HomeSections {
         let shown = Set(latest.map(\.id))
         return Array(picks.filter { !shown.contains($0.id) }.prefix(picksLimit))
     }
+
+    /// "Recently played" shows this many (the rest: See All, History).
+    static let recentLimit = 8
+
+    /// The last ones played, the latest first.
+    static func recentlyPlayed(_ items: [RecentlyPlayed]) -> [RecentlyPlayed] {
+        Array(items.sorted { $0.lastPlayedAt > $1.lastPlayedAt }.prefix(recentLimit))
+    }
 }

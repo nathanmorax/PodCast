@@ -14,10 +14,6 @@ struct PodcastHero: View {
     let podcast: Podcast
     let cadence: ShowCadence?
 
-    /// How far the page scrolls before the name passes under the bar (the
-    /// bar then shows it).
-    static let height: CGFloat = 380
-
     static let coverSide: CGFloat = 210
 
     /// The cover's color; read once it loads (cached after that).

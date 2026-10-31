@@ -32,4 +32,19 @@ enum NewEpisodeMarks {
         }
         return result
     }
+
+    /// The shows with new episodes first (the one with the newest episode
+    /// leading), then the rest as they were.
+    static func newFirst(_ podcasts: [Podcast], newEpisodes: [Int: [Episode]]) -> [Podcast] {
+        let newest = { (podcast: Podcast) in newEpisodes[podcast.trackId]?.first?.pubDate }
+        return podcasts.enumerated().sorted { lhs, rhs in
+            switch (newest(lhs.element), newest(rhs.element)) {
+            case let (a?, b?) where a != b: return a > b
+            case (.some, nil): return true
+            case (nil, .some): return false
+            default: return lhs.offset < rhs.offset
+            }
+        }
+        .map(\.element)
+    }
 }

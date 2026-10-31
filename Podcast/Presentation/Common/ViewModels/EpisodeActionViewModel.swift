@@ -61,6 +61,7 @@ final class EpisodeActionViewModel {
     
     func cancelDownload() {
         downloadManager.cancelDownload(episode)
+        StatusCenter.shared.flash(.downloadCanceled)
     }
     
     func deleteDownload() {

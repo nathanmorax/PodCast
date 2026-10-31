@@ -50,15 +50,11 @@ final class EpisodesController: UIViewController, ZoomDismissible {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = ColorName.screenBackground.uiColor
+        useClearNavigationBar()
         setupPage()
         listenToHeaderEvents()
         // One request: episodes and the description come from the same feed.
         loadEpisodes()
-    }
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        updateNavigationBar()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -118,54 +114,12 @@ final class EpisodesController: UIViewController, ZoomDismissible {
 
     private func didScroll(to offset: CGFloat) {
         scrollOffset = offset
-        updateNavigationBar()
     }
 
     // MARK: - Drag down to close (pushZooming)
 
     /// At the top (or pulled past it): dragging down closes the page.
     var isScrolledToTop: Bool { scrollOffset <= 1 }
-
-    // MARK: - Navigation bar over the cover
-
-    private var isHeaderCollapsed = false
-
-    private lazy var transparentBarAppearance: UINavigationBarAppearance = {
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithTransparentBackground()
-        return appearance
-    }()
-
-    private lazy var solidBarAppearance: UINavigationBarAppearance = {
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithDefaultBackground()
-        return appearance
-    }()
-
-    /// The show's name in the bar, once the cover (and its name) is gone.
-    private lazy var collapsedTitle: UILabel = {
-        let label = UILabel()
-        label.font = .preferredFont(forTextStyle: .headline)
-        label.adjustsFontForContentSizeCategory = true
-        label.text = podcast?.trackName
-        label.textColor = ColorName.ink.uiColor
-        label.lineBreakMode = .byTruncatingTail
-        return label
-    }()
-
-    /// Transparent over the cover; solid with the podcast's name once the
-    /// cover has scrolled away.
-    private func updateNavigationBar() {
-        let threshold = PodcastHero.height - view.safeAreaInsets.top - 60
-        let collapsed = scrollOffset > threshold
-        guard collapsed != isHeaderCollapsed || navigationItem.standardAppearance == nil else { return }
-        isHeaderCollapsed = collapsed
-        let appearance = collapsed ? solidBarAppearance : transparentBarAppearance
-        navigationItem.standardAppearance = appearance
-        navigationItem.scrollEdgeAppearance = appearance
-        navigationItem.compactAppearance = appearance
-        navigationItem.titleView = collapsed ? collapsedTitle : UIView()
-    }
 
     // MARK: - Header events
 

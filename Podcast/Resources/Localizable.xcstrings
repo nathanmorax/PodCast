@@ -1515,6 +1515,16 @@
         }
       }
     },
+    "Played" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escuchado"
+          }
+        }
+      }
+    },
     "Player" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1599,18 +1609,16 @@
       }
     },
     "Recently played" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Escuchado recientemente"
+            "value" : "Escuchados recientemente"
           }
         }
       }
     },
     "Remove" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -2358,6 +2366,66 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tus podcasts"
+          }
+        }
+      }
+    },
+    "Removed from Saved" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitado de Guardados"
+          }
+        }
+      }
+    },
+    "Unfollowed" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dejaste de seguir"
+          }
+        }
+      }
+    },
+    "Download removed" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descarga eliminada"
+          }
+        }
+      }
+    },
+    "Download canceled" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descarga cancelada"
+          }
+        }
+      }
+    },
+    "Removed from history" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitado del historial"
+          }
+        }
+      }
+    },
+    "Episode saved" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Episodio guardado"
           }
         }
       }

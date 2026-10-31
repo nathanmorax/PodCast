@@ -111,7 +111,7 @@ struct PlayerView: View {
                 .padding(.top, 10)
 
             bottomBar
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 40)
                 .padding(.top, 24)
                 .padding(.bottom, 16)
         }
@@ -132,8 +132,14 @@ struct PlayerView: View {
         Color.clear
             .frame(maxWidth: .infinity, minHeight: 180, maxHeight: .infinity)
             .layoutPriority(-1)
-            .overlay {
-                PodcastImage(source: episode.imageUrl, contentMode: .fill)
+            // The cover's top stays in view: square and full width, pinned
+            // to the top, so if anything is cut it's the bottom (which
+            // fades out anyway).
+            .overlay(alignment: .top) {
+                GeometryReader { proxy in
+                    PodcastImage(source: episode.imageUrl, contentMode: .fill)
+                        .frame(width: proxy.size.width, height: max(proxy.size.width, proxy.size.height))
+                }
             }
             .overlay {
                 if !hasArtwork {
@@ -216,17 +222,17 @@ struct PlayerView: View {
             .accessibilityLabel("Transcript")
         }
         .buttonStyle(.plain)
-        .padding(.horizontal, 14)
+        .padding(.horizontal, 8)
         .frame(height: 44)
-        .background(AppColor.Surface.muted, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(AppColor.Surface.muted, in: Capsule())
     }
 
     private func trayGlyph(_ systemName: String, color: Color = AppColor.ink) -> some View {
         Image(systemName: systemName)
-            .font(.system(size: 21, weight: .regular))
+            .font(.system(size: 17, weight: .regular))
             .contentTransition(.symbolEffect(.replace))
             .foregroundStyle(color)
-            .frame(width: 48, height: 48)
+            .frame(width: 44, height: 44)
             .contentShape(Rectangle())
     }
 
@@ -570,10 +576,10 @@ struct PlayerView: View {
             }
         } label: {
             Text(verbatim: AVPlayerViewModel.rateText(viewModel.playbackRate))
-                .font(.system(.title3, weight: .regular))
+                .font(.system(.callout, weight: .medium))
                 .monospacedDigit()
                 .foregroundStyle(viewModel.playbackRate == 1 ? Self.ink : AppColor.Accent.strong)
-                .frame(width: 48, height: 48)
+                .frame(width: 44, height: 44)
                 .contentShape(Rectangle())
         }
         .accessibilityLabel("Speed")
@@ -592,10 +598,10 @@ struct PlayerView: View {
             Button("End of episode") { startSleep(.endOfEpisode) }
         } label: {
             Image(systemName: sleepTimer.isActive ? "moon.fill" : "moon")
-                .font(.system(size: 21, weight: .regular))
+                .font(.system(size: 17, weight: .regular))
                 .foregroundStyle(sleepTimer.isActive ? AppColor.Accent.strong : Self.ink)
                 .contentTransition(.symbolEffect(.replace))
-                .frame(width: 48, height: 48)
+                .frame(width: 44, height: 44)
                 .contentShape(Rectangle())
         } primaryAction: {
             // A tap turns it off when it's on; the menu opens otherwise

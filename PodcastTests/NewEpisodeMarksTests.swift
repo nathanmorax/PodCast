@@ -53,3 +53,22 @@ struct NewEpisodeMarksTests {
         #expect(marks.isEmpty)
     }
 }
+
+@Suite("NewEpisodeMarks · order")
+struct NewEpisodeMarksOrderTests {
+
+    private func episode(_ url: String, at seconds: TimeInterval) -> Episode {
+        Episode(title: url, author: "", pubDate: Date(timeIntervalSince1970: seconds),
+                description: "", streamUrl: url)
+    }
+
+    @Test("Shows with new episodes first, the newest leading; the rest as they were")
+    func newFirst() {
+        let podcasts = (1...4).map { Fixtures.podcast(id: $0) }
+        let order = NewEpisodeMarks.newFirst(podcasts, newEpisodes: [
+            3: [episode("c", at: 10)],
+            4: [episode("d", at: 20)]
+        ])
+        #expect(order.map(\.trackId) == [4, 3, 1, 2])
+    }
+}
