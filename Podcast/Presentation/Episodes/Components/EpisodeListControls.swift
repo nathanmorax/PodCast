@@ -17,7 +17,10 @@ struct EpisodeListControls: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            EpisodeSectionTitle(title: "Episodes")
+            Text("Episodes")
+                .font(.title2.weight(.bold))
+                .foregroundStyle(AppColor.Text.primary)
+                .accessibilityAddTraits(.isHeader)
 
             HStack(spacing: 8) {
                 ScrollView(.horizontal) {

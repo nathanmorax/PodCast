@@ -22,9 +22,4 @@ extension RecentlyPlayed {
         return String(localized: "\(max(1, Int((left / 60).rounded(.up)))) min")
     }
 
-    /// The episode's own artwork, when the feed has one.
-    var artworkSource: String? {
-        guard let image = episode.imageUrl, !image.isEmpty else { return nil }
-        return image
-    }
 }

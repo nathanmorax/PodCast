@@ -145,10 +145,9 @@ final class EpisodesController: UIViewController, ZoomDismissible {
     /// The show's name in the bar, once the cover (and its name) is gone.
     private lazy var collapsedTitle: UILabel = {
         let label = UILabel()
-        let base = UIFont.systemFont(ofSize: 20, weight: .bold, width: .compressed)
-        label.font = UIFontMetrics(forTextStyle: .headline).scaledFont(for: base, maximumPointSize: 26)
+        label.font = .preferredFont(forTextStyle: .headline)
         label.adjustsFontForContentSizeCategory = true
-        label.text = podcast?.trackName?.uppercased()
+        label.text = podcast?.trackName
         label.textColor = ColorName.ink.uiColor
         label.lineBreakMode = .byTruncatingTail
         return label

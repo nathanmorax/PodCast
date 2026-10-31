@@ -5,8 +5,8 @@
 
 import SwiftUI
 
-/// Follow (mustard; outlined once you follow), Latest (plays the newest
-/// episode) and share.
+/// Centered under the name: Follow (filled in the accent; soft once you
+/// follow), ▶ Latest (plays the newest episode) and share.
 struct PodcastActionsBar: View {
 
     let podcast: Podcast
@@ -19,18 +19,12 @@ struct PodcastActionsBar: View {
             Button(action: onFollow) {
                 Label(isFollowing ? "Following" : "Follow",
                       systemImage: isFollowing ? "checkmark" : "plus")
-                    .font(.subheadline.weight(.bold))
+                    .font(.subheadline.weight(.semibold))
                     .contentTransition(.symbolEffect(.replace))
-                    .foregroundStyle(isFollowing ? AppColor.Text.primary : AppColor.Text.onPastel)
+                    .foregroundStyle(isFollowing ? AppColor.Text.primary : AppColor.Text.inverse)
                     .padding(.horizontal, 22)
-                    .frame(minHeight: 46)
-                    .background {
-                        if isFollowing {
-                            Capsule().strokeBorder(AppColor.Text.primary.opacity(0.3), lineWidth: 1)
-                        } else {
-                            Capsule().fill(AppColor.Accent.soft)
-                        }
-                    }
+                    .frame(minHeight: 44)
+                    .background(isFollowing ? AppColor.Surface.muted : AppColor.Accent.strong, in: Capsule())
                     .contentShape(Capsule())
             }
             .buttonStyle(.plain)
@@ -39,29 +33,29 @@ struct PodcastActionsBar: View {
 
             Button(action: onLatest) {
                 Label("Latest", systemImage: "play.fill")
-                    .font(.subheadline.weight(.bold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppColor.Text.primary)
                     .padding(.horizontal, 20)
-                    .frame(minHeight: 46)
-                    .overlay { Capsule().strokeBorder(AppColor.Text.primary.opacity(0.3), lineWidth: 1) }
+                    .frame(minHeight: 44)
+                    .background(AppColor.Surface.muted, in: Capsule())
                     .contentShape(Capsule())
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Play the latest episode")
 
-            Spacer(minLength: 0)
-
             if let url = URL(string: "https://podcasts.apple.com/podcast/id\(podcast.trackId)") {
                 ShareLink(item: url, subject: Text(podcast.trackName ?? "")) {
                     Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 18))
+                        .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(AppColor.Text.primary)
                         .frame(width: 44, height: 44)
-                        .contentShape(Rectangle())
+                        .background(AppColor.Surface.muted, in: Circle())
+                        .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Share")
             }
         }
+        .frame(maxWidth: .infinity)
     }
 }

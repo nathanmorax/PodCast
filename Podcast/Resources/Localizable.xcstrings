@@ -2,6 +2,7 @@
   "sourceLanguage" : "en",
   "strings" : {
     "“%@”" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -307,6 +308,7 @@
       }
     },
     "Because you like %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -348,6 +350,7 @@
       }
     },
     "By %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -500,6 +503,7 @@
       }
     },
     "Continue listening" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -580,6 +584,7 @@
       }
     },
     "Details" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -723,6 +728,7 @@
       }
     },
     "Episode of the day" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -836,6 +842,17 @@
       }
     },
     "For you" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para ti"
+          }
+        }
+      }
+    },
+    "For You" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -876,6 +893,7 @@
       }
     },
     "Go to podcast" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -988,11 +1006,32 @@
       }
     },
     "Latest · %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Último · %@"
+          }
+        }
+      }
+    },
+    "Latest · %@ · %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Último · %@ · %@"
+          }
+        }
+      }
+    },
+    "Latest Episodes" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Últimos episodios"
           }
         }
       }
@@ -1435,17 +1474,6 @@
         }
       }
     },
-    "Picked for you" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elegidos para ti"
-          }
-        }
-      }
-    },
     "Play" : {
       "localizations" : {
         "es" : {
@@ -1582,6 +1610,7 @@
       }
     },
     "Remove" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1820,6 +1849,7 @@
       }
     },
     "Short listen" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1862,6 +1892,7 @@
       }
     },
     "Show to follow" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {

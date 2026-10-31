@@ -98,8 +98,7 @@ struct EpisodeSaveButton: View {
     }
 }
 
-/// Just the glyph, small, in a 44 pt touch area: muted while off, in the
-/// accent when on.
+/// The glyph in a soft 44 pt circle: ink while off, in the accent when on.
 struct EpisodeActionIcon<Glyph: View>: View {
 
     var isOn = false
@@ -107,10 +106,11 @@ struct EpisodeActionIcon<Glyph: View>: View {
 
     var body: some View {
         glyph()
-            .font(.system(size: 17, weight: .regular))
-            .foregroundStyle(isOn ? AppColor.Accent.strong : AppColor.Text.secondary)
+            .font(.system(size: 16, weight: .semibold))
+            .foregroundStyle(isOn ? AppColor.Accent.strong : AppColor.Text.primary)
             .frame(width: 44, height: 44)
-            .contentShape(Rectangle())
+            .background(AppColor.Surface.muted, in: Circle())
+            .contentShape(Circle())
     }
 }
 

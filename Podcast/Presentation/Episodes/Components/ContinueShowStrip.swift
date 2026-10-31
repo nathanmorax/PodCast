@@ -5,7 +5,7 @@
 
 import SwiftUI
 
-/// The mustard strip over a podcast's episodes when one of them was left
+/// The mustard card over a podcast's episodes when one of them was left
 /// halfway: ▶, "Continue · 23 min left", its title and how far it got. ▶
 /// resumes it in the mini player; the rest opens it.
 struct ContinueShowStrip: View {
@@ -50,8 +50,7 @@ struct ContinueShowStrip: View {
                         .lineLimit(1)
                         .monospacedDigit()
                     Text(item.episode.title)
-                        .font(.system(.headline, weight: .bold).width(.compressed))
-                        .textCase(.uppercase)
+                        .font(.headline)
                         .lineLimit(1)
                     Capsule()
                         .fill(AppColor.Text.onPastel.opacity(0.2))
@@ -74,8 +73,9 @@ struct ContinueShowStrip: View {
             .accessibilityHint("Shows the episode's details")
         }
         .foregroundStyle(AppColor.Text.onPastel)
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 16)
         .padding(.vertical, 14)
-        .background(AppColor.Accent.soft)
+        .background(AppColor.Accent.soft, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .padding(.horizontal, 20)
     }
 }

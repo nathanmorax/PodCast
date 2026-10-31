@@ -39,8 +39,7 @@ struct GenreCoverTile: View {
             )
 
             Text(genre.name)
-                .font(.system(.title2, weight: .bold).width(.compressed))
-                .textCase(.uppercase)
+                .font(.title3.weight(.bold))
                 .foregroundStyle(.white)
                 .lineLimit(2)
                 .minimumScaleFactor(0.8)
@@ -49,8 +48,8 @@ struct GenreCoverTile: View {
                 .padding(.bottom, 10)
         }
         .frame(height: Self.height)
-        .clipped()
-        .contentShape(Rectangle())
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(genre.name)
         .accessibilityAddTraits(.isButton)

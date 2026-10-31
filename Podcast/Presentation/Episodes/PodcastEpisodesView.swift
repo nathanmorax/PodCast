@@ -5,13 +5,14 @@
 
 import SwiftUI
 
-/// A podcast's page, laid out like a film's page in a magazine app (after
-/// MUBI's). Hosted by EpisodesController:
-/// - PodcastHero: the cover edge to edge, the genre, the name, the byline;
-/// - PodcastActionsBar: Follow, Latest, share;
-/// - AboutShowBox: the description (whole in the About sheet);
+/// A podcast's page, like a classic podcast app's (the same look as Home
+/// and the player). Hosted by EpisodesController:
+/// - PodcastHero: the cover rounded and centered on a wash of its color,
+///   the name, the host in the accent, the details;
+/// - PodcastActionsBar: Follow, Latest, share, centered;
+/// - AboutShowBox: the description in a soft box (whole in the About sheet);
 /// - ContinueShowStrip: an episode of it left halfway, when there's one;
-/// - EpisodeListControls and the episodes (PodcastEpisodeRow).
+/// - EpisodeListControls and the episodes (EpisodeListRow, like Home's).
 ///
 /// LazyVStack: each row is as tall as its content and placed right below the
 /// previous one; only the rows on screen are built. Dragging down from the
@@ -26,12 +27,16 @@ struct PodcastEpisodesView: View {
     let onOpenEpisode: (Episode) -> Void
     let onResume: (RecentlyPlayed) -> Void
 
+    @Environment(\.recentlyPlayed) private var recentlyPlayed
+
     var body: some View {
+        let played = Dictionary(recentlyPlayed.items.map { ($0.id, $0) }) { first, _ in first }
+
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
                 PodcastHero(podcast: podcast, cadence: viewModel.cadence)
 
-                VStack(alignment: .leading, spacing: 18) {
+                VStack(alignment: .leading, spacing: 20) {
                     PodcastActionsBar(
                         podcast: podcast,
                         isFollowing: viewModel.isFavorite(podcast),
@@ -47,8 +52,8 @@ struct PodcastEpisodesView: View {
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 16)
-                .padding(.bottom, 22)
+                .padding(.top, 20)
+                .padding(.bottom, 24)
 
                 if let inProgress = viewModel.inProgress {
                     ContinueShowStrip(
@@ -81,7 +86,12 @@ struct PodcastEpisodesView: View {
                 ForEach(viewModel.episodes, id: \.streamUrl) { episode in
                     VStack(spacing: 0) {
                         Divider()
-                        PodcastEpisodeRow(episode: episode, showArtwork: podcast.artworkUrl600) { onOpenEpisode(episode) }
+                        EpisodeListRow(
+                            episode: episode,
+                            artwork: (episode.imageUrl ?? "").isEmpty ? podcast.artworkUrl600 : episode.imageUrl,
+                            played: played[episode.streamUrl],
+                            zoomSection: .show
+                        ) { onOpenEpisode(episode) }
                     }
                     .padding(.horizontal, 20)
                     .onAppear { loadMoreIfLast(episode) }

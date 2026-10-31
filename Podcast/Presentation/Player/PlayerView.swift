@@ -60,6 +60,7 @@ struct PlayerView: View {
         // like Apple Podcasts. The app behind shows through.
         .clipShape(RoundedRectangle(cornerRadius: min(dismissOffset / 3, 44), style: .continuous))
         .offset(y: dismissOffset)
+        .gesture(dismissGesture)
         .animation(AppAnimation.transcriptMode, value: mode)
         .onChange(of: viewModel.progress) { _, _ in
             transcript.updateCurrentSegment(playbackSeconds: viewModel.currentPlaybackSeconds)
@@ -82,59 +83,38 @@ struct PlayerView: View {
     
     // MARK: - Normal View
 
-    /// The cover edge to edge at the top (about half the screen, fading
-    /// into the paper, ⌄ floating on it), then like a newspaper's audio
-    /// player: the show and the day in small capitals, the title in serif,
-    /// a thin bar, the controls (speed · −15 · ▶ · +30 · sleep), and under a
-    /// rule the byline and the show notes to read while it plays. All of it
-    /// scrolls; pulling the cover down closes the player.
+    /// The cover edge to edge at the top, under the status bar, filling the
+    /// space the rest leaves and fading into the page (⌄ and ••• float on
+    /// it); then the date, the title and the show (in the accent), centered;
+    /// a thick bar; time · −15 · ❚❚ · +30 · time left; and at the bottom a
+    /// tray with share · speed · save · sleep · transcript. Pull down
+    /// anywhere to close.
     private var normalView: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                // Only the cover pulls the player down: below it, a
-                // vertical drag scrolls the notes.
-                heroArtwork
-                    .overlay(alignment: .top) {
-                        topBar
-                            .padding(.horizontal, 20)
-                    }
-                    .contentShape(Rectangle())
-                    .gesture(dismissGesture)
-
-                VStack(alignment: .leading, spacing: 0) {
-                    showLine
-                        .padding(.top, 8)
-                    Text(episode.title)
-                        .font(AppFont.title)
-                        .foregroundStyle(Self.ink)
-                        .lineLimit(4)
-                        .minimumScaleFactor(0.8)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityAddTraits(.isHeader)
-                        .padding(.top, 14)
-
-                    utilityRow
-                        .padding(.top, 8)
-
-                    progressSection
-                        .padding(.top, 14)
-
-                    controlsSection
-                        .padding(.top, 18)
-
-                    Divider()
-                        .padding(.top, 26)
-
-                    notes
-                        .padding(.top, 22)
+        VStack(spacing: 0) {
+            heroArtwork
+                .overlay(alignment: .top) {
+                    topBar
+                        .padding(.horizontal, 16)
                 }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 48)
-            }
+                .ignoresSafeArea(.container, edges: .top)
+
+            info
+                .padding(.horizontal, 28)
+                .padding(.top, 8)
+
+            progressBar
+                .padding(.horizontal, 28)
+                .padding(.top, 28)
+
+            controlsSection
+                .padding(.horizontal, 28)
+                .padding(.top, 10)
+
+            bottomBar
+                .padding(.horizontal, 16)
+                .padding(.top, 24)
+                .padding(.bottom, 16)
         }
-        .scrollIndicators(.hidden)
-        .scrollBounceBehavior(.basedOnSize)
-        .ignoresSafeArea(.container, edges: .top)
     }
 
     // MARK: - Artwork
@@ -143,12 +123,15 @@ struct PlayerView: View {
         !(episode.imageUrl ?? "").isEmpty
     }
 
-    /// About half the screen, full width, under the status bar. It fades
-    /// into the paper at the bottom so the text below sits on a clean page.
+    /// Full width, from the very top down to the title: it takes all the
+    /// room the rest leaves (the rest keeps its own, so nothing gets
+    /// covered or squeezed), with no empty gaps in between. It fades into
+    /// the page at the bottom (a mask, so no line of the cover peeks out
+    /// while the sheet slides).
     private var heroArtwork: some View {
         Color.clear
-            .frame(maxWidth: .infinity)
-            .containerRelativeFrame(.vertical) { height, _ in height * 0.5 }
+            .frame(maxWidth: .infinity, minHeight: 180, maxHeight: .infinity)
+            .layoutPriority(-1)
             .overlay {
                 PodcastImage(source: episode.imageUrl, contentMode: .fill)
             }
@@ -159,95 +142,92 @@ struct PlayerView: View {
                         .foregroundStyle(Self.ink.opacity(0.25))
                 }
             }
-            // Keeps the status bar readable on any cover.
+            // Keeps the status bar and the floating buttons readable.
             .overlay(alignment: .top) {
-                LinearGradient(colors: [.black.opacity(0.25), .clear], startPoint: .top, endPoint: .bottom)
-                    .frame(height: 120)
+                LinearGradient(colors: [.black.opacity(0.3), .clear], startPoint: .top, endPoint: .bottom)
+                    .frame(height: 140)
             }
-            // Fades the cover itself out (a mask, not a paper-colored overlay):
-            // with an overlay, the cover's last row of pixels could peek out
-            // under it while the sheet slides in at fractional positions.
             .mask {
                 VStack(spacing: 0) {
                     Rectangle()
                     LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom)
-                        .frame(height: 150)
+                        .frame(height: 70)
                 }
             }
             .clipped()
             .accessibilityHidden(true)
     }
 
-    // MARK: - Show, title, utility row
+    // MARK: - Date, title, show
 
-    /// [cover] THE SHOW · TODAY
-    private var showLine: some View {
-        HStack(spacing: 12) {
-            Color.clear
-                .frame(width: 32, height: 32)
-                .overlay { PodcastImage(source: episode.imageUrl) }
-                .clipped()
-                .accessibilityHidden(true)
-            Text(verbatim: "\(episode.author) · \(episode.pubDate.shortDayText())")
-                .font(.footnote.weight(.medium))
-                .textCase(.uppercase)
-                .tracking(1.2)
-                .foregroundStyle(Self.ink.opacity(0.75))
-                .lineLimit(1)
+    private var info: some View {
+        VStack(spacing: 8) {
+            Text(episode.pubDate, format: .dateTime.day().month(.wide).year())
+                .font(.footnote)
+                .foregroundStyle(Self.ink.opacity(0.55))
+            Text(episode.title)
+                .font(.title2.weight(.semibold))
+                .foregroundStyle(Self.ink)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+                .accessibilityAddTraits(.isHeader)
+            if !episode.author.isEmpty {
+                Text(episode.author)
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(AppColor.Accent.strong)
+                    .lineLimit(1)
+                    .padding(.top, 4)
+            }
         }
-        .accessibilityElement(children: .combine)
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity)
     }
 
-    /// Transcript on the left; ••• (save, download, share) on the right.
-    private var utilityRow: some View {
-        HStack {
+    // MARK: - Bottom tray
+
+    /// Share · speed · save · sleep · transcript, spread in a rounded tray.
+    private var bottomBar: some View {
+        HStack(spacing: 0) {
+            if let url = URL(string: episode.streamUrl) {
+                ShareLink(item: url, subject: Text(episode.title)) {
+                    trayGlyph("square.and.arrow.up")
+                }
+                .accessibilityLabel("Share")
+            }
+            Spacer(minLength: 0)
+            speedMenu
+            Spacer(minLength: 0)
+            Button {
+                actionViewModel.toggleBookmark()
+            } label: {
+                trayGlyph(actionViewModel.isBookmarked ? "bookmark.fill" : "bookmark",
+                          color: actionViewModel.isBookmarked ? AppColor.Accent.strong : Self.ink)
+            }
+            .sensoryFeedback(.success, trigger: actionViewModel.isBookmarked) { _, saved in saved }
+            .accessibilityLabel(actionViewModel.isBookmarked ? Text("Saved") : Text("Save"))
+            Spacer(minLength: 0)
+            sleepMenu
+            Spacer(minLength: 0)
             Button {
                 showsTranscript = true
             } label: {
-                Label("Transcript", systemImage: "quote.bubble")
-                    .font(AppFont.label)
-                    .foregroundStyle(Self.ink.opacity(0.7))
-                    .frame(minHeight: 44)
-                    .contentShape(Rectangle())
+                trayGlyph("text.quote")
             }
-            .buttonStyle(.plain)
-
-            Spacer()
-
-            Menu {
-                EpisodeActionsMenuItems(actions: actionViewModel)
-            } label: {
-                Image(systemName: "ellipsis")
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(Self.ink.opacity(0.7))
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-            }
-            .accessibilityLabel("More")
+            .accessibilityLabel("Transcript")
         }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 14)
+        .frame(height: 44)
+        .background(AppColor.Surface.muted, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
-    // MARK: - Notes
-
-    /// "By author", then the show notes in serif, to read while listening.
-    private var notes: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            if !episode.author.isEmpty {
-                Text("By \(episode.author)")
-                    .font(AppFont.body.weight(.medium))
-                    .foregroundStyle(Self.ink)
-            }
-            let text = episode.chapterSource.plainTextFromHTML()
-            if !text.isEmpty {
-                Text(text)
-                    .font(.system(.title3, design: .serif))
-                    .foregroundStyle(Self.ink.opacity(0.9))
-                    .lineSpacing(5)
-                    .textSelection(.enabled)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
+    private func trayGlyph(_ systemName: String, color: Color = AppColor.ink) -> some View {
+        Image(systemName: systemName)
+            .font(.system(size: 21, weight: .regular))
+            .contentTransition(.symbolEffect(.replace))
+            .foregroundStyle(color)
+            .frame(width: 48, height: 48)
+            .contentShape(Rectangle())
     }
 
     // MARK: - Transcript sheet
@@ -447,7 +427,7 @@ struct PlayerView: View {
 
     // MARK: - Top Bar
 
-    /// ⌄ on the cover, in a small frosted circle.
+    /// ⌄ and ••• (save, download, share), in frosted circles on the cover.
     private var topBar: some View {
         HStack {
             Button {
@@ -461,19 +441,25 @@ struct PlayerView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Minimize player")
+
             Spacer()
+
+            Menu {
+                EpisodeActionsMenuItems(actions: actionViewModel)
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(Self.ink)
+                    .frame(width: 44, height: 44)
+                    .background(.ultraThinMaterial, in: Circle())
+            }
+            .accessibilityLabel("More")
         }
-        .padding(.top, 54)
+        // Below the status bar (the cover runs under it).
+        .padding(.top, 58)
     }
 
     // MARK: - Progress
-    
-    private var progressSection: some View {
-        VStack(spacing: 6) {
-            progressBar
-            progressLabels
-        }
-    }
     
     /// What the bar shows: the finger while scrubbing, the player otherwise.
     private var shownProgress: Float {
@@ -488,22 +474,14 @@ struct PlayerView: View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
                 Capsule()
-                    .fill(Self.ink.opacity(0.08))
-                
+                    .fill(Self.ink.opacity(0.1))
+
                 Capsule()
-                    .fill(Self.accent)
+                    .fill(AppColor.Accent.strong)
                     .frame(width: geo.size.width * CGFloat(shownProgress))
             }
             // Grows while held, like the system scrubbers.
-            .frame(height: scrubProgress == nil ? 4 : 10)
-            // The knob: where it is, in ink.
-            .overlay(alignment: .leading) {
-                Circle()
-                    .fill(Self.ink)
-                    .frame(width: scrubProgress == nil ? 14 : 20)
-                    .offset(x: geo.size.width * CGFloat(shownProgress) - (scrubProgress == nil ? 7 : 10))
-                    .allowsHitTesting(false)
-            }
+            .frame(height: scrubProgress == nil ? 6 : 12)
             .frame(maxHeight: .infinity)
             .contentShape(Rectangle())
             .gesture(
@@ -523,7 +501,7 @@ struct PlayerView: View {
             )
             .animation(AppAnimation.selection, value: scrubProgress == nil)
         }
-        .frame(height: 24) // taller touch area than the 4pt line
+        .frame(height: 28) // taller touch area than the 6 pt bar
         .sensoryFeedback(.selection, trigger: scrubProgress == nil)
         .accessibilityElement()
         .accessibilityLabel("Progress")
@@ -537,23 +515,38 @@ struct PlayerView: View {
         }
     }
     
-    private var progressLabels: some View {
-        HStack {
-            Text(scrubProgress.map(viewModel.timeText(at:)) ?? viewModel.currentTimeText)
-            Spacer()
-            Text(verbatim: "−\(scrubProgress.map(viewModel.remainingText(at:)) ?? viewModel.remainingTimeText)")
-        }
-        .font(AppFont.caption)
-        .monospacedDigit()
-        .foregroundStyle(Self.ink.opacity(0.5))
+    /// Where it is (the finger's spot while scrubbing).
+    private var elapsedLabel: some View {
+        Text(scrubProgress.map(viewModel.timeText(at:)) ?? viewModel.currentTimeText)
+            .font(.footnote)
+            .monospacedDigit()
+            .foregroundStyle(Self.ink.opacity(0.6))
+            .frame(width: 56, alignment: .leading)
     }
-    
+
+    /// Time left.
+    private var remainingLabel: some View {
+        Text(verbatim: remainingText)
+            .font(.footnote)
+            .monospacedDigit()
+            .foregroundStyle(Self.ink.opacity(0.6))
+            .frame(width: 56, alignment: .trailing)
+    }
+
+    /// "−43:20"; before the player knows the length (not loaded yet), the
+    /// episode's own length.
+    private var remainingText: String {
+        if let scrubProgress { return "−" + viewModel.remainingText(at: scrubProgress) }
+        let left = viewModel.remainingTimeText
+        return left.isEmpty ? episode.durationDisplayText : "−" + left
+    }
+
     // MARK: - Controls
 
-    /// 1× · −15 · ▶ · +30 · ☾, spread across the width.
+    /// time · −15 · ❚❚ · +30 · time left.
     private var controlsSection: some View {
         HStack(spacing: 0) {
-            speedMenu
+            elapsedLabel
             Spacer(minLength: 0)
             seekBackwardButton
             Spacer(minLength: 0)
@@ -561,7 +554,7 @@ struct PlayerView: View {
             Spacer(minLength: 0)
             seekForwardButton
             Spacer(minLength: 0)
-            sleepMenu
+            remainingLabel
         }
     }
 
@@ -577,10 +570,10 @@ struct PlayerView: View {
             }
         } label: {
             Text(verbatim: AVPlayerViewModel.rateText(viewModel.playbackRate))
-                .font(.system(.title3, weight: .bold))
+                .font(.system(.title3, weight: .regular))
                 .monospacedDigit()
                 .foregroundStyle(viewModel.playbackRate == 1 ? Self.ink : AppColor.Accent.strong)
-                .frame(width: 52, height: 52)
+                .frame(width: 48, height: 48)
                 .contentShape(Rectangle())
         }
         .accessibilityLabel("Speed")
@@ -599,10 +592,10 @@ struct PlayerView: View {
             Button("End of episode") { startSleep(.endOfEpisode) }
         } label: {
             Image(systemName: sleepTimer.isActive ? "moon.fill" : "moon")
-                .font(.system(size: 24, weight: .regular))
+                .font(.system(size: 21, weight: .regular))
                 .foregroundStyle(sleepTimer.isActive ? AppColor.Accent.strong : Self.ink)
                 .contentTransition(.symbolEffect(.replace))
-                .frame(width: 52, height: 52)
+                .frame(width: 48, height: 48)
                 .contentShape(Rectangle())
         } primaryAction: {
             // A tap turns it off when it's on; the menu opens otherwise
@@ -631,7 +624,7 @@ struct PlayerView: View {
             viewModel.seekBackward()
         } label: {
             Image(systemName: "gobackward.15")
-                .font(.system(size: 30, weight: .regular))
+                .font(.system(size: 26, weight: .regular))
                 .foregroundStyle(Self.ink)
                 .frame(width: 56, height: 56)
         }
@@ -639,19 +632,20 @@ struct PlayerView: View {
         .accessibilityLabel("Rewind 15 seconds")
     }
 
-    /// A big ▶ / ❚❚ on its own, no circle behind it.
+    /// ▶ / ❚❚ in a soft round button.
     private var playPauseButton: some View {
         Button {
             playerManager.togglePlayPause()
         } label: {
             Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-                .font(.system(size: 52, weight: .regular))
+                .font(.system(size: 30, weight: .semibold))
                 .foregroundStyle(Self.ink)
                 .contentTransition(.symbolEffect(.replace))
-                .frame(width: 64, height: 64)
-                .offset(x: viewModel.isPlaying ? 0 : 3)
-                .frame(width: 76, height: 76)
-                .contentShape(Rectangle())
+                .frame(width: 36, height: 36)
+                .offset(x: viewModel.isPlaying ? 0 : 2)
+                .frame(width: 80, height: 80)
+                .background(AppColor.Surface.muted, in: Circle())
+                .contentShape(Circle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(viewModel.isPlaying ? Text("Pause") : Text("Play"))
@@ -662,7 +656,7 @@ struct PlayerView: View {
             viewModel.skipForward30()
         } label: {
             Image(systemName: "goforward.30")
-                .font(.system(size: 30, weight: .regular))
+                .font(.system(size: 26, weight: .regular))
                 .foregroundStyle(Self.ink)
                 .frame(width: 56, height: 56)
         }

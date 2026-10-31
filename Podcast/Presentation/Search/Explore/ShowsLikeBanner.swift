@@ -31,26 +31,24 @@ struct ShowsLikeBanner: View {
 
                 VStack(alignment: .leading, spacing: 6) {
                     Text("For you · \(genreName)")
-                        .font(.caption2.weight(.heavy))
-                        .textCase(.uppercase)
-                        .tracking(0.8)
+                        .font(.caption.weight(.semibold))
                         .foregroundStyle(.black)
-                        .padding(.horizontal, 6)
+                        .padding(.horizontal, 8)
                         .padding(.vertical, 3)
-                        .background(.white)
+                        .background(.white, in: Capsule())
 
                     Text("Shows like \(podcast.trackName ?? "")")
-                        .font(AppFont.feedTitle)
-                        .textCase(.uppercase)
+                        .font(.title2.weight(.bold))
                         .foregroundStyle(.white)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
                 }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 14)
+                .padding(.horizontal, 18)
+                .padding(.bottom, 16)
             }
             .frame(height: Self.height)
-            .contentShape(Rectangle())
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)

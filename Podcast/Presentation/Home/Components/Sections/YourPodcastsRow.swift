@@ -1,0 +1,128 @@
+//
+//  YourPodcastsRow.swift
+//  Podcast
+//
+
+import SwiftUI
+
+/// The podcasts you follow, side by side: a big rounded cover, its name
+/// and who makes it. A green dot on the cover's corner means new
+/// episodes. Each cover is what its podcast's page zooms out of. When the
+/// covers don't all fit, the row ends with a See All tile (Following).
+struct YourPodcastsRow: View {
+
+    let podcasts: [Podcast]
+    /// trackId → its new episodes (NewEpisodeMarks).
+    var newEpisodes: [Int: [Episode]] = [:]
+    let onOpen: (Podcast) -> Void
+    let onSeeAll: () -> Void
+
+    private static let spacing: CGFloat = 16
+    private static let margin: CGFloat = 20
+
+    /// The row's visible width.
+    @State private var visibleWidth: CGFloat = 0
+
+    /// The covers alone (without the tile, so adding it can't change the
+    /// answer) are wider than the screen.
+    private var overflows: Bool {
+        let count = CGFloat(podcasts.count)
+        let width = count * Self.side + max(count - 1, 0) * Self.spacing + Self.margin * 2
+        return visibleWidth > 0 && width > visibleWidth
+    }
+
+    static let side: CGFloat = 160
+    static let cornerRadius: CGFloat = 14
+
+    var body: some View {
+        ScrollView(.horizontal) {
+            LazyHStack(alignment: .top, spacing: Self.spacing) {
+                ForEach(podcasts, id: \.trackId) { podcast in
+                    Button {
+                        onOpen(podcast)
+                    } label: {
+                        card(podcast)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityValue(newValue(for: podcast))
+                }
+
+                if overflows {
+                    seeAllTile
+                }
+            }
+        }
+        .contentMargins(.horizontal, Self.margin, for: .scrollContent)
+        .scrollIndicators(.hidden)
+        .onScrollGeometryChange(for: CGFloat.self) { geometry in
+            geometry.containerSize.width
+        } action: { _, width in
+            visibleWidth = width
+        }
+    }
+
+    /// The last tile, the size of a cover: → and "See All".
+    private var seeAllTile: some View {
+        Button(action: onSeeAll) {
+            VStack(spacing: 10) {
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(AppColor.Accent.strong)
+                    .frame(width: 48, height: 48)
+                    .background(AppColor.screenBackground, in: Circle())
+                Text("See All")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColor.Text.primary)
+                    .lineLimit(1)
+            }
+            .frame(width: Self.side, height: Self.side)
+            .background(AppColor.Surface.muted, in: RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func card(_ podcast: Podcast) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Color.clear
+                .frame(width: Self.side, height: Self.side)
+                .overlay { ZoomSourceImage(podcast: podcast, cornerRadius: Self.cornerRadius) }
+                .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
+                .overlay(alignment: .topTrailing) {
+                    if hasNew(podcast) { newDot.padding(8) }
+                }
+                .padding(.bottom, 8)
+                .accessibilityHidden(true)
+
+            Text(podcast.trackName ?? "")
+                .font(.body.weight(.medium))
+                .foregroundStyle(AppColor.Text.primary)
+                .lineLimit(1)
+            Text(podcast.artistName ?? "")
+                .font(.subheadline)
+                .foregroundStyle(AppColor.Text.secondary)
+                .lineLimit(1)
+        }
+        .frame(width: Self.side, alignment: .leading)
+        .contentShape(Rectangle())
+    }
+
+    private func hasNew(_ podcast: Podcast) -> Bool {
+        !(newEpisodes[podcast.trackId] ?? []).isEmpty
+    }
+
+    /// The green dot: new episodes.
+    private var newDot: some View {
+        Circle()
+            .fill(AppColor.Accent.strong)
+            .frame(width: 16, height: 16)
+            .overlay { Circle().strokeBorder(.white, lineWidth: 2.5) }
+            .transition(.scale.combined(with: .opacity))
+    }
+
+    private func newValue(for podcast: Podcast) -> Text {
+        let count = newEpisodes[podcast.trackId]?.count ?? 0
+        return count > 0 ? Text("\(count) new episodes") : Text(verbatim: "")
+    }
+}

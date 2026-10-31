@@ -38,6 +38,7 @@ struct SearchExploreView: View {
                     ShowsLikeBanner(podcast: pick.podcast, genreName: pick.genre.name) {
                         onSelectGenre(pick.genre)
                     }
+                    .padding(.horizontal, 20)
                     .padding(.top, 12)
                 }
                 if !recentSearches.items.isEmpty {
@@ -86,13 +87,14 @@ struct SearchExploreView: View {
                 genres: Genre.explore(interests: interests.genres),
                 onSelect: onSelectGenre
             )
+            .padding(.horizontal, 20)
         }
     }
 }
 
 // MARK: - Grid
 
-/// The category tiles, two per row, edge to edge with a thin gap. Each one
+/// The category tiles, two per row, rounded, with the page's margins. Each one
 /// fetches its covers the first time it shows.
 private struct GenreCoverGrid: View {
     let genres: [Genre]
@@ -101,12 +103,12 @@ private struct GenreCoverGrid: View {
     @State private var covers = GenreCovers.shared
 
     private let columns = [
-        GridItem(.flexible(), spacing: 6),
+        GridItem(.flexible(), spacing: 12),
         GridItem(.flexible())
     ]
 
     var body: some View {
-        LazyVGrid(columns: columns, spacing: 6) {
+        LazyVGrid(columns: columns, spacing: 12) {
             ForEach(genres, id: \.id) { genre in
                 Button {
                     onSelect(genre)

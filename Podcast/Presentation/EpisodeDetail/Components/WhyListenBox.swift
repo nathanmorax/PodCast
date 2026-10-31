@@ -5,8 +5,8 @@
 
 import SwiftUI
 
-/// The first sentence of the notes in a box with an ink border, like a film
-/// page's "Our take": why this episode is worth it.
+/// The first sentence of the notes in a soft rounded box: why this
+/// episode is worth it.
 struct WhyListenBox: View {
 
     let text: String
@@ -16,15 +16,14 @@ struct WhyListenBox: View {
             EpisodeSectionTitle(title: "Why listen")
             Text(text)
                 .font(.body)
+                .foregroundStyle(AppColor.Text.secondary)
                 .lineSpacing(3)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .foregroundStyle(AppColor.Text.primary)
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .overlay {
-            Rectangle().strokeBorder(AppColor.Text.primary, lineWidth: 1.5)
-        }
+        .background(AppColor.Surface.muted, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 }

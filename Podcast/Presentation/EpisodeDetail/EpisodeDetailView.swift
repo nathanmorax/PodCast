@@ -5,20 +5,19 @@
 
 import SwiftUI
 
-/// An episode, full screen, laid out like a film's page in a magazine app
-/// (after MUBI's):
-/// - EpisodeHero: the artwork edge to edge with the show, the title in tall
-///   capitals and the date · length;
-/// - EpisodeActionsBar: Listen, save, download, share;
-/// - WhyListenBox: the notes' first sentence in an ink-bordered box;
+/// An episode, full screen, like its show's page (the same look as Home and
+/// the player):
+/// - EpisodeHero: the artwork rounded and centered on a wash of its color,
+///   the date, the title, the show in the accent, genre · length;
+/// - EpisodeActionsBar: Listen, save, download, share, centered;
+/// - WhyListenBox: the notes' first sentence in a soft box;
 /// - Show notes: the rest of them;
 /// - ChaptersSection, when the notes list chapters;
-/// - FromTheShowRow and MoreFromShowSection (dark), when the show is known.
+/// - FromTheShowRow and MoreFromShowSection, when the show is known.
 /// Sections with nothing to show aren't drawn.
 struct EpisodeDetailView: View {
 
     let viewModel: EpisodeDetailViewModel
-    let pull: HeaderPull
     let onOpenPodcast: (Podcast) -> Void
     let onOpenEpisode: (Episode) -> Void
     /// Vertical scroll position (negative while pulled past the top).
@@ -39,10 +38,10 @@ struct EpisodeDetailView: View {
                     episode: episode,
                     showName: viewModel.podcast?.trackName,
                     genre: viewModel.podcast?.genreName,
-                    pull: pull
+                    onOpenShow: viewModel.podcast.map { podcast in { onOpenPodcast(podcast) } }
                 )
 
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 28) {
                     EpisodeActionsBar(actions: actions) {
                         playerManager.playOrToggle(episode, presentation: .mini)
                     }
@@ -55,7 +54,7 @@ struct EpisodeDetailView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             EpisodeSectionTitle(title: "Show notes")
                             Text(notes.rest)
-                                .font(.subheadline)
+                                .font(.body)
                                 .foregroundStyle(AppColor.Text.secondary)
                                 .lineSpacing(4)
                                 .textSelection(.enabled)
@@ -81,21 +80,21 @@ struct EpisodeDetailView: View {
                             }
                         )
                     }
+
+                    if !viewModel.moreEpisodes.isEmpty {
+                        MoreFromShowSection(
+                            showName: viewModel.podcast?.trackName ?? episode.author,
+                            showArtwork: viewModel.podcast?.artworkUrl600,
+                            episodes: viewModel.moreEpisodes,
+                            onOpen: onOpenEpisode
+                        )
+                        .transition(.opacity)
+                    }
                 }
                 .foregroundStyle(AppColor.Text.primary)
                 .padding(.horizontal, 20)
-                .padding(.top, 16)
+                .padding(.top, 22)
                 .padding(.bottom, 32)
-
-                if !viewModel.moreEpisodes.isEmpty {
-                    MoreFromShowSection(
-                        showName: viewModel.podcast?.trackName ?? episode.author,
-                        episodes: viewModel.moreEpisodes,
-                        onOpen: onOpenEpisode,
-                        onPlay: { playerManager.playOrToggle($0, presentation: .mini) }
-                    )
-                    .transition(.opacity)
-                }
             }
             .animation(AppAnimation.listChange, value: viewModel.moreEpisodes.map(\.streamUrl))
         }
