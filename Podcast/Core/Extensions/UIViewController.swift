@@ -76,4 +76,18 @@ extension UIViewController {
     func hideNavigationTitle() {
         navigationItem.titleView = UIView()
     }
+
+    /// A clear navigation bar with no title: only the back button, over
+    /// the page (the page's own header shows what it is). `title` still
+    /// names the screen in the back button's menu.
+    func useClearNavigationBar() {
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithTransparentBackground()
+        navigationItem.standardAppearance = appearance
+        navigationItem.scrollEdgeAppearance = appearance
+        navigationItem.compactAppearance = appearance
+        navigationItem.compactScrollEdgeAppearance = appearance
+        navigationItem.largeTitleDisplayMode = .never
+        hideNavigationTitle()
+    }
 }
