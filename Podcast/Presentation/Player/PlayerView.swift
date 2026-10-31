@@ -100,21 +100,20 @@ struct PlayerView: View {
 
             info
                 .padding(.horizontal, 28)
-
-            Spacer(minLength: 16)
+                .padding(.top, 8)
 
             progressBar
                 .padding(.horizontal, 28)
+                .padding(.top, 28)
 
             controlsSection
                 .padding(.horizontal, 28)
                 .padding(.top, 10)
 
-            Spacer(minLength: 16)
-
             bottomBar
                 .padding(.horizontal, 16)
-                .padding(.bottom, 8)
+                .padding(.top, 24)
+                .padding(.bottom, 16)
         }
     }
 
@@ -124,14 +123,15 @@ struct PlayerView: View {
         !(episode.imageUrl ?? "").isEmpty
     }
 
-    /// Full width, from the very top: a bit under half the screen, so the
-    /// title and the controls below always have their room. It fades into
+    /// Full width, from the very top down to the title: it takes all the
+    /// room the rest leaves (the rest keeps its own, so nothing gets
+    /// covered or squeezed), with no empty gaps in between. It fades into
     /// the page at the bottom (a mask, so no line of the cover peeks out
     /// while the sheet slides).
     private var heroArtwork: some View {
         Color.clear
-            .frame(maxWidth: .infinity)
-            .containerRelativeFrame(.vertical) { height, _ in height * 0.46 }
+            .frame(maxWidth: .infinity, minHeight: 180, maxHeight: .infinity)
+            .layoutPriority(-1)
             .overlay {
                 PodcastImage(source: episode.imageUrl, contentMode: .fill)
             }
@@ -151,7 +151,7 @@ struct PlayerView: View {
                 VStack(spacing: 0) {
                     Rectangle()
                     LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom)
-                        .frame(height: 90)
+                        .frame(height: 70)
                 }
             }
             .clipped()
@@ -217,7 +217,7 @@ struct PlayerView: View {
         }
         .buttonStyle(.plain)
         .padding(.horizontal, 14)
-        .frame(height: 64)
+        .frame(height: 44)
         .background(AppColor.Surface.muted, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
@@ -526,11 +526,19 @@ struct PlayerView: View {
 
     /// Time left.
     private var remainingLabel: some View {
-        Text(verbatim: "−\(scrubProgress.map(viewModel.remainingText(at:)) ?? viewModel.remainingTimeText)")
+        Text(verbatim: remainingText)
             .font(.footnote)
             .monospacedDigit()
             .foregroundStyle(Self.ink.opacity(0.6))
             .frame(width: 56, alignment: .trailing)
+    }
+
+    /// "−43:20"; before the player knows the length (not loaded yet), the
+    /// episode's own length.
+    private var remainingText: String {
+        if let scrubProgress { return "−" + viewModel.remainingText(at: scrubProgress) }
+        let left = viewModel.remainingTimeText
+        return left.isEmpty ? episode.durationDisplayText : "−" + left
     }
 
     // MARK: - Controls
