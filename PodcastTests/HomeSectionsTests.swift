@@ -30,3 +30,23 @@ struct HomeSectionsTests {
         #expect(picks.map(\.id) == ["b"])
     }
 }
+
+@Suite("HomeSections · Recently played")
+struct HomeRecentlyPlayedTests {
+
+    private func played(_ url: String, at seconds: TimeInterval) -> RecentlyPlayed {
+        RecentlyPlayed(
+            episode: Episode(title: url, author: "", pubDate: .now, description: "", streamUrl: url),
+            lastPlayedAt: Date(timeIntervalSince1970: seconds),
+            progress: 0.5
+        )
+    }
+
+    @Test("The latest played first, up to the limit")
+    func order() {
+        let items = (1...12).map { played("e\($0)", at: TimeInterval($0)) }
+        let recent = HomeSections.recentlyPlayed(items)
+        #expect(recent.count == HomeSections.recentLimit)
+        #expect(recent.first?.id == "e12")
+    }
+}

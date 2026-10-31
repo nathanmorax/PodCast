@@ -1515,6 +1515,16 @@
         }
       }
     },
+    "Played" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escuchado"
+          }
+        }
+      }
+    },
     "Player" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1599,18 +1609,16 @@
       }
     },
     "Recently played" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Escuchado recientemente"
+            "value" : "Escuchados recientemente"
           }
         }
       }
     },
     "Remove" : {
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {

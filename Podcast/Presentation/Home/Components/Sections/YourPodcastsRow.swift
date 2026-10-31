@@ -17,7 +17,7 @@ struct YourPodcastsRow: View {
     let onOpen: (Podcast) -> Void
     let onSeeAll: () -> Void
 
-    private static let spacing: CGFloat = 16
+    private static let spacing: CGFloat = 8
     private static let margin: CGFloat = 20
 
     /// The row's visible width.
@@ -31,8 +31,8 @@ struct YourPodcastsRow: View {
         return visibleWidth > 0 && width > visibleWidth
     }
 
-    static let side: CGFloat = 160
-    static let cornerRadius: CGFloat = 14
+    static let side: CGFloat = 70
+    static let cornerRadius: CGFloat = 8
 
     var body: some View {
         ScrollView(.horizontal) {
@@ -66,19 +66,12 @@ struct YourPodcastsRow: View {
     private var seeAllTile: some View {
         Button(action: onSeeAll) {
             VStack(spacing: 10) {
-                Image(systemName: "arrow.right")
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(AppColor.Accent.strong)
-                    .frame(width: 48, height: 48)
-                    .background(AppColor.screenBackground, in: Circle())
                 Text("See All")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppColor.Text.primary)
                     .lineLimit(1)
             }
             .frame(width: Self.side, height: Self.side)
-            .background(AppColor.Surface.muted, in: RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
-            .contentShape(RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
         }
         .buttonStyle(.plain)
     }
@@ -95,14 +88,6 @@ struct YourPodcastsRow: View {
                 .padding(.bottom, 8)
                 .accessibilityHidden(true)
 
-            Text(podcast.trackName ?? "")
-                .font(.body.weight(.medium))
-                .foregroundStyle(AppColor.Text.primary)
-                .lineLimit(1)
-            Text(podcast.artistName ?? "")
-                .font(.subheadline)
-                .foregroundStyle(AppColor.Text.secondary)
-                .lineLimit(1)
         }
         .frame(width: Self.side, alignment: .leading)
         .contentShape(Rectangle())

@@ -9,9 +9,11 @@ import SwiftUI
 /// 1. The shows you follow (always on top): big rounded covers with their
 ///    name and maker; a green dot means new episodes. When they don't all
 ///    fit, the row ends with See All (Following).
-/// 2. Latest Episodes: the newest of those shows, each with a line of what
+/// 2. Recently played: what you last listened to, one card at a time
+///    with dots, each with how far along and ▶. See All opens History.
+/// 3. Latest Episodes: the newest of those shows, each with a line of what
 ///    it's about, ▶, how far along, save and ⋮. See All opens the Library.
-/// 3. For You: picks from your interests, in the same rows.
+/// 4. For You: picks from your interests, in the same rows.
 /// Following nothing yet: an invitation to search, then For You.
 struct HomeView: View {
 
@@ -28,6 +30,8 @@ struct HomeView: View {
     let onOpenPodcast: (Podcast) -> Void
     /// The section says which card the episode zooms out of and back into.
     let onOpenEpisode: (Episode, Podcast, ZoomID.Section) -> Void
+    /// An episode with no podcast at hand (a recently played one).
+    let onOpenPlayedEpisode: (Episode) -> Void
     let onOpenLibrary: (LibraryTab) -> Void
     let onSearch: () -> Void
     let onOpenFollowing: () -> Void
@@ -43,6 +47,7 @@ struct HomeView: View {
             excluding: latest
         )
         let played = Dictionary(recentlyPlayed.items.map { ($0.id, $0) }) { first, _ in first }
+        let recent = HomeSections.recentlyPlayed(recentlyPlayed.items)
 
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
@@ -63,6 +68,22 @@ struct HomeView: View {
                     )
                     .padding(.top, 8)
                     .padding(.bottom, 28)
+                }
+
+                if !recent.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HomeSectionHeader(title: "Recently played") { onOpenLibrary(.history) }
+                            .padding(.horizontal, 20)
+                        RecentlyPlayedCarousel(
+                            items: recent,
+                            onOpen: { onOpenPlayedEpisode($0.episode) },
+                            onRemove: { item in
+                                withAnimation(AppAnimation.listChange) { recentlyPlayed.remove(item) }
+                            }
+                        )
+                    }
+                    .padding(.bottom, 28)
+                    .transition(.opacity)
                 }
 
                 if !latest.isEmpty {
@@ -86,6 +107,7 @@ struct HomeView: View {
         .background(AppColor.screenBackground.ignoresSafeArea())
         .animation(AppAnimation.listChange, value: following.map(\.trackId))
         .animation(AppAnimation.listChange, value: latest.map(\.id))
+        .animation(AppAnimation.listChange, value: recent.map(\.id))
         // Reload when you follow or unfollow a podcast.
         .task(id: following.map(\.trackId)) {
             followingFeed.load(following: following)
