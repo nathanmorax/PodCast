@@ -30,12 +30,13 @@ struct GenreRankingView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(overline)
-                .overlineStyle()
             Text(viewModel.genre.name)
-                .font(AppFont.display)
+                .font(.largeTitle.weight(.bold))
                 .foregroundStyle(AppColor.Text.primary)
                 .accessibilityAddTraits(.isHeader)
+            Text(overline)
+                .font(.subheadline)
+                .foregroundStyle(AppColor.Text.secondary)
         }
     }
 

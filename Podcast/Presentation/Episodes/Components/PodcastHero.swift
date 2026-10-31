@@ -68,13 +68,7 @@ struct PodcastHero: View {
         // Room for the status and navigation bars, which float over the wash.
         .padding(.top, 110)
         .background(alignment: .top) {
-            LinearGradient(
-                colors: [(tint?.color ?? AppColor.Surface.muted).opacity(0.85), AppColor.screenBackground],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 340)
-            .accessibilityHidden(true)
+            ArtworkWash(color: tint?.color, height: 340)
         }
         .task(id: podcast.artworkUrl600) {
             guard loadedTint == nil else { return }

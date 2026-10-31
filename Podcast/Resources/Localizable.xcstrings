@@ -584,6 +584,7 @@
       }
     },
     "Details" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -1005,11 +1006,22 @@
       }
     },
     "Latest · %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Último · %@"
+          }
+        }
+      }
+    },
+    "Latest · %@ · %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Último · %@ · %@"
           }
         }
       }
@@ -2277,16 +2289,6 @@
         }
       }
     },
-    "Welcome back" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bienvenido de nuevo"
-          }
-        }
-      }
-    },
     "What do you like to listen to?" : {
       "localizations" : {
         "es" : {
@@ -2351,16 +2353,6 @@
     },
     "Your podcasts" : {
       "extractionState" : "stale",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tus podcasts"
-          }
-        }
-      }
-    },
-    "Your Podcasts" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {

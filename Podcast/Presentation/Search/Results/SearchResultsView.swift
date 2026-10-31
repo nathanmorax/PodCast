@@ -18,6 +18,8 @@ struct SearchResultsView: View {
 
     @State private var showsAllPodcasts = false
 
+    @Environment(\.recentlyPlayed) private var recentlyPlayed
+
     private var podcasts: [Podcast] {
         showsAllPodcasts ? viewModel.podcasts : Array(viewModel.podcasts.prefix(Self.podcastPreviewCount))
     }
@@ -77,7 +79,7 @@ struct SearchResultsView: View {
                 Button("See all \(viewModel.podcasts.count)") {
                     withAnimation(AppAnimation.listChange) { showsAllPodcasts = true }
                 }
-                .font(AppFont.captionStrong)
+                .font(.subheadline.weight(.semibold))
                 .foregroundStyle(AppColor.Accent.strong)
                 .padding(.top, 12)
             }
@@ -90,9 +92,18 @@ struct SearchResultsView: View {
         VStack(alignment: .leading, spacing: 0) {
             SearchSectionHeader(title: "Episodes")
 
+            let played = Dictionary(recentlyPlayed.items.map { ($0.id, $0) }) { first, _ in first }
             ForEach(viewModel.episodes) { result in
-                EpisodeResultRow(result: result) { onOpenEpisode(result) }
-                    .overlay(alignment: .bottom) { Divider() }
+                EpisodeListRow(
+                    episode: result.episode,
+                    artwork: result.episode.imageUrl,
+                    showName: result.podcastName,
+                    played: played[result.episode.streamUrl],
+                    zoomSection: .search
+                ) { onOpenEpisode(result) }
+                if result.id != viewModel.episodes.last?.id {
+                    Divider()
+                }
             }
         }
     }

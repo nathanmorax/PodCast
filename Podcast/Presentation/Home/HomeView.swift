@@ -6,13 +6,12 @@
 import SwiftUI
 
 /// Home, like a classic podcast app's:
-/// 1. "Welcome back".
-/// 2. Your Podcasts (always on top of the lists): the shows you follow as
-///    big rounded covers with their name and maker; a green dot means new
-///    episodes. See All opens Following.
-/// 3. Latest Episodes: the newest of those shows, each with a line of what
+/// 1. The shows you follow (always on top): big rounded covers with their
+///    name and maker; a green dot means new episodes. When they don't all
+///    fit, the row ends with See All (Following).
+/// 2. Latest Episodes: the newest of those shows, each with a line of what
 ///    it's about, ▶, how far along, save and ⋮. See All opens the Library.
-/// 4. For You: picks from your interests, in the same rows.
+/// 3. For You: picks from your interests, in the same rows.
 /// Following nothing yet: an invitation to search, then For You.
 struct HomeView: View {
 
@@ -47,19 +46,10 @@ struct HomeView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Welcome back")
-                    .font(.largeTitle.weight(.bold))
-                    .foregroundStyle(AppColor.Text.primary)
-                    .accessibilityAddTraits(.isHeader)
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 18)
-
                 if following.isEmpty {
                     emptyState
                         .padding(.bottom, 28)
                 } else {
-                    HomeSectionHeader(title: "Your Podcasts", onSeeAll: onOpenFollowing)
-                        .padding(.horizontal, 20)
                     YourPodcastsRow(
                         podcasts: following,
                         newEpisodes: NewEpisodeMarks.newEpisodes(
@@ -68,7 +58,8 @@ struct HomeView: View {
                             inboxSeen: InboxSeen.shared.lastSeen,
                             showSeen: ShowSeen.shared.lastSeen
                         ),
-                        onOpen: onOpenPodcast
+                        onOpen: onOpenPodcast,
+                        onSeeAll: onOpenFollowing
                     )
                     .padding(.top, 8)
                     .padding(.bottom, 28)

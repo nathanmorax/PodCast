@@ -5,10 +5,10 @@
 
 import SwiftUI
 
-/// Every podcast you follow, opened from "See All" in Home: FOLLOWING in
-/// tall capitals with how many shows and new episodes, then each show as a
-/// band in its own color with its newest episode (▶ plays it). Shows with
-/// new episodes come first. Touch and hold a band to unfollow.
+/// Every podcast you follow, opened from "See All" in Home: "Following" in
+/// bold with how many shows and new episodes, then each show as a row (its
+/// rounded cover, name, maker, newest episode, ▶), a hairline between.
+/// Shows with new episodes come first. Touch and hold a row to unfollow.
 struct FollowingListView: View {
 
     /// The followed shows' episodes, shared with Home.
@@ -42,9 +42,12 @@ struct FollowingListView: View {
                     .padding(.top, 4)
                     .padding(.bottom, 14)
 
-                LazyVStack(spacing: 6) {
+                LazyVStack(spacing: 0) {
                     ForEach(shows) { show in
-                        FollowingShowBand(show: show) { onOpenPodcast(show.podcast) }
+                        if show.id != shows.first?.id {
+                            Divider()
+                        }
+                        FollowingShowRow(show: show) { onOpenPodcast(show.podcast) }
                             .contextMenu {
                                 Button("Unfollow", systemImage: "minus.circle", role: .destructive) {
                                     withAnimation(AppAnimation.listChange) {
@@ -54,6 +57,7 @@ struct FollowingListView: View {
                             }
                     }
                 }
+                .padding(.horizontal, 20)
             }
             .padding(.bottom, 24) // the bottom bar's space comes from the safe area
         }
@@ -77,8 +81,7 @@ struct FollowingListView: View {
         let newCount = shows.reduce(0) { $0 + $1.newCount }
         return VStack(alignment: .leading, spacing: 6) {
             Text("Following")
-                .font(AppFont.feedHero)
-                .textCase(.uppercase)
+                .font(.largeTitle.weight(.bold))
                 .foregroundStyle(AppColor.Text.primary)
                 .accessibilityAddTraits(.isHeader)
             if !shows.isEmpty {

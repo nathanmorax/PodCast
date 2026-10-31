@@ -18,13 +18,13 @@ struct TopPodcastCard: View {
         Button(action: onOpen) {
             Color.clear
                 .frame(height: 300)
-                .overlay { ZoomSourceImage(podcast: podcast, cornerRadius: 10) }
+                .overlay { ZoomSourceImage(podcast: podcast, cornerRadius: 18) }
                 .overlay {
                     LinearGradient(colors: [.clear, .black.opacity(0.78)], startPoint: .center, endPoint: .bottom)
                 }
                 .overlay(alignment: .topLeading) {
                     Text(1, format: .number)
-                        .font(.system(size: 54, weight: .bold, design: .serif))
+                        .font(.system(size: 54, weight: .bold))
                         .foregroundStyle(.white.opacity(0.92))
                         .shadow(color: .black.opacity(0.25), radius: 8)
                         .padding(.horizontal, 18)
@@ -34,7 +34,7 @@ struct TopPodcastCard: View {
                 .overlay(alignment: .bottomLeading) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(podcast.trackName ?? "")
-                            .font(AppFont.title)
+                            .font(.title.weight(.bold))
                             .foregroundStyle(.white)
                             .lineLimit(2)
                         Text(podcast.artistName ?? "")
@@ -46,8 +46,8 @@ struct TopPodcastCard: View {
                     // Room for the Listen pill under it.
                     .padding(.bottom, 62)
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         }
         .buttonStyle(.plain)
         // On top of the card's button: its own target.

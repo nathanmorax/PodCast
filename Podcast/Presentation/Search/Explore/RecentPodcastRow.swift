@@ -17,15 +17,14 @@ struct RecentPodcastRow: View {
         HStack(spacing: 12) {
             Button(action: onOpen) {
                 HStack(spacing: 12) {
-                    ZoomSourceImage(podcast: podcast, cornerRadius: 0)
-                        .frame(width: 44, height: 44)
-                        .clipped()
+                    ZoomSourceImage(podcast: podcast, cornerRadius: 10)
+                        .frame(width: 48, height: 48)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                         .accessibilityHidden(true)
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(podcast.trackName ?? "")
-                            .font(.system(.headline, weight: .bold).width(.compressed))
-                            .textCase(.uppercase)
+                            .font(.headline)
                             .foregroundStyle(AppColor.Text.primary)
                             .lineLimit(1)
                         Text(kind)

@@ -5,8 +5,8 @@
 
 import SwiftUI
 
-/// A small spaced-out overline ("RECENT", "EPISODES"…) with an optional
-/// link on the right ("Clear").
+/// A section's name in bold ("Recent", "Episodes"…), like Home's, with an
+/// optional link in the accent on the right ("Clear").
 struct SearchSectionHeader: View {
 
     let title: LocalizedStringKey
@@ -16,13 +16,15 @@ struct SearchSectionHeader: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
             Text(title)
-                .overlineStyle()
+                .font(.title3.weight(.bold))
+                .foregroundStyle(AppColor.Text.primary)
                 .accessibilityAddTraits(.isHeader)
             Spacer()
             if let actionTitle, let action {
                 Button(actionTitle, action: action)
-                    .font(AppFont.captionStrong)
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppColor.Accent.strong)
+                    .frame(minHeight: 44)
             }
         }
     }

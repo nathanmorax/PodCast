@@ -83,25 +83,25 @@ struct PlayerView: View {
     
     // MARK: - Normal View
 
-    /// ⌄ · the title · ••• on top; the cover, rounded, with room around it;
-    /// the date, the title and the show (in the accent), centered; a thick
-    /// bar; time · −15 · ❚❚ · +30 · time left; and at the bottom a tray with
-    /// share · speed · save · sleep · transcript. Pull down anywhere to close.
+    /// The cover edge to edge at the top, under the status bar, filling the
+    /// space the rest leaves and fading into the page (⌄ and ••• float on
+    /// it); then the date, the title and the show (in the accent), centered;
+    /// a thick bar; time · −15 · ❚❚ · +30 · time left; and at the bottom a
+    /// tray with share · speed · save · sleep · transcript. Pull down
+    /// anywhere to close.
     private var normalView: some View {
         VStack(spacing: 0) {
-            topBar
-                .padding(.horizontal, 12)
-
-            cover
-                .padding(.horizontal, 28)
-                .padding(.top, 12)
-
-            Spacer(minLength: 16)
+            heroArtwork
+                .overlay(alignment: .top) {
+                    topBar
+                        .padding(.horizontal, 16)
+                }
+                .ignoresSafeArea(.container, edges: .top)
 
             info
                 .padding(.horizontal, 28)
 
-            Spacer(minLength: 20)
+            Spacer(minLength: 16)
 
             progressBar
                 .padding(.horizontal, 28)
@@ -110,7 +110,7 @@ struct PlayerView: View {
                 .padding(.horizontal, 28)
                 .padding(.top, 10)
 
-            Spacer(minLength: 20)
+            Spacer(minLength: 16)
 
             bottomBar
                 .padding(.horizontal, 16)
@@ -118,18 +118,23 @@ struct PlayerView: View {
         }
     }
 
-    // MARK: - Cover
+    // MARK: - Artwork
 
     private var hasArtwork: Bool {
         !(episode.imageUrl ?? "").isEmpty
     }
 
-    /// Square, rounded, with room around it; it gives way when space is
-    /// short (small phones, large text) so the controls always fit.
-    private var cover: some View {
+    /// Full width, from the very top: a bit under half the screen, so the
+    /// title and the controls below always have their room. It fades into
+    /// the page at the bottom (a mask, so no line of the cover peeks out
+    /// while the sheet slides).
+    private var heroArtwork: some View {
         Color.clear
-            .aspectRatio(1, contentMode: .fit)
-            .overlay { PodcastImage(source: episode.imageUrl, contentMode: .fill) }
+            .frame(maxWidth: .infinity)
+            .containerRelativeFrame(.vertical) { height, _ in height * 0.46 }
+            .overlay {
+                PodcastImage(source: episode.imageUrl, contentMode: .fill)
+            }
             .overlay {
                 if !hasArtwork {
                     Image(systemName: "waveform")
@@ -137,9 +142,19 @@ struct PlayerView: View {
                         .foregroundStyle(Self.ink.opacity(0.25))
                 }
             }
-            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-            .frame(maxWidth: 420)
-            .layoutPriority(-1)
+            // Keeps the status bar and the floating buttons readable.
+            .overlay(alignment: .top) {
+                LinearGradient(colors: [.black.opacity(0.3), .clear], startPoint: .top, endPoint: .bottom)
+                    .frame(height: 140)
+            }
+            .mask {
+                VStack(spacing: 0) {
+                    Rectangle()
+                    LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom)
+                        .frame(height: 90)
+                }
+            }
+            .clipped()
             .accessibilityHidden(true)
     }
 
@@ -412,40 +427,36 @@ struct PlayerView: View {
 
     // MARK: - Top Bar
 
-    /// ⌄ · the episode's title, small · ••• (save, download, share).
+    /// ⌄ and ••• (save, download, share), in frosted circles on the cover.
     private var topBar: some View {
-        HStack(spacing: 4) {
+        HStack {
             Button {
                 playerManager.collapse()
             } label: {
                 Image(systemName: "chevron.down")
-                    .font(.system(size: 20, weight: .semibold))
+                    .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(Self.ink)
                     .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
+                    .background(.ultraThinMaterial, in: Circle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Minimize player")
 
-            Text(episode.title)
-                .font(.headline)
-                .foregroundStyle(Self.ink)
-                .lineLimit(1)
-                .frame(maxWidth: .infinity)
-                .accessibilityHidden(true)
+            Spacer()
 
             Menu {
                 EpisodeActionsMenuItems(actions: actionViewModel)
             } label: {
                 Image(systemName: "ellipsis")
-                    .font(.system(size: 18, weight: .bold))
+                    .font(.system(size: 17, weight: .bold))
                     .foregroundStyle(Self.ink)
                     .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
+                    .background(.ultraThinMaterial, in: Circle())
             }
             .accessibilityLabel("More")
         }
-        .padding(.top, 8)
+        // Below the status bar (the cover runs under it).
+        .padding(.top, 58)
     }
 
     // MARK: - Progress
