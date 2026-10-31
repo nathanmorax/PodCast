@@ -6,10 +6,10 @@
 import SwiftUI
 
 /// A followed show's cover in Home's row of shows. When the show has new
-/// episodes, their artwork peeks out from behind it like cards in a deck:
-/// once when the row appears (or a new one arrives) they rise and tilt,
-/// then settle a little out, and stay like that until the show is opened.
-/// With Reduce Motion they're simply shown settled.
+/// episodes, their artwork peeks out from behind it like cards in a deck,
+/// a little out; every few seconds they rise and tilt, then settle again
+/// (the one behind a beat later), until the show is opened. With Reduce
+/// Motion they're simply shown settled.
 struct PeekingCover: View {
 
     let podcast: Podcast
@@ -19,8 +19,6 @@ struct PeekingCover: View {
     let cornerRadius: CGFloat
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    /// True for a moment while the cards jump out.
-    @State private var isRaised = false
 
     /// The cards behind, back to front (at most two).
     private var cards: [Episode] {
@@ -43,21 +41,13 @@ struct PeekingCover: View {
         .accessibilityHidden(true)
         // Seen (its page was opened): the cards slip back behind it.
         .animation(AppAnimation.listChange, value: newEpisodes.count)
-        // Plays when it shows up, and again when the count grows.
-        .task(id: newEpisodes.count) {
-            guard !newEpisodes.isEmpty, !reduceMotion else { return }
-            try? await Task.sleep(for: .milliseconds(250))
-            withAnimation(.spring(duration: 0.45, bounce: 0.45)) { isRaised = true }
-            try? await Task.sleep(for: .milliseconds(900))
-            withAnimation(.spring(duration: 0.6, bounce: 0.25)) { isRaised = false }
-        }
     }
 
     /// depth 1 = right behind the cover, 2 = the one behind that.
+    @ViewBuilder
     private func card(_ episode: Episode, depth: Int) -> some View {
-        let lift: CGFloat = isRaised ? (depth == 1 ? 14 : 9) : (depth == 1 ? 7 : 4)
-        let tilt: Double = isRaised ? (depth == 1 ? -7 : 6) : (depth == 1 ? -4 : 3)
-        return Color.clear
+        let rest = PeekPose.rest(depth: depth)
+        let face = Color.clear
             .frame(width: side, height: side)
             .overlay {
                 PodcastImage(
@@ -68,7 +58,56 @@ struct PeekingCover: View {
             // Darker the further back, so the deck reads.
             .overlay { Color.black.opacity(depth == 1 ? 0.12 : 0.24) }
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-            .rotationEffect(.degrees(tilt), anchor: .bottom)
-            .offset(y: -lift)
+
+        if reduceMotion {
+            face
+                .rotationEffect(.degrees(rest.tilt), anchor: .bottom)
+                .offset(y: -rest.lift)
+        } else {
+            face.keyframeAnimator(initialValue: rest, repeating: true) { view, pose in
+                view
+                    .rotationEffect(.degrees(pose.tilt), anchor: .bottom)
+                    .offset(y: -pose.lift)
+            } keyframes: { _ in
+                PeekPose.loop(depth: depth)
+            }
+        }
+    }
+}
+
+/// Where a card behind the cover is: how far up, how tilted.
+private struct PeekPose {
+    var lift: CGFloat
+    var tilt: Double
+
+    static func rest(depth: Int) -> PeekPose {
+        depth == 1 ? PeekPose(lift: 7, tilt: -4) : PeekPose(lift: 4, tilt: 3)
+    }
+
+    static func raised(depth: Int) -> PeekPose {
+        depth == 1 ? PeekPose(lift: 14, tilt: -7) : PeekPose(lift: 9, tilt: 6)
+    }
+
+    /// One lap (3.2 s): rise with a bounce, hold, settle, rest. The card
+    /// behind starts a beat later.
+    @KeyframesBuilder<PeekPose>
+    static func loop(depth: Int) -> some Keyframes<PeekPose> {
+        let rest = rest(depth: depth)
+        let raised = raised(depth: depth)
+        let delay = depth == 1 ? 0.0 : 0.08
+        KeyframeTrack(\.lift) {
+            LinearKeyframe(rest.lift, duration: 0.4 + delay)
+            SpringKeyframe(raised.lift, duration: 0.45, spring: .bouncy)
+            LinearKeyframe(raised.lift, duration: 0.8)
+            SpringKeyframe(rest.lift, duration: 0.55, spring: .smooth)
+            LinearKeyframe(rest.lift, duration: 1.0 - delay)
+        }
+        KeyframeTrack(\.tilt) {
+            LinearKeyframe(rest.tilt, duration: 0.4 + delay)
+            SpringKeyframe(raised.tilt, duration: 0.45, spring: .bouncy)
+            LinearKeyframe(raised.tilt, duration: 0.8)
+            SpringKeyframe(rest.tilt, duration: 0.55, spring: .smooth)
+            LinearKeyframe(rest.tilt, duration: 1.0 - delay)
+        }
     }
 }

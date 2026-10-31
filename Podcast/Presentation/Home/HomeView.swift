@@ -62,7 +62,7 @@ struct HomeView: View {
                         showSeen: ShowSeen.shared.lastSeen
                     )
                     YourPodcastsRow(
-                        podcasts: NewEpisodeMarks.newFirst(following, newEpisodes: marks),
+                        podcasts: NewEpisodeMarks.latestFirst(following, episodes: followingFeed.episodesByPodcast),
                         newEpisodes: marks,
                         onOpen: onOpenPodcast,
                         onSeeAll: onOpenFollowing

@@ -33,12 +33,14 @@ enum NewEpisodeMarks {
         return result
     }
 
-    /// The shows with new episodes first (the one with the newest episode
-    /// leading), then the rest as they were.
-    static func newFirst(_ podcasts: [Podcast], newEpisodes: [Int: [Episode]]) -> [Podcast] {
-        let newest = { (podcast: Podcast) in newEpisodes[podcast.trackId]?.first?.pubDate }
+    /// The shows by their latest episode, the most recent first, so a show
+    /// that just published moves to the front and stays there after you
+    /// open it (until another one publishes). Shows whose feed hasn't
+    /// loaded go last, as they were.
+    static func latestFirst(_ podcasts: [Podcast], episodes: [Int: [Episode]]) -> [Podcast] {
+        let latest = { (podcast: Podcast) in episodes[podcast.trackId]?.map(\.pubDate).max() }
         return podcasts.enumerated().sorted { lhs, rhs in
-            switch (newest(lhs.element), newest(rhs.element)) {
+            switch (latest(lhs.element), latest(rhs.element)) {
             case let (a?, b?) where a != b: return a > b
             case (.some, nil): return true
             case (nil, .some): return false

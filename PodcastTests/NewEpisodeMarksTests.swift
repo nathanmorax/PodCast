@@ -62,13 +62,14 @@ struct NewEpisodeMarksOrderTests {
                 description: "", streamUrl: url)
     }
 
-    @Test("Shows with new episodes first, the newest leading; the rest as they were")
-    func newFirst() {
-        let podcasts = (1...4).map { Fixtures.podcast(id: $0) }
-        let order = NewEpisodeMarks.newFirst(podcasts, newEpisodes: [
+    @Test("Shows by their latest episode, the most recent first; not loaded ones last, as they were")
+    func latestFirst() {
+        let podcasts = (1...5).map { Fixtures.podcast(id: $0) }
+        let order = NewEpisodeMarks.latestFirst(podcasts, episodes: [
+            2: [episode("b1", at: 5), episode("b2", at: 30)],
             3: [episode("c", at: 10)],
             4: [episode("d", at: 20)]
         ])
-        #expect(order.map(\.trackId) == [4, 3, 1, 2])
+        #expect(order.map(\.trackId) == [2, 4, 3, 1, 5])
     }
 }
