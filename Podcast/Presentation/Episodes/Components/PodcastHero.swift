@@ -5,79 +5,89 @@
 
 import SwiftUI
 
-/// The top of a podcast's page, like a film's page: the cover edge to edge
-/// under the clear navigation bar (it grows when pulled down), darker at
-/// the bottom; over it the genre in mustard, the name in very tall
-/// capitals and "By host · Weekly · 214 episodes", in white.
+/// The top of a podcast's page: a soft wash of the cover's color fading
+/// into the page, the cover rounded in the middle, then centered the name
+/// in bold, who makes it in the accent, and "Science · Weekly · 214
+/// episodes".
 struct PodcastHero: View {
 
     let podcast: Podcast
     let cadence: ShowCadence?
 
-    static let height: CGFloat = 420
+    /// How far the page scrolls before the name passes under the bar (the
+    /// bar then shows it).
+    static let height: CGFloat = 380
+
+    static let coverSide: CGFloat = 210
+
+    /// The cover's color; read once it loads (cached after that).
+    @State private var loadedTint: ArtworkTint?
+
+    private var tint: ArtworkTint? {
+        loadedTint ?? ArtworkTintLoader.cachedTint(for: podcast.artworkUrl600)
+    }
 
     private var artworkURL: String? {
         podcast.artworkURL?.absoluteString ?? podcast.artworkUrl600
     }
 
     var body: some View {
-        Color.clear
-            .frame(maxWidth: .infinity)
-            .frame(height: Self.height)
-            .background {
-                PodcastImage(source: artworkURL, contentMode: .fill)
-                    .visualEffect { content, proxy in
-                        // Pulled down: it grows from the bottom edge.
-                        let pull = max(0, proxy.frame(in: .scrollView).minY)
-                        let scale = proxy.size.height > 0 ? 1 + pull / proxy.size.height : 1
-                        return content.scaleEffect(scale, anchor: .bottom)
-                    }
-                    .accessibilityHidden(true)
-            }
-            .overlay(alignment: .bottom) {
-                LinearGradient(
-                    colors: [.black.opacity(0), .black.opacity(0.85)],
-                    startPoint: .top, endPoint: .bottom
-                )
-                .frame(height: 260)
+        VStack(spacing: 0) {
+            PodcastImage(source: artworkURL, contentMode: .fill)
+                .frame(width: Self.coverSide, height: Self.coverSide)
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .shadow(color: .black.opacity(0.3), radius: 18, y: 10)
                 .accessibilityHidden(true)
-            }
-            .overlay(alignment: .bottomLeading) { texts }
-            .clipped()
-    }
 
-    private var texts: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            if let genre = podcast.genreName, !genre.isEmpty {
-                Text(genre)
-                    .font(.caption.weight(.bold))
-                    .textCase(.uppercase)
-                    .tracking(1.2)
-                    .foregroundStyle(AppColor.Accent.soft)
+            VStack(spacing: 6) {
+                Text(podcast.trackName ?? "")
+                    .font(.title.weight(.bold))
+                    .foregroundStyle(AppColor.Text.primary)
+                    .lineLimit(3)
+                    .minimumScaleFactor(0.8)
+                if let host = podcast.artistName, !host.isEmpty {
+                    Text(host)
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(AppColor.Accent.strong)
+                        .lineLimit(1)
+                }
+                if !details.isEmpty {
+                    Text(details)
+                        .font(.footnote)
+                        .foregroundStyle(AppColor.Text.secondary)
+                        .lineLimit(1)
+                }
             }
-            Text(podcast.trackName ?? "")
-                .font(.system(size: 56, weight: .bold).width(.compressed))
-                .textCase(.uppercase)
-                .lineLimit(3)
-                .minimumScaleFactor(0.5)
-                .fixedSize(horizontal: false, vertical: true)
-            Text(byline)
-                .font(.footnote)
-                .opacity(0.85)
-                .lineLimit(1)
+            .multilineTextAlignment(.center)
+            .padding(.top, 20)
+            .padding(.horizontal, 24)
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isHeader)
         }
-        .foregroundStyle(.white)
-        .padding(.horizontal, 20)
-        .padding(.bottom, 20)
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isHeader)
+        .frame(maxWidth: .infinity)
+        // Room for the status and navigation bars, which float over the wash.
+        .padding(.top, 110)
+        .background(alignment: .top) {
+            LinearGradient(
+                colors: [(tint?.color ?? AppColor.Surface.muted).opacity(0.85), AppColor.screenBackground],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: 340)
+            .accessibilityHidden(true)
+        }
+        .task(id: podcast.artworkUrl600) {
+            guard loadedTint == nil else { return }
+            let tint = await ArtworkTintLoader.tint(for: podcast.artworkUrl600)
+            withAnimation(AppAnimation.stateChange) { loadedTint = tint }
+        }
     }
 
-    /// "By host · Weekly · 214 episodes": what's known of it.
-    private var byline: String {
+    /// "Science · Weekly · 214 episodes": what's known of it.
+    private var details: String {
         var parts: [String] = []
-        if let host = podcast.artistName, !host.isEmpty {
-            parts.append(String(localized: "By \(host)"))
+        if let genre = podcast.genreName {
+            parts.append(genre)
         }
         if let cadence {
             parts.append(String(localized: cadence.title))

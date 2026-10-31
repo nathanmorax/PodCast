@@ -350,6 +350,7 @@
       }
     },
     "By %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {

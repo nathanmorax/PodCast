@@ -121,7 +121,12 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 0) {
             HomeSectionHeader(title: title, onSeeAll: onSeeAll)
             ForEach(items) { item in
-                HomeEpisodeRow(item: item, played: played[item.id]) {
+                EpisodeListRow(
+                    episode: item.episode,
+                    artwork: item.feedArtwork,
+                    showName: item.showName,
+                    played: played[item.id]
+                ) {
                     onOpenEpisode(item.episode, item.podcast, .feed)
                 }
                 if item.id != items.last?.id {

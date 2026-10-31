@@ -25,6 +25,8 @@ enum ZoomID: Hashable {
     enum Section: Hashable {
         /// An episode in Home's lists.
         case feed
+        /// An episode on its podcast's page.
+        case show
     }
 
     enum Collection: Hashable {
