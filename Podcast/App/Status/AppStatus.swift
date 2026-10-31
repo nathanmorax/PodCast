@@ -18,10 +18,27 @@ enum AppStatus: Equatable {
     case downloaded
     /// A download just failed (shown for a moment).
     case failed
+
+    // What you just did, confirmed for a moment:
+    /// An episode saved.
+    case saved
+    /// An episode taken out of Saved.
+    case unsaved
+    /// A podcast followed.
+    case followed
+    /// A podcast unfollowed.
+    case unfollowed
+    /// A downloaded file deleted.
+    case downloadRemoved
+    /// A download stopped before it finished.
+    case downloadCanceled
+    /// An episode taken out of the history.
+    case removedFromHistory
 }
 
-/// Pure: which status wins when several things happen at once. Problems
-/// first (offline, a failure), then what's in progress, then good news.
+/// Pure: which status wins when several things happen at once. Offline
+/// first, then a failure or what you just did (answers to your own taps),
+/// then what's in progress, then a download finishing.
 enum AppStatusResolver {
 
     static func resolve(isOffline: Bool,
@@ -29,7 +46,7 @@ enum AppStatusResolver {
                         isUpdating: Bool,
                         flash: AppStatus?) -> AppStatus? {
         if isOffline { return .offline }
-        if flash == .failed { return .failed }
+        if let flash, flash != .downloaded { return flash }
         if !downloads.isEmpty {
             let average = downloads.reduce(0, +) / Double(downloads.count)
             return .downloading(progress: average, count: downloads.count)

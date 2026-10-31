@@ -5,8 +5,9 @@
 
 import SwiftUI
 
-/// The pill itself: a ring (filling with the progress) or an icon, and one
-/// word, on glass. "◔ Downloading", "Offline", "✓ Downloaded", "◌ Updating".
+/// The pill itself: a ring (filling with the progress) or an icon, and a
+/// few words, on glass. "◔ Downloading", "Offline", "✓ Downloaded",
+/// "◌ Updating", and what you just did: "Saved", "Unfollowed"…
 struct StatusPill: View {
 
     let status: AppStatus
@@ -48,6 +49,20 @@ struct StatusPill: View {
             icon("checkmark", AppColor.Accent.strong)
         case .failed:
             icon("exclamationmark", AppColor.Status.critical)
+        case .saved:
+            icon("bookmark.fill", AppColor.Accent.strong)
+        case .unsaved:
+            icon("bookmark.slash", AppColor.Text.secondary)
+        case .followed:
+            icon("checkmark", AppColor.Accent.strong)
+        case .unfollowed:
+            icon("minus", AppColor.Text.secondary)
+        case .downloadRemoved:
+            icon("trash", AppColor.Text.secondary)
+        case .downloadCanceled:
+            icon("xmark", AppColor.Text.secondary)
+        case .removedFromHistory:
+            icon("clock.arrow.circlepath", AppColor.Text.secondary)
         }
     }
 
@@ -65,6 +80,13 @@ struct StatusPill: View {
         case .offline: "Offline"
         case .downloaded: "Downloaded"
         case .failed: "Download failed"
+        case .saved: "Episode saved"
+        case .unsaved: "Removed from Saved"
+        case .followed: "Following"
+        case .unfollowed: "Unfollowed"
+        case .downloadRemoved: "Download removed"
+        case .downloadCanceled: "Download canceled"
+        case .removedFromHistory: "Removed from history"
         }
     }
 }
