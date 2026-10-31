@@ -6,8 +6,8 @@
 import SwiftUI
 
 /// The podcasts you follow, side by side: a big rounded cover, its name
-/// and who makes it. A green dot on the cover's corner means new
-/// episodes. Each cover is what its podcast's page zooms out of. When the
+/// and who makes it. New episodes peek out from behind the cover
+/// (PeekingCover), and those shows come first. Each cover is what its podcast's page zooms out of. When the
 /// covers don't all fit, the row ends with a See All tile (Following).
 struct YourPodcastsRow: View {
 
@@ -52,9 +52,13 @@ struct YourPodcastsRow: View {
                     seeAllTile
                 }
             }
+            // Room above the covers for the cards that peek out.
+            .padding(.top, 16)
         }
         .contentMargins(.horizontal, Self.margin, for: .scrollContent)
         .scrollIndicators(.hidden)
+        // The last cover in view dissolves at the edge: there are more.
+        .trailingFade()
         .onScrollGeometryChange(for: CGFloat.self) { geometry in
             geometry.containerSize.width
         } action: { _, width in
@@ -78,33 +82,21 @@ struct YourPodcastsRow: View {
 
     private func card(_ podcast: Podcast) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Color.clear
-                .frame(width: Self.side, height: Self.side)
-                .overlay { ZoomSourceImage(podcast: podcast, cornerRadius: Self.cornerRadius) }
-                .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
-                .overlay(alignment: .topTrailing) {
-                    if hasNew(podcast) { newDot.padding(8) }
-                }
-                .padding(.bottom, 8)
-                .accessibilityHidden(true)
+            // New episodes peek out from behind the cover (no text needed).
+            PeekingCover(
+                podcast: podcast,
+                newEpisodes: newEpisodes[podcast.trackId] ?? [],
+                side: Self.side,
+                cornerRadius: Self.cornerRadius
+            )
+            .padding(.bottom, 8)
 
         }
         .frame(width: Self.side, alignment: .leading)
         .contentShape(Rectangle())
     }
 
-    private func hasNew(_ podcast: Podcast) -> Bool {
-        !(newEpisodes[podcast.trackId] ?? []).isEmpty
-    }
 
-    /// The green dot: new episodes.
-    private var newDot: some View {
-        Circle()
-            .fill(AppColor.Accent.strong)
-            .frame(width: 16, height: 16)
-            .overlay { Circle().strokeBorder(.white, lineWidth: 2.5) }
-            .transition(.scale.combined(with: .opacity))
-    }
 
     private func newValue(for podcast: Podcast) -> Text {
         let count = newEpisodes[podcast.trackId]?.count ?? 0

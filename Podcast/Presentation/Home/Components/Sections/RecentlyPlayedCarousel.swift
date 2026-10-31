@@ -29,7 +29,11 @@ struct RecentlyPlayedCarousel: View {
                             onOpen: { onOpen(item) },
                             onRemove: { onRemove(item) }
                         )
-                        .containerRelativeFrame(.horizontal)
+                        // A bit narrower than the screen: the next card
+                        // peeks out at the edge, fading.
+                        .containerRelativeFrame(.horizontal) { width, _ in
+                            items.count > 1 ? width * 0.86 : width
+                        }
                         .id(item.id)
                     }
                 }
@@ -39,6 +43,7 @@ struct RecentlyPlayedCarousel: View {
             .scrollTargetBehavior(.viewAligned)
             .scrollPosition(id: $current)
             .scrollIndicators(.hidden)
+            .trailingFade(width: 40)
 
             if items.count > 1 {
                 dots

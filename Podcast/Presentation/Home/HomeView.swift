@@ -55,14 +55,15 @@ struct HomeView: View {
                     emptyState
                         .padding(.bottom, 28)
                 } else {
-                    YourPodcastsRow(
+                    let marks = NewEpisodeMarks.newEpisodes(
                         podcasts: following,
-                        newEpisodes: NewEpisodeMarks.newEpisodes(
-                            podcasts: following,
-                            episodes: followingFeed.episodesByPodcast,
-                            inboxSeen: InboxSeen.shared.lastSeen,
-                            showSeen: ShowSeen.shared.lastSeen
-                        ),
+                        episodes: followingFeed.episodesByPodcast,
+                        inboxSeen: InboxSeen.shared.lastSeen,
+                        showSeen: ShowSeen.shared.lastSeen
+                    )
+                    YourPodcastsRow(
+                        podcasts: NewEpisodeMarks.newFirst(following, newEpisodes: marks),
+                        newEpisodes: marks,
                         onOpen: onOpenPodcast,
                         onSeeAll: onOpenFollowing
                     )
