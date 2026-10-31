@@ -5,28 +5,27 @@
 
 import SwiftUI
 
-/// Listen (mustard capsule) on the left; save, download and share as icons
-/// on the right.
+/// Centered under the title: ▶ Listen (filled in the accent) and save,
+/// download and share in soft circles.
 struct EpisodeActionsBar: View {
 
     let actions: EpisodeActionViewModel
     let onListen: () -> Void
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 10) {
             Button(action: onListen) {
                 Label(actions.isPlaying ? "Pause" : "Listen",
                       systemImage: actions.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.subheadline.weight(.bold))
+                    .font(.subheadline.weight(.semibold))
                     .contentTransition(.symbolEffect(.replace))
-                    .foregroundStyle(AppColor.Text.onPastel)
-                    .padding(.horizontal, 24)
-                    .frame(minHeight: 46)
-                    .background(Capsule().fill(AppColor.Accent.soft))
+                    .foregroundStyle(AppColor.Text.inverse)
+                    .padding(.horizontal, 26)
+                    .frame(minHeight: 44)
+                    .background(AppColor.Accent.strong, in: Capsule())
+                    .contentShape(Capsule())
             }
             .buttonStyle(.plain)
-
-            Spacer(minLength: 8)
 
             EpisodeSaveButton(actions: actions)
             EpisodeDownloadButton(actions: actions)
@@ -41,5 +40,6 @@ struct EpisodeActionsBar: View {
                 .accessibilityLabel("Share")
             }
         }
+        .frame(maxWidth: .infinity)
     }
 }

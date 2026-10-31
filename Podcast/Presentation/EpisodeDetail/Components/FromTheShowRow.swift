@@ -5,8 +5,8 @@
 
 import SwiftUI
 
-/// The show this episode is from: its cover, its name in tall capitals,
-/// "Host · Science", and Follow / Following. The cover and name open the
+/// The show this episode is from: its rounded cover, its name, "Host ·
+/// Science", and Follow (filled in the accent) / Following (soft). The cover and name open the
 /// show (zooming out of the cover).
 struct FromTheShowRow: View {
 
@@ -23,14 +23,13 @@ struct FromTheShowRow: View {
                 Button(action: onOpen) {
                     HStack(spacing: 14) {
                         Color.clear
-                            .frame(width: 72, height: 72)
-                            .overlay { ZoomSourceImage(podcast: podcast, cornerRadius: 0) }
-                            .clipped()
+                            .frame(width: 64, height: 64)
+                            .overlay { ZoomSourceImage(podcast: podcast, cornerRadius: 12) }
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                             .accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(podcast.trackName ?? "")
-                                .font(AppFont.feedTitle)
-                                .textCase(.uppercase)
+                                .font(.headline)
                                 .lineLimit(2)
                             Text(caption)
                                 .font(.caption)
@@ -47,10 +46,11 @@ struct FromTheShowRow: View {
 
                 Button(action: onToggleFollow) {
                     Text(isFollowing ? "Following" : "Follow")
-                        .font(.subheadline.weight(.bold))
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(isFollowing ? AppColor.Text.primary : AppColor.Text.inverse)
                         .padding(.horizontal, 16)
                         .frame(minHeight: 36)
-                        .overlay { Capsule().strokeBorder(AppColor.Text.primary, lineWidth: 1) }
+                        .background(isFollowing ? AppColor.Surface.muted : AppColor.Accent.strong, in: Capsule())
                         .frame(minHeight: 44)
                         .contentShape(Capsule())
                 }

@@ -5,17 +5,16 @@
 
 import SwiftUI
 
-/// "WHY LISTEN", "CHAPTERS"…: the episode page's section names, small heavy
-/// capitals like a film page's.
+/// "Why listen", "Chapters"…: the episode page's section names, bold,
+/// like Home's and the show page's.
 struct EpisodeSectionTitle: View {
 
     let title: LocalizedStringKey
 
     var body: some View {
         Text(title)
-            .font(.caption.weight(.heavy))
-            .textCase(.uppercase)
-            .tracking(1)
+            .font(.title3.weight(.bold))
+            .foregroundStyle(AppColor.Text.primary)
             .accessibilityAddTraits(.isHeader)
     }
 }

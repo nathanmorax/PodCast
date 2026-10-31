@@ -13,7 +13,6 @@ import SwiftUI
 final class EpisodeDetailController: UIViewController, ZoomDismissible {
 
     private let viewModel: EpisodeDetailViewModel
-    private let headerPull = HeaderPull()
 
     /// - Parameter podcast: the show, when known: "From the show" and
     ///   "More from…" need it.
@@ -38,7 +37,6 @@ final class EpisodeDetailController: UIViewController, ZoomDismissible {
     private func setupHosting() {
         let page = EpisodeDetailView(
             viewModel: viewModel,
-            pull: headerPull,
             onOpenPodcast: { [weak self] podcast in
                 self?.pushZooming(EpisodesController(podcast: podcast), from: .podcast(podcast.id))
             },
@@ -63,11 +61,6 @@ final class EpisodeDetailController: UIViewController, ZoomDismissible {
 
     private func didScroll(to offset: CGFloat) {
         scrollOffset = offset
-        // Pulled past the top: the artwork stays pinned to the top.
-        let pull = max(0, -offset)
-        if headerPull.distance != pull {
-            headerPull.distance = pull
-        }
         updateNavigationBar(offset: offset)
     }
 
@@ -90,10 +83,9 @@ final class EpisodeDetailController: UIViewController, ZoomDismissible {
     /// The title in the bar, once the artwork (and its title) is gone.
     private lazy var collapsedTitle: UILabel = {
         let label = UILabel()
-        let base = UIFont.systemFont(ofSize: 18, weight: .bold, width: .compressed)
-        label.font = UIFontMetrics(forTextStyle: .headline).scaledFont(for: base, maximumPointSize: 24)
+        label.font = .preferredFont(forTextStyle: .headline)
         label.adjustsFontForContentSizeCategory = true
-        label.text = viewModel.episode.title.uppercased()
+        label.text = viewModel.episode.title
         label.textColor = ColorName.ink.uiColor
         label.lineBreakMode = .byTruncatingTail
         return label
